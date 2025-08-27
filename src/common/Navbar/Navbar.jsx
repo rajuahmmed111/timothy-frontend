@@ -1,8 +1,14 @@
 import React, { useState } from "react"
 import { ShoppingCart, ChevronDown, Menu, X } from "lucide-react"
+import { Link } from "react-router-dom"
 
 export default function Navbar() {
-  const navItems = ["Stays", "Security", "Car Rental", "Attraction"]
+  const navItems = [
+    { name: "Stays", url: "/hotel" },
+    { name: "Security", url: "/security" },
+    { name: "Car Rental", url: "/car-rental" },
+    { name: "Attraction", url: "/attraction" }
+  ]
   const [isLanguageOpen, setIsLanguageOpen] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState("EN")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -21,7 +27,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[9999] bg-white border-b border-gray-200">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-5 md:px-0">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
@@ -35,14 +41,15 @@ export default function Navbar() {
           <nav className="hidden md:flex">
             <div className="flex items-center bg-[#0064D2] rounded-full p-1">
               {navItems.map((item, index) => (
-                <button
-                  key={item}
+                <Link
+                  key={item.name}
+                  to={item.url}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     index === 0 ? "bg-white text-[#0064D2] shadow-sm" : "text-white"
                   }`}
                 >
-                  {item}
-                </button>
+                  {item.name}
+                </Link>
               ))}
             </div>
           </nav>
@@ -111,14 +118,15 @@ export default function Navbar() {
               {/* Mobile Navigation */}
               <div className="space-y-2">
                 {navItems.map((item, index) => (
-                  <button
-                    key={item}
+                  <Link
+                    key={item.name}
+                    to={item.url}
                     className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       index === 0 ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
-                    {item}
-                  </button>
+                    {item.name}
+                  </Link>
                 ))}
               </div>
               

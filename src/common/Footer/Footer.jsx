@@ -36,11 +36,11 @@ export default function Footer() {
                                     List Your Property
                                 </Link>
                             </li>
-                            <li>
+                            {/* <li>
                                 <Link to="#" className="text-gray-300 hover:text-white transition-colors">
                                     Partnership
                                 </Link>
-                            </li>
+                            </li> */}
                         </ul>
                     </div>
 
