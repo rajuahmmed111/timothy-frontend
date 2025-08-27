@@ -57,9 +57,9 @@ export default function Hero() {
 
                         </div>
                         {/* Search Button */}
-                        <div className="flex items-end">
+                        <div className="">
                             <Link to="" className="w-full">
-                                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition duration-300">
+                                <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
                                     Search
                                 </button>
                             </Link>
