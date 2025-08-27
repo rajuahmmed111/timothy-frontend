@@ -97,7 +97,7 @@ export default function Testimonials() {
     }
 
     return (
-        <section className=" py-16">
+        <section className="py-16">
             <div className="container mx-auto px-4">
                 {/* Section Header */}
                 <div className="mb-12 text-center lg:text-left">
@@ -113,7 +113,7 @@ export default function Testimonials() {
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
-                    <div className="relative overflow-hidden z-999">
+                    <div className="relative overflow-hidden z-10">
                         <div
                             className="flex"
                             style={{
@@ -128,9 +128,9 @@ export default function Testimonials() {
                                     style={{ width: '320px' }}
                                 >
                                     {/* Enhanced Custom Card */}
-                                    <div className="relative p-5 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col justify-between border border-gray-100 hover:border-blue-200 group">
+                                    <div className="relative p-5 bg-[#F7F7F7] rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col justify-between border border-gray-100 hover:border-blue-200 group z-20 hover:z-30">
                                         {/* Quote Icon */}
-                                        <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity z-10">
                                             <Quote className="w-8 h-8 text-blue-500" />
                                         </div>
 
@@ -148,13 +148,13 @@ export default function Testimonials() {
 
                                         {/* User Info */}
                                         <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-                                            <div className="relative">
+                                            <div className="relative z-20">
                                                 <img
                                                     src={testimonial.avatar || "/placeholder.svg"}
                                                     alt={testimonial.name}
-                                                    className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100"
+                                                    className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100 relative z-10"
                                                 />
-                                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white z-20"></div>
                                             </div>
                                             <div>
                                                 <span className="font-semibold text-gray-900 block">
@@ -172,10 +172,10 @@ export default function Testimonials() {
                     </div>
 
                     {/* Speed Control Buttons */}
-                    <div className="flex justify-center mt-10 space-x-4">
+                    <div className="flex justify-center mt-10 space-x-4 relative z-40">
                         <button
                             onClick={() => setTranslateX(prev => prev + 50)}
-                            className="px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-300 text-gray-600 hover:text-blue-600"
+                            className="px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-300 text-gray-600 hover:text-blue-600 relative z-50 hover:z-[60]"
                             aria-label="Slow down scroll"
                         >
                             <ChevronLeft className="w-5 h-5" />
@@ -185,7 +185,7 @@ export default function Testimonials() {
                         </div> */}
                         <button
                             onClick={() => setTranslateX(prev => prev - 50)}
-                            className="px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-300 text-gray-600 hover:text-blue-600"
+                            className="px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-300 text-gray-600 hover:text-blue-600 relative z-50 hover:z-[60]"
                             aria-label="Speed up scroll"
                         >
                             <ChevronRight className="w-5 h-5" />
