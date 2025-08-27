@@ -2,112 +2,99 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, Users } from 'lucide-react';
 
-import Dubai from '../../../public/RecommendedAttractions/1.png';
-import London from '../../../public/RecommendedAttractions/2.png';
-import Istanbul from '../../../public/RecommendedAttractions/3.png';
-import NewYork from '../../../public/RecommendedAttractions/4.png';
-import ServiceCard from '../../components/ServiceCard/ServiceCard';
+import ing1 from "../../../public/hotel/1.png"
+import ing2 from "../../../public/hotel/2.png"
+import ing3 from "../../../public/hotel/3.png"
+import ing4 from "../../../public/hotel/4.png"
+import HotelCard from '../../components/HotelCard/HotelCard';
 
 
 
 export default function HotelReservation() {
-    const services = [
+    const hotels = [
         {
-            title: "Dubai",
-            image: Dubai,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Luxury Hotel",
+            location: "New York, USA",
+            image: ing1,
+            price: "$500",
+            rating: 5,
         },
         {
-            title: "London",
-            image: London,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Comfort Hotel",
+            location: "New York, USA",
+            image: ing2,
+            price: "$75",
+            rating: 4,
         },
         {
-            title: "Istanbul",
-            image: Istanbul,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Majestic Serenity Palace",
+            location: "New York, USA",
+            image: ing3,
+            price: "$425",
+            rating: 5,
         },
         {
-            title: "New York",
-            image: NewYork,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Grand Hotel",
+            location: "New York, USA",
+            image: ing4,
+            price: "$450",
+            rating: 5,
         },
         {
-            title: "Dubai",
-            image: Dubai,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Luxury Hotel",
+            location: "New York, USA",
+            image: ing1,
+            price: "$500",
+            rating: 5,
         },
         {
-            title: "London",
-            image: London,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Comfort Hotel",
+            location: "New York, USA",
+            image: ing2,
+            price: "$75",
+            rating: 4,
         },
         {
-            title: "Istanbul",
-            image: Istanbul,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Majestic Serenity Palace",
+            location: "New York, USA",
+            image: ing3,
+            price: "$425",
+            rating: 5,
         },
         {
-            title: "New York",
-            image: NewYork,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Grand Hotel",
+            location: "New York, USA",
+            image: ing4,
+            price: "$450",
+            rating: 5,
         },
         {
-            title: "Dubai",
-            image: Dubai,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Luxury Hotel",
+            location: "New York, USA",
+            image: ing1,
+            price: "$500",
+            rating: 5,
         },
         {
-            title: "London",
-            image: London,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Comfort Hotel",
+            location: "New York, USA",
+            image: ing2,
+            price: "$75",
+            rating: 4,
         },
         {
-            title: "Istanbul",
-            image: Istanbul,
-            icon: MapPin,
-            description: "564 things to do",
+            name: "Majestic Serenity Palace",
+            location: "New York, USA",
+            image: ing3,
+            price: "$425",
+            rating: 5,
         },
         {
-            title: "New York",
-            image: NewYork,
-            icon: MapPin,
-            description: "564 things to do",
-        },
-        {
-            title: "Dubai",
-            image: Dubai,
-            icon: MapPin,
-            description: "564 things to do",
-        },
-        {
-            title: "London",
-            image: London,
-            icon: MapPin,
-            description: "564 things to do",
-        },
-        {
-            title: "Istanbul",
-            image: Istanbul,
-            icon: MapPin,
-            description: "564 things to do",
-        },
-        {
-            title: "New York",
-            image: NewYork,
-            icon: MapPin,
-            description: "564 things to do",
-        },
+            name: "Grand Hotel",
+            location: "New York, USA",
+            image: ing4,
+            price: "$450",
+            rating: 5,}
     ]
     return (
         <div className='py-16'>
@@ -164,8 +151,8 @@ export default function HotelReservation() {
             </div>
             {/* Services Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto">
-                {services.map((service, index) => (
-                    <ServiceCard key={index} service={service} />
+                {hotels.map((hotel, index) => (
+                    <HotelCard key={index} hotel={hotel} />
                 ))}
             </div>
         </div>
