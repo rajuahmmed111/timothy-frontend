@@ -97,10 +97,10 @@ export default function Testimonials() {
     }
 
     return (
-        <section className="py-16">
+        <section className="py-16 relative">
             <div className="container mx-auto px-4">
                 {/* Section Header */}
-                <div className="mb-12 text-center lg:text-left">
+                <div className="mb-12 text-center lg:text-left ">
                     <h2 className="text-3xl font-bold text-gray-900 mb-4">
                         What Our Happy Guests Are Saying
                     </h2>
@@ -128,7 +128,7 @@ export default function Testimonials() {
                                     style={{ width: '320px' }}
                                 >
                                     {/* Enhanced Custom Card */}
-                                    <div className="relative p-5 bg-[#F7F7F7] rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col justify-between border border-gray-100 hover:border-blue-200 group z-20 hover:z-30">
+                                    <div className="relative p-5 bg-[#F7F7F7] rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col justify-between border border-gray-100">
                                         {/* Quote Icon */}
                                         <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity z-10">
                                             <Quote className="w-8 h-8 text-blue-500" />
@@ -193,6 +193,7 @@ export default function Testimonials() {
                     </div>
                 </div>
             </div>
+            
         </section>
     )
 }

@@ -4,10 +4,10 @@ import { Building2, Calendar, Users, Gift, Award } from 'lucide-react';
 export default function WhyChooseFASIFY() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800">
-            <section className="container mx-auto px-0 lg:px-5 py-20">
+            <section className="container mx-auto px-0 lg:px-5 pt-20">
                 <div className="grid lg:grid-cols-2 gap-10 items-start">
                     {/* Left side - Main heading and description */}
-                    <div className="text-white">
+                    <div className="text-white ">
                         <h1 className="text-[5rem] lg:text-[7rem] font-bold mb-10 leading-tight">
                             Why Choose
                             <br />
