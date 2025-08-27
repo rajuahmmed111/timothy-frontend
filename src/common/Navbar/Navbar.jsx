@@ -28,17 +28,17 @@ export default function Navbar() {
             <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
             <img src="/logo.svg" alt="logo" />
             </div>
-            <span className="text-xl font-bold text-gray-900">FASIFY</span>
+            <span className="text-4xl font-bold text-[#0064D2]">FASIFY</span>
           </div>
 
           {/* Navigation Pills */}
           <nav className="hidden md:flex">
-            <div className="flex items-center bg-blue-600 rounded-full p-1">
+            <div className="flex items-center bg-[#0064D2] rounded-full p-1">
               {navItems.map((item, index) => (
                 <button
                   key={item}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    index === 0 ? "bg-white text-blue-600 shadow-sm" : "text-white hover:bg-blue-500"
+                    index === 0 ? "bg-white text-[#0064D2] shadow-sm" : "text-white"
                   }`}
                 >
                   {item}
@@ -88,7 +88,7 @@ export default function Navbar() {
             
             {/* Auth buttons - Hidden on mobile */}
             <button className="hidden sm:block text-gray-700 hover:text-gray-900 font-medium">Sign In</button>
-            <button className="hidden sm:block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">Sign Up</button>
+            <button className="hidden sm:block bg-[#0064D2] text-white px-6 py-2 rounded-full">Sign Up</button>
             
             {/* Mobile menu button */}
             <button
