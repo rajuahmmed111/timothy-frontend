@@ -4,6 +4,8 @@ import Impact from './Impact/Impact';
 import MostVisitedHotels from './MostVisitedHotels/MostVisitedHotels';
 import ExploreAllServices from './ExploreAllServices/ExploreAllServices';
 import RecommendedAttractions from './RecommendedAttractions/RecommendedAttractions';
+import WhyChooseFASIFY from './WhyChooseFASIFY/WhyChooseFASIFY';
+import Testimonials from './Testimonials/Testimonials';
 export default function Home() {
     return <div>
         <Hero />
@@ -11,5 +13,7 @@ export default function Home() {
         <MostVisitedHotels />
         <ExploreAllServices />
         <RecommendedAttractions />
+        <WhyChooseFASIFY />
+        <Testimonials />
     </div>;
 }

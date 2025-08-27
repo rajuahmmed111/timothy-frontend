@@ -5,7 +5,7 @@ export default function ServiceCard({ service }) {
     const IconComponent = service.icon;
 
     return (
-        <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group transform hover:-translate-y-1">
+        <div className="bg-white rounded-xl overflow-hidden shadow-md  transition-all duration-300 cursor-pointer group transform hover:-translate-y-1">
             {/* Image */}
             <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
                 <img
