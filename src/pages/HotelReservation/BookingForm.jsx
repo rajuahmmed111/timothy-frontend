@@ -252,7 +252,7 @@ export default function BookingForm() {
                     className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors"
                     onClick={(e) => {
                         e.preventDefault();
-                        navigate('/payment', {
+                        navigate('/hotel/payment', {
                             state: {
                                 bookingData: {
                                     checkIn,
