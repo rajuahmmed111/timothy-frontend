@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Users, ChevronDown, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function BookingForm() {
     const [checkIn, setCheckIn] = useState('2024-03-15');
@@ -227,12 +228,12 @@ export default function BookingForm() {
                     </div>
                 </div>
 
-                <button
-                    type="submit"
-                    className="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] focus:ring-4 focus:ring-sky-500 focus:ring-opacity-50"
-                >
-                    Reserve Now
-                </button>
+
+                <Link to="/reserv-details" className="w-full">
+                    <button type="submit" className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold">
+                        Reserve Now
+                    </button>
+                </Link>
             </form>
         </div>
     );

@@ -2,100 +2,129 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, Users } from 'lucide-react';
 
-import ing1 from "../../../public/hotel/1.png"
-import ing2 from "../../../public/hotel/2.png"
-import ing3 from "../../../public/hotel/3.png"
-import ing4 from "../../../public/hotel/4.png"
-import HotelCard from '../../components/HotelCard/HotelCard';
+import ing1 from "../../../public/SecurityProviders/1.png"
+import ing2 from "../../../public/SecurityProviders/2.png"
+import ing3 from "../../../public/SecurityProviders/3.png"
+import ing4 from "../../../public/SecurityProviders/4.png"
+
+import SecurityCard from './SecurityCard';
 
 
 
-export default function HotelReservation() {
+export default function SecurityDetails() {
     const hotels = [
         {
-            name: "Luxury Hotel",
+            name: "Jacob Jones",
             location: "New York, USA",
             image: ing1,
             price: "$500",
             rating: 5,
         },
         {
-            name: "Comfort Hotel",
+            name: "Ralph Edwards",
             location: "New York, USA",
             image: ing2,
             price: "$75",
             rating: 4,
         },
         {
-            name: "Majestic Serenity Palace",
+            name: "Leslie Alexander",
             location: "New York, USA",
             image: ing3,
             price: "$425",
             rating: 5,
         },
         {
-            name: "Grand Hotel",
+            name: "Savannah Nguyen",
             location: "New York, USA",
             image: ing4,
             price: "$450",
             rating: 5,
         },
         {
-            name: "Luxury Hotel",
+            name: "Jacob Jones",
             location: "New York, USA",
             image: ing1,
             price: "$500",
             rating: 5,
         },
         {
-            name: "Comfort Hotel",
+            name: "Ralph Edwards",
             location: "New York, USA",
             image: ing2,
             price: "$75",
             rating: 4,
         },
         {
-            name: "Majestic Serenity Palace",
+            name: "Leslie Alexander",
             location: "New York, USA",
             image: ing3,
             price: "$425",
             rating: 5,
         },
         {
-            name: "Grand Hotel",
+            name: "Savannah Nguyen",
             location: "New York, USA",
             image: ing4,
             price: "$450",
             rating: 5,
         },
         {
-            name: "Luxury Hotel",
+            name: "Jacob Jones",
             location: "New York, USA",
             image: ing1,
             price: "$500",
             rating: 5,
         },
         {
-            name: "Comfort Hotel",
+            name: "Ralph Edwards",
             location: "New York, USA",
             image: ing2,
             price: "$75",
             rating: 4,
         },
         {
-            name: "Majestic Serenity Palace",
+            name: "Leslie Alexander",
             location: "New York, USA",
             image: ing3,
             price: "$425",
             rating: 5,
         },
         {
-            name: "Grand Hotel",
+            name: "Savannah Nguyen",
             location: "New York, USA",
             image: ing4,
             price: "$450",
             rating: 5,
-        }
+        },
+        {
+            name: "Jacob Jones",
+            location: "New York, USA",
+            image: ing1,
+            price: "$500",
+            rating: 5,
+        },
+        {
+            name: "Ralph Edwards",
+            location: "New York, USA",
+            image: ing2,
+            price: "$75",
+            rating: 4,
+        },
+        {
+            name: "Leslie Alexander",
+            location: "New York, USA",
+            image: ing3,
+            price: "$425",
+            rating: 5,
+        },
+        {
+            name: "Savannah Nguyen",
+            location: "New York, USA",
+            image: ing4,
+            price: "$450",
+            rating: 5,
+        },
     ]
     return (
         <div className='py-16'>
@@ -133,10 +162,10 @@ export default function HotelReservation() {
                             Guests and Rooms
                         </label>
                         <select className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>2 Guests, 1 Room</option>
-                            <option>4 Guests, 2 Rooms</option>
-                            <option>6 Guests, 3 Rooms</option>
-                            <option>8 Guests, 4 Rooms</option>
+                            <option>Personal Bodyguard</option>
+                            <option>Security Guard</option>
+                            <option>Executive Protections</option>
+                            <option>Event Security</option>
                         </select>
                     </div>
                 </div>
@@ -152,7 +181,7 @@ export default function HotelReservation() {
             {/* Services Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto">
                 {hotels.map((hotel, index) => (
-                    <HotelCard key={index} hotel={hotel} />
+                    <SecurityCard key={index} hotel={hotel} />
                 ))}
             </div>
         </div>

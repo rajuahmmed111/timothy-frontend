@@ -86,19 +86,9 @@ export default function Testimonials() {
         }
     }, [isHovered, testimonials.length])
 
-    const renderStars = (rating) => {
-        return Array.from({ length: 5 }, (_, i) => (
-            <Star
-                key={i}
-                className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                    }`}
-            />
-        ))
-    }
-
     return (
         <section className="py-16 relative">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-5 md:px-0">
                 {/* Section Header */}
                 <div className="mb-12 text-center lg:text-left ">
                     <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -193,7 +183,7 @@ export default function Testimonials() {
                     </div>
                 </div>
             </div>
-            
+
         </section>
     )
 }
