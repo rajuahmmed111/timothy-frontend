@@ -4,7 +4,7 @@ import { Building2, Calendar, Users, Gift, Award } from 'lucide-react';
 export default function WhyChooseFASIFY() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800">
-            <section className="container mx-auto px-0 lg:px-5 pt-20">
+            <section className="container mx-auto px-5 md:px-0 pt-20">
                 <div className="grid lg:grid-cols-2 gap-10 items-start">
                     {/* Left side - Main heading and description */}
                     <div className="text-white ">

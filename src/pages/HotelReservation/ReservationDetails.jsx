@@ -33,18 +33,6 @@ export default function ReservationDetails({ bookingData }) {
     const handleDownloadConfirmation = () => {
         alert('Confirmation PDF downloaded successfully!');
     };
-    const handleShareBooking = () => {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Azure Oasis Booking Confirmation',
-                text: `My booking at Azure Oasis Resort - Confirmation #${booking.confirmationNumber}`,
-                url: window.location.href
-            });
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            alert('Booking link copied to clipboard!');
-        }
-    };
 
     return (
         <div className="min-h-screen bg-gray-50">

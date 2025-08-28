@@ -5,6 +5,8 @@ import Home from '../pages/Home/Home';
 import HotelReservation from '../pages/HotelReservation/HotelReservation';
 import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
+import SecurityReservation from '../pages/SecurityReservation/SecurityReservation';
+import SecurityDetails from '../pages/SecurityReservation/SecurityDetails';
 
 
 export const routes = createBrowserRouter([
@@ -26,13 +28,20 @@ export const routes = createBrowserRouter([
             },
             {
                 path: '/hotel-details',
-                element: <HotelDetails />,    
+                element: <HotelDetails />,
             },
             {
                 path: '/reserv-details',
-                element: <ReservationDetails />,    
+                element: <ReservationDetails />,
+            },
+            {
+                path: '/security-reservation',
+                element: <SecurityReservation />,
+            },
+            {
+                path: '/security-details',
+                element: <SecurityDetails />,
             }
-
         ],
     },
     //   {
