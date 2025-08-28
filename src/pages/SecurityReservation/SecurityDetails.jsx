@@ -159,7 +159,7 @@ export default function SecurityDetails() {
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                             <Users className="w-4 h-4" />
-                            Guests and Rooms
+                            Security Type
                         </label>
                         <select className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option>Personal Bodyguard</option>
@@ -171,11 +171,9 @@ export default function SecurityDetails() {
                 </div>
                 {/* Search Button */}
                 <div className="">
-                    <Link to="" className="w-full">
-                        <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
-                            Search
-                        </button>
-                    </Link>
+                    <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
+                        Search
+                    </button>
                 </div>
             </div>
             {/* Services Grid */}

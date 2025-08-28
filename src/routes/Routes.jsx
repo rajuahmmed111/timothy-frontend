@@ -9,6 +9,7 @@ import BookingConfirmation from '../pages/HotelReservation/BookingConfirmation';
 import PaymentPage from '../pages/HotelReservation/PaymentPage';
 import SecurityReservation from '../pages/SecurityReservation/SecurityReservation';
 import SecurityDetails from '../pages/SecurityReservation/SecurityDetails';
+import SecurityServiceDetails from '../pages/SecurityReservation/SecurityServiceDetails';
 
 
 export const routes = createBrowserRouter([
@@ -51,23 +52,11 @@ export const routes = createBrowserRouter([
             {
                 path: '/security-details',
                 element: <SecurityDetails />,
-            }
+            },
+            {
+                path: '/security-service-details',
+                element: <SecurityServiceDetails />,
+            },
         ],
     },
-    //   {
-    //     path: '/login',
-    //     element: <Login />,
-    //   },
-    //   {
-    //     path: '/otp',
-    //     element: <VerificationCode />,
-    //   },
-    //   {
-    //     path: '/reset-password',
-    //     element: <ResetPassword />,
-    //   },
-    //   {
-    //     path: '/forgot-password',
-    //     element: <ForgetPassword />,
-    //   },
 ]);
