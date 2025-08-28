@@ -5,8 +5,11 @@ import Home from '../pages/Home/Home';
 import HotelReservation from '../pages/HotelReservation/HotelReservation';
 import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
+import BookingConfirmation from '../pages/HotelReservation/BookingConfirmation';
+import PaymentPage from '../pages/HotelReservation/PaymentPage';
 import SecurityReservation from '../pages/SecurityReservation/SecurityReservation';
 import SecurityDetails from '../pages/SecurityReservation/SecurityDetails';
+import SecurityServiceDetails from '../pages/SecurityReservation/SecurityServiceDetails';
 
 
 export const routes = createBrowserRouter([
@@ -35,29 +38,25 @@ export const routes = createBrowserRouter([
                 element: <ReservationDetails />,
             },
             {
+                path: '/booking-confirmation',
+                element: <BookingConfirmation />,
+            },
+            {
+                path: '/payment',
+                element: <PaymentPage />,
+            },
+            {
                 path: '/security-reservation',
                 element: <SecurityReservation />,
             },
             {
                 path: '/security-details',
                 element: <SecurityDetails />,
-            }
+            },
+            {
+                path: '/security-service-details',
+                element: <SecurityServiceDetails />,
+            },
         ],
     },
-    //   {
-    //     path: '/login',
-    //     element: <Login />,
-    //   },
-    //   {
-    //     path: '/otp',
-    //     element: <VerificationCode />,
-    //   },
-    //   {
-    //     path: '/reset-password',
-    //     element: <ResetPassword />,
-    //   },
-    //   {
-    //     path: '/forgot-password',
-    //     element: <ForgetPassword />,
-    //   },
 ]);

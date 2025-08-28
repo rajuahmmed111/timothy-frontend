@@ -58,7 +58,7 @@ export default function Hero() {
                         </div>
                         {/* Search Button */}
                         <div className="">
-                            <Link to="" className="w-full">
+                            <Link to="/hotel" className="w-full">
                                 <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
                                     Search
                                 </button>

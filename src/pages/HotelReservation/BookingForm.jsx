@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Calendar, Users, ChevronDown, Star } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function BookingForm() {
+    const navigate = useNavigate();
     const [checkIn, setCheckIn] = useState('2024-03-15');
     const [checkOut, setCheckOut] = useState('2024-03-18');
     const [guests, setGuests] = useState(2);
     const [selectedRoom, setSelectedRoom] = useState('deluxe');
     const [showGuestSelector, setShowGuestSelector] = useState(false);
+    const [isBooking, setIsBooking] = useState(false);
 
     const rooms = [
         {
@@ -39,7 +41,23 @@ export default function BookingForm() {
 
     const handleBooking = (e) => {
         e.preventDefault();
-        alert('Booking submitted successfully! You will receive a confirmation email shortly.');
+        setIsBooking(true);
+        
+        // Simulate API call
+        setTimeout(() => {
+            // In a real app, you would pass booking details via state or context
+            navigate('/booking-confirmation', {
+                state: {
+                    bookingId: 'BK' + Math.floor(10000000 + Math.random() * 90000000),
+                    checkIn,
+                    checkOut,
+                    guests,
+                    roomType: rooms.find(room => room.id === selectedRoom)?.name || 'Deluxe Room',
+                    total: total
+                }
+            });
+            setIsBooking(false);
+        }, 1500);
     };
 
 
@@ -229,11 +247,28 @@ export default function BookingForm() {
                 </div>
 
 
-                <Link to="/reserv-details" className="w-full">
-                    <button type="submit" className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold">
-                        Reserve Now
-                    </button>
-                </Link>
+                <button 
+                    type="submit" 
+                    className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        navigate('/payment', {
+                            state: {
+                                bookingData: {
+                                    checkIn,
+                                    checkOut,
+                                    guests,
+                                    roomType: rooms.find(room => room.id === selectedRoom)?.name || 'Deluxe Room',
+                                    total: Math.round(selectedRoomData.price * 1.22 * nights), // Including taxes
+                                    hotelName: 'Luxury Beach Resort & Spa',
+                                    location: 'Maldives'
+                                }
+                            }
+                        });
+                    }}
+                >
+                    Reserve Now
+                </button>
             </form>
         </div>
     );

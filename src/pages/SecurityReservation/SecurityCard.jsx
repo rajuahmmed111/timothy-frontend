@@ -49,7 +49,7 @@ export default function SecurityCard({ hotel }) {
 
                 {/* Price & Button */}
                 <div className="w-full">
-                    <Link to="" className="w-full">
+                    <Link to="/security-service-details" className="w-full">
                         <button className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold">
                             Book Now
                         </button>

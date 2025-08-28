@@ -13,14 +13,6 @@ export default function ImageGallery() {
         {
             src: "https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg?auto=compress&cs=tinysrgb&w=400",
             alt: "Hotel Room"
-        },
-        {
-            src: "https://images.pexels.com/photos/271743/pexels-photo-271743.jpeg?auto=compress&cs=tinysrgb&w=400",
-            alt: "Restaurant"
-        },
-        {
-            src: "https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=400",
-            alt: "Pool Area"
         }
     ];
     return (
@@ -37,7 +29,7 @@ export default function ImageGallery() {
                     <img
                         src={image.src}
                         alt={image.alt}
-                        className="w-full h-20 md:h-24 object-cover rounded-lg shadow-md hover:shadow-lg transition-all duration-300 group-hover:scale-105"
+                        className="w-full h-02 md:h-38 object-cover rounded-lg shadow-md hover:shadow-lg transition-all duration-300 group-hover:scale-105"
                     />
                 </div>
             ))}
