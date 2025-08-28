@@ -2,14 +2,14 @@ import React from 'react';
 import { Star, MapPin } from "lucide-react";
 import { Link } from 'react-router-dom';
 
-export default function SecurityCard({ hotel }) {
+export default function SecurityCard({ securityProvider }) {
     return (
         <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             {/* Hotel Image */}
             <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
                 <img
-                    src={hotel.image || "/placeholder.svg"}
-                    alt={hotel.name}
+                    src={securityProvider?.image || "/placeholder.svg"}
+                    alt={securityProvider?.name}
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                 />
                 <div className="absolute top-3 right-3">
@@ -22,27 +22,27 @@ export default function SecurityCard({ hotel }) {
             {/* Hotel Details */}
             <div className="p-5">
                 <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1">
-                    {hotel.name}
+                    {securityProvider?.name}
                 </h3>
                 {/* Hotel Location */}
                 <p className="text-sm text-gray-600 line-clamp-2 flex items-center gap-2 mb-2">
-                    <MapPin className="w-4 h-4" /> {hotel.location}
+                    <MapPin className="w-4 h-4" /> {securityProvider?.location}
                 </p>
 
                 {/* Rating */}
                 <div className="flex items-center gap-2 mb-3">
                     <div className="text-2xl font-bold text-gray-900">
-                        {hotel.price}
+                        {securityProvider?.price}
                     </div>
                     <div className="flex items-center gap-1">
-                        {[...Array(hotel.rating)].map((_, i) => (
+                        {[...Array(securityProvider?.rating || 0)].map((_, i) => (
                             <Star
                                 key={i}
                                 className="w-4 h-4 fill-yellow-400 text-yellow-400"
                             />
                         ))}
                         <span className="text-sm text-gray-600 ml-1">
-                            ({hotel.rating}.0)
+                            ({securityProvider?.rating || 0}.0)
                         </span>
                     </div>
                 </div>

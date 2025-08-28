@@ -81,13 +81,7 @@ export default function SecurityPaymentPage() {
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="container mx-auto px-4 max-w-3xl">
-                <button 
-                    onClick={() => navigate(-1)}
-                    className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
-                >
-                    <ArrowLeft className="w-4 h-4 mr-1" />
-                    Back to booking
-                </button>
+          
 
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                     <div className="p-6 border-b border-gray-200">
@@ -152,7 +146,7 @@ export default function SecurityPaymentPage() {
                                                 onChange={handleExpiryDateChange}
                                                 placeholder="MM/YY"
                                                 maxLength={5}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg transition-colors"
                                                 required
                                             />
                                         </div>
@@ -166,7 +160,7 @@ export default function SecurityPaymentPage() {
                                                     onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
                                                     placeholder="123"
                                                     maxLength={4}
-                                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg transition-colors"
                                                     required
                                                 />
                                             </div>
@@ -180,14 +174,14 @@ export default function SecurityPaymentPage() {
                                             value={cardholderName}
                                             onChange={(e) => setCardholderName(e.target.value)}
                                             placeholder="John Doe"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg transition-colors"
                                             required
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between text-sm text-gray-500">
+                            {/* <div className="flex items-center justify-between text-sm text-gray-500">
                                 <div className="flex items-center">
                                     <Lock className="w-4 h-4 mr-1 text-green-500" />
                                     <span>Secure payment</span>
@@ -200,7 +194,7 @@ export default function SecurityPaymentPage() {
                                         <span className="text-xs bg-gray-100 px-2 py-1 rounded">AMEX</span>
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
 
                             <button
                                 type="submit"
@@ -214,10 +208,10 @@ export default function SecurityPaymentPage() {
                                 {isProcessing ? 'Processing...' : `Pay $${bookingDetails?.total || '0'}`}
                             </button>
 
-                            <div className="flex items-center justify-center text-sm text-gray-500 mt-4">
+                            {/* <div className="flex items-center justify-center text-sm text-gray-500 mt-4">
                                 <Shield className="w-4 h-4 mr-2 text-green-500" />
                                 <span>Your payment is secure and encrypted</span>
-                            </div>
+                            </div> */}
                         </form>
                     </div>
                 </div>

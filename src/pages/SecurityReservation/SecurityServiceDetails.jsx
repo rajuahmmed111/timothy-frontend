@@ -109,14 +109,14 @@ export default function SecurityServiceDetails() {
                             <div className="p-6 md:p-8 md:w-1/3 bg-gray-50 border-l border-gray-200">
                                 <SecurityBookingForm />
                                 
-                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                {/* <div className="mt-6 pt-6 border-t border-gray-200">
                                     <div className="flex items-start">
                                         <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                                         <p className="text-sm text-gray-600">
                                             Free cancellation up to 24 hours before service. Full refund if cancelled within the free cancellation period.
                                         </p>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     </div>

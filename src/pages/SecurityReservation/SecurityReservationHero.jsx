@@ -1,5 +1,4 @@
 import React from "react";
-import { CalendarDays, MapPin, Users } from "lucide-react"
 import { Link } from "react-router-dom"
 
 
@@ -17,39 +16,24 @@ export default function SecurityReservationHero() {
                     <h1 className="text-7xl font-bold mb-10 text-white">Stay Protected Wherever You Go!!</h1>
                     {/* Custom Card */}
                     <div className="bg-white p-5 rounded-2xl shadow-lg w-full">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                             {/* Location Input */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <MapPin className="w-4 h-4" />
-                                    Location
-                                </label>
+                        
                                 <input
                                     type="text"
-                                    placeholder="Enter destination"
+                                    placeholder="Find Location"
                                     className="w-full p-3 border border-gray-200 rounded-lg"
-                                />
-                            </div>
-
-                            {/* Check-in & Check-out */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <CalendarDays className="w-4 h-4" />
-                                    Date
-                                </label>
-                                <input
-                                    type="date"
-                                    className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400"
                                 />
                             </div>
 
                             {/* Guests and Rooms */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                {/* <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                                     <Users className="w-4 h-4" />
                                     Personal Bodyguard
-                                </label>
-                                <select className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </label> */}
+                                <select className="w-full p-3 border border-gray-200 rounded-lg">
                                     <option>Personal Bodyguard</option>
                                     <option>Security Guard</option>
                                     <option>Executive Protections</option>
