@@ -6,10 +6,12 @@ import HotelReservation from '../pages/HotelReservation/HotelReservation';
 import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
 import BookingConfirmation from '../pages/HotelReservation/BookingConfirmation';
-import PaymentPage from '../pages/HotelReservation/PaymentPage';
+import HotelPaymentPage from '../pages/HotelReservation/PaymentPage';
 import SecurityReservation from '../pages/SecurityReservation/SecurityReservation';
 import SecurityDetails from '../pages/SecurityReservation/SecurityDetails';
 import SecurityServiceDetails from '../pages/SecurityReservation/SecurityServiceDetails';
+import SecurityPaymentPage from '../pages/Payment/PaymentPage';
+import SecurityBookingConfirmation from '../pages/SecurityReservation/SecurityBookingConfirmation';
 
 
 export const routes = createBrowserRouter([
@@ -42,8 +44,12 @@ export const routes = createBrowserRouter([
                 element: <BookingConfirmation />,
             },
             {
-                path: '/payment',
-                element: <PaymentPage />,
+                path: '/hotel/payment',
+                element: <HotelPaymentPage />,
+            },
+            {
+                path: '/security/payment',
+                element: <SecurityPaymentPage />,
             },
             {
                 path: '/security-reservation',
@@ -56,6 +62,10 @@ export const routes = createBrowserRouter([
             {
                 path: '/security-service-details',
                 element: <SecurityServiceDetails />,
+            },
+            {
+                path: '/security/booking-confirmation',
+                element: <SecurityBookingConfirmation />,
             },
         ],
     },
