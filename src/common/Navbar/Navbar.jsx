@@ -7,7 +7,7 @@ export default function Navbar() {
   const navItems = [
     { name: "Stays", url: "/hotel" },
     { name: "Security", url: "/security-reservation" },
-    { name: "Car Rental", url: "/car-rental" },
+    { name: "Car Rental", url: "/car-reservation" },
     { name: "Attraction", url: "/attraction" }
   ]
   const [isLanguageOpen, setIsLanguageOpen] = useState(false)

@@ -12,7 +12,7 @@ export default function Hero() {
         >
             <div className="container mx-auto absolute bottom-0 left-1/2 transform -translate-x-1/2 px-5 flex flex-col justify-end pb-10">
                 <div>
-                    <h1 className="text-7xl font-bold mb-10 text-white">Easy To Book Your Stays!</h1>
+                    <h1 className="text-7xl font-bold mb-10 text-white">Book Your Stays</h1>
                     {/* Custom Card */}
                     <div className="bg-white p-5 rounded-2xl shadow-lg w-full">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">

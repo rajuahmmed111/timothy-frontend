@@ -12,6 +12,7 @@ import SecurityDetails from '../pages/SecurityReservation/SecurityDetails';
 import SecurityServiceDetails from '../pages/SecurityReservation/SecurityServiceDetails';
 import SecurityPaymentPage from '../pages/Payment/PaymentPage';
 import SecurityBookingConfirmation from '../pages/SecurityReservation/SecurityBookingConfirmation';
+import CarReservation from '../pages/CarReservation/CarReservation';
 
 
 export const routes = createBrowserRouter([
@@ -66,6 +67,10 @@ export const routes = createBrowserRouter([
             {
                 path: '/security/booking-confirmation',
                 element: <SecurityBookingConfirmation />,
+            },
+            {
+                path: '/car-reservation',
+                element: <CarReservation />,
             },
         ],
     },
