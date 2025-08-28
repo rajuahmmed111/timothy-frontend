@@ -29,10 +29,7 @@ export default function SecurityReservationHero() {
 
                             {/* Guests and Rooms */}
                             <div className="space-y-2">
-                                {/* <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <Users className="w-4 h-4" />
-                                    Personal Bodyguard
-                                </label> */}
+                        
                                 <select className="w-full p-3 border border-gray-200 rounded-lg">
                                     <option>Personal Bodyguard</option>
                                     <option>Security Guard</option>

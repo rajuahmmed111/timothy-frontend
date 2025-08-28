@@ -27,93 +27,106 @@ export default function SecurityBookingConfirmation() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto">
-                <div className="bg-gradient-to-r from-sky-600 to-blue-700 px-6 py-8 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-4">
-                        <CheckCircle className="w-8 h-8 text-white" />
+        <div className="min-h-screen py-12 px-5 md:px-8">
+            <div className="max-w-4xl mx-auto">
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <div className="bg-gradient-to-r from-sky-600 to-blue-700 px-6 py-8 text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-4">
+                            <CheckCircle className="w-8 h-8 text-white" />
+                        </div>
+                        <h1 className="text-3xl font-bold text-white mb-2">Booking Confirmed!</h1>
+                        <p className="text-blue-100">Your booking ID: {booking.bookingId}</p>
                     </div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Booking Confirmed!</h1>
-                    <p className="text-blue-100">Your booking ID: {booking.bookingId}</p>
-                </div>
 
-                <div className="bg-white shadow rounded-lg overflow-hidden">
-                    <div className="px-6 py-5 border-b border-gray-200">
-                        <h2 className="text-lg font-medium text-gray-900">Booking Details</h2>
-                    </div>
-                    <div className="px-6 py-5">
-                        <div className="space-y-6">
-                            <div className="flex items-start">
-                                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <Shield className="h-5 w-5 text-blue-600" />
+                    <div className=" overflow-hidden">
+                        <div className="px-6 py-5 border-b border-gray-200">
+                            <h2 className="text-lg font-medium text-gray-900">Booking Details</h2>
+                        </div>
+                        <div className="px-6 py-5">
+                            <div className="space-y-6">
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <Shield className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div className="ml-4">
+                                        <h3 className="text-sm font-medium text-gray-900">Service Type</h3>
+                                        <p className="text-sm text-gray-500">{booking.serviceType}</p>
+                                        <p className="mt-1 text-sm text-gray-500">{booking.serviceDescription}</p>
+                                    </div>
                                 </div>
-                                <div className="ml-4">
-                                    <h3 className="text-sm font-medium text-gray-900">Service Type</h3>
-                                    <p className="text-sm text-gray-500">{booking.serviceType}</p>
-                                    <p className="mt-1 text-sm text-gray-500">{booking.serviceDescription}</p>
-                                </div>
-                            </div>
 
-                            <div className="flex items-start">
-                                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <Calendar className="h-5 w-5 text-blue-600" />
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <Calendar className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div className="ml-4">
+                                        <h3 className="text-sm font-medium text-gray-900">Service Period</h3>
+                                        <p className="text-sm text-gray-500">
+                                            {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
+                                        </p>
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            {calculateDays(booking.startDate, booking.endDate)} day{calculateDays(booking.startDate, booking.endDate) > 1 ? 's' : ''}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="ml-4">
-                                    <h3 className="text-sm font-medium text-gray-900">Service Period</h3>
-                                    <p className="text-sm text-gray-500">
-                                        {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
-                                    </p>
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        {calculateDays(booking.startDate, booking.endDate)} day{calculateDays(booking.startDate, booking.endDate) > 1 ? 's' : ''}
-                                    </p>
-                                </div>
-                            </div>
 
-                            <div className="flex items-start">
-                                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <Clock className="h-5 w-5 text-blue-600" />
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <Clock className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div className="ml-4">
+                                        <h3 className="text-sm font-medium text-gray-900">Availability</h3>
+                                        <p className="text-sm text-gray-500">24/7 Service</p>
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            Your security personnel will be available round the clock during the service period.
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="ml-4">
-                                    <h3 className="text-sm font-medium text-gray-900">Availability</h3>
-                                    <p className="text-sm text-gray-500">24/7 Service</p>
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Your security personnel will be available round the clock during the service period.
-                                    </p>
-                                </div>
-                            </div>
 
-                            <div className="flex items-start">
-                                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <MapPin className="h-5 w-5 text-blue-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <h3 className="text-sm font-medium text-gray-900">Service Location</h3>
-                                    <p className="text-sm text-gray-500">
-                                        Your specified location
-                                    </p>
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Our team will contact you to confirm the exact service location details.
-                                    </p>
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <MapPin className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div className="ml-4">
+                                        <h3 className="text-sm font-medium text-gray-900">Service Location</h3>
+                                        <p className="text-sm text-gray-500">
+                                            Your specified location
+                                        </p>
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            Our team will contact you to confirm the exact service location details.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-900">Total Amount</span>
-                            <span className="text-xl font-bold text-gray-900">${booking.total}</span>
+                        <div className="bg-gray-50 px-6 py-4 border border-gray-200">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-900">Total Amount</span>
+                                <span className="text-xl font-bold text-gray-900">${booking.total}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="mt-10 w-full">
-                    <button
-                        onClick={() => navigate('/')}
-                        className="w-full px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                        Back to Home
-                    </button>
-
+                    <div className="space-y-3 mt-5 px-6 pb-6">
+                        <div className="w-full">
+                            <Link
+                                to="/"
+                                className="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
+                            >
+                                Back to Home
+                            </Link>
+                        </div>
+                        <button
+                            type="button"
+                            className="w-full inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
+                            onClick={() => window.print()}
+                        >
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Print Confirmation
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
