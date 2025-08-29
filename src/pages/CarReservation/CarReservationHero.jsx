@@ -14,7 +14,7 @@ export default function CarReservationHero() {
                     <h1 className="text-7xl font-bold mb-10 text-white">Rent A Car Anytime Anywhere</h1>
                     {/* Custom Card */}
                     <div className="bg-white p-5 rounded-2xl shadow-lg w-full">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                        <div className="mb-5">
                             <div className="space-y-2">
                                 <input
                                     type="text"
@@ -26,7 +26,7 @@ export default function CarReservationHero() {
                         </div>
                         {/* Search Button */}
                         <div className="">
-                            <Link to="/security-details" className="w-full">
+                            <Link to="/car-details" className="w-full">
                                 <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
                                     Search
                                 </button>

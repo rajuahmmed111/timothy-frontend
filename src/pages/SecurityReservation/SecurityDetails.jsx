@@ -155,10 +155,7 @@ export default function SecurityDetails() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                     {/* Location Input */}
                     <div className="space-y-2">
-                        {/* <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            Location
-                        </label> */}
+                    
                         <input
                             type="text"
                             placeholder="Find Location"

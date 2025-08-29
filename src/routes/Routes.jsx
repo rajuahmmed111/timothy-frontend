@@ -13,6 +13,7 @@ import SecurityServiceDetails from '../pages/SecurityReservation/SecurityService
 import SecurityPaymentPage from '../pages/Payment/PaymentPage';
 import SecurityBookingConfirmation from '../pages/SecurityReservation/SecurityBookingConfirmation';
 import CarReservation from '../pages/CarReservation/CarReservation';
+import CarDetails from '../pages/CarReservation/CarDetails';
 
 
 export const routes = createBrowserRouter([
@@ -71,6 +72,10 @@ export const routes = createBrowserRouter([
             {
                 path: '/car-reservation',
                 element: <CarReservation />,
+            },
+            {
+                path: '/car-details',
+                element: <CarDetails />,
             },
         ],
     },
