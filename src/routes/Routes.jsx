@@ -23,6 +23,8 @@ import AttractionsDetailsPage from '../pages/AttractionReservation/AttractionsDe
 import EventReservationPage from '../pages/AttractionReservation/EventReservationPage';
 import EventPaymentPage from '../pages/AttractionReservation/EventPaymentPage';
 import EventBookingConfirmation from '../pages/AttractionReservation/EventBookingConfirmation';
+import DashboardLayout from '../layout/DashboardLayout';
+import Profile from '../pages/Dashboard/Profile/Profile';
 
 export const routes = createBrowserRouter([
     {
@@ -123,4 +125,18 @@ export const routes = createBrowserRouter([
             },
         ],
     },
+    {
+        path: "/dashboard",
+        element: (
+            <DashboardLayout />
+        ),
+        children: [
+            {
+                path: "profile",
+                element: <Profile />,
+            },
+        ],
+    },
 ]);
+
+
