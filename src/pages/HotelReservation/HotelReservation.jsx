@@ -103,23 +103,23 @@ export default function HotelReservation() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
                     {/* Location Input */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        {/* <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                             <MapPin className="w-4 h-4" />
                             Location
-                        </label>
+                        </label> */}
                         <input
                             type="text"
-                            placeholder="Enter destination"
+                            placeholder="Find Your Stays"
                             className="w-full p-3 border border-gray-200 rounded-lg"
                         />
                     </div>
 
                     {/* Check-in & Check-out */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        {/* <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                             <CalendarDays className="w-4 h-4" />
                             Check-in and Check-Out
-                        </label>
+                        </label> */}
                         <input
                             type="date"
                             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400"
@@ -128,15 +128,15 @@ export default function HotelReservation() {
 
                     {/* Guests and Rooms */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        {/* <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                             <Users className="w-4 h-4" />
                             Guests and Rooms
-                        </label>
+                        </label> */}
                         <select className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>2 Guests, 1 Room</option>
-                            <option>4 Guests, 2 Rooms</option>
-                            <option>6 Guests, 3 Rooms</option>
-                            <option>8 Guests, 4 Rooms</option>
+                            <option>2 adults · 0 children · 1 room</option>
+                            <option>2 adults · 1 children · 1 room</option>
+                            <option>6 adults · 2 children · 3 room</option>
+                            <option>8 adults · 4 children · 4 room</option>
                         </select>
                     </div>
                 </div>

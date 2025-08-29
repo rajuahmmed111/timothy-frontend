@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 export default function PaymentPage() {
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     // Get booking data from location state or use default values
     const bookingData = location.state?.bookingData || {
         checkIn: new Date().toISOString().split('T')[0],
@@ -38,33 +38,33 @@ export default function PaymentPage() {
 
     const validateForm = () => {
         const newErrors = {};
-        
+
         if (!cardNumber.replace(/\s/g, '').match(/^\d{16}$/)) {
             newErrors.cardNumber = 'Please enter a valid 16-digit card number';
         }
-        
+
         if (!cardName.trim()) {
             newErrors.cardName = 'Cardholder name is required';
         }
-        
+
         if (!expiryDate.match(/^\d{2}\/\d{2}$/)) {
             newErrors.expiryDate = 'Please enter a valid expiry date (MM/YY)';
         }
-        
+
         if (!cvv.match(/^\d{3,4}$/)) {
             newErrors.cvv = 'Please enter a valid CVV';
         }
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         if (validateForm()) {
             setIsProcessing(true);
-            
+
             // Simulate API call
             setTimeout(() => {
                 navigate('/booking-confirmation', {
@@ -97,17 +97,6 @@ export default function PaymentPage() {
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
-                <div className="mb-6">
-                    <button 
-                        onClick={() => navigate(-1)}
-                        className="flex items-center text-sky-600 hover:text-sky-800 font-medium mb-4"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-1" /> Back to booking
-                    </button>
-                    <h1 className="text-2xl font-bold text-gray-900">Complete Your Booking</h1>
-                    <p className="text-gray-600">Secure payment with bank-level encryption</p>
-                </div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Payment Form */}
                     <div className="lg:col-span-2">
@@ -115,7 +104,7 @@ export default function PaymentPage() {
                             <div className="p-6 border-b border-gray-200">
                                 <h2 className="text-lg font-semibold text-gray-900">Payment Method</h2>
                             </div>
-                            
+
                             <form onSubmit={handleSubmit} className="p-6">
                                 <div className="space-y-6">
                                     {/* Card Number */}
@@ -233,7 +222,7 @@ export default function PaymentPage() {
                             <div className="p-6 border-b border-gray-200">
                                 <h2 className="text-lg font-semibold text-gray-900">Booking Summary</h2>
                             </div>
-                            
+
                             <div className="p-6">
                                 <div className="mb-6">
                                     <h3 className="font-medium text-gray-900 mb-2">{bookingData.hotelName}</h3>
@@ -262,14 +251,14 @@ export default function PaymentPage() {
                                     </div>
                                 </div>
 
-                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                {/* <div className="mt-6 pt-6 border-t border-gray-200">
                                     <div className="flex items-start">
                                         <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                                         <p className="text-sm text-gray-600">
                                             Free cancellation up to 24 hours before check-in. Full refund if cancelled within the free cancellation period.
                                         </p>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     </div>

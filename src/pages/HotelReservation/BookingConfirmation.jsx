@@ -104,47 +104,15 @@ export default function BookingConfirmation() {
                             </div>
                         </div>
 
-                        <div className="bg-blue-50 p-4 rounded-lg mb-8">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <Clock className="h-5 w-5 text-blue-600" />
-                                </div>
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-blue-800">Check-in Information</h3>
-                                    <div className="mt-2 text-sm text-blue-700">
-                                        <p>Please arrive after 3:00 PM. Early check-in is subject to availability.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <div className="space-y-3">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="w-full">
                                 <Link
                                     to="/"
-                                    className="inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
+                                    className="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
                                 >
                                     Back to Home
                                 </Link>
-                                <button
-                                    type="button"
-                                    className="inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
-                                    onClick={() => {
-                                        navigate('/payment', {
-                                            state: {
-                                                bookingData: {
-                                                    ...bookingData,
-                                                    // Reset booking ID for new payment
-                                                    bookingId: 'BK' + Math.floor(10000000 + Math.random() * 90000000),
-                                                    bookingDate: new Date().toISOString().split('T')[0]
-                                                }
-                                            }
-                                        });
-                                    }}
-                                >
-                                    <CreditCard className="w-5 h-5 mr-2" />
-                                    Make Another Payment
-                                </button>
                             </div>
                             <button
                                 type="button"
@@ -158,10 +126,6 @@ export default function BookingConfirmation() {
                             </button>
                         </div>
                     </div>
-                </div>
-
-                <div className="mt-8 text-center text-sm text-gray-500">
-                    <p>Need help? Contact our customer support at support@fasify.com or call +1 (555) 123-4567</p>
                 </div>
             </div>
         </div>

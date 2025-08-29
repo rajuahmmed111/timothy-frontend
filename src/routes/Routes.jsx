@@ -12,7 +12,10 @@ import SecurityDetails from '../pages/SecurityReservation/SecurityDetails';
 import SecurityServiceDetails from '../pages/SecurityReservation/SecurityServiceDetails';
 import SecurityPaymentPage from '../pages/Payment/PaymentPage';
 import SecurityBookingConfirmation from '../pages/SecurityReservation/SecurityBookingConfirmation';
-
+import CarReservation from '../pages/CarReservation/CarReservation';
+import CarDetails from '../pages/CarReservation/CarDetails';
+import CarServiceDetails from '../pages/CarReservation/CarServiceDetails';
+import PopularCarPage from '../pages/CarReservation/PopularCarPage';
 
 export const routes = createBrowserRouter([
     {
@@ -66,6 +69,22 @@ export const routes = createBrowserRouter([
             {
                 path: '/security/booking-confirmation',
                 element: <SecurityBookingConfirmation />,
+            },
+            {
+                path: '/car-reservation',
+                element: <CarReservation />,
+            },
+            {
+                path: '/car-details',
+                element: <CarDetails />,
+            },
+            {
+                path: '/car-service-details',
+                element: <CarServiceDetails />,
+            },
+            {
+                path: '/popular-car',
+                element: <PopularCarPage />,
             },
         ],
     },

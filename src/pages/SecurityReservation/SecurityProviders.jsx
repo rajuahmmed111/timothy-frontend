@@ -3,7 +3,6 @@ import ing1 from "../../../public/SecurityProviders/1.png"
 import ing2 from "../../../public/SecurityProviders/2.png"
 import ing3 from "../../../public/SecurityProviders/3.png"
 import ing4 from "../../../public/SecurityProviders/4.png"
-import HotelCard from '../../components/HotelCard/HotelCard';
 import SecurityCard from './SecurityCard';
 
 export default function SecurityProviders() {
@@ -56,8 +55,8 @@ export default function SecurityProviders() {
 
                 {/* Hotels Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {hotels.map((hotel, index) => (
-                        <SecurityCard key={index} hotel={hotel} />
+                    {hotels.map((securityProvider, index) => (
+                        <SecurityCard key={index} securityProvider={securityProvider} />
                     ))}
                 </div>
             </div>
