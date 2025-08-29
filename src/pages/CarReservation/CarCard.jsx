@@ -49,7 +49,7 @@ export default function CarCard({ car }) {
 
                 {/* Price & Button */}
                 <div className="w-full">
-                    <Link to="/car-details" className="w-full">
+                    <Link to="/car-service-details" className="w-full">
                         <button className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold">
                             Book Now
                         </button>
