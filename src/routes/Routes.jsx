@@ -20,6 +20,7 @@ import CarBookingConfirmation from '../pages/CarReservation/CarBookingConfirmati
 import PopularCarPage from '../pages/CarReservation/PopularCarPage';
 import AttractionReservation from '../pages/AttractionReservation/AttractionReservation';
 import AttractionsDetailsPage from '../pages/AttractionReservation/AttractionsDetailsPage';
+import EventReservationPage from '../pages/AttractionReservation/EventReservationPage';
 
 export const routes = createBrowserRouter([
     {
@@ -105,6 +106,14 @@ export const routes = createBrowserRouter([
             {
                 path: '/attraction-details',
                 element: <AttractionsDetailsPage />,
+            },
+            {
+                path: '/event-reservation',
+                element: <EventReservationPage />,
+            },
+            {
+                path: '/event-reservation',
+                element: <EventReservationPage />,
             },
         ],
     },

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import img1 from '/burj.png';
 export default function EventCard({ event }) {
 
-  
+
     return (
         <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             {/* Hotel Image */}
@@ -51,7 +51,7 @@ export default function EventCard({ event }) {
 
                 {/* Price & Button */}
                 <div className="w-full">
-                    <Link to="/hotel-details" className="w-full">
+                    <Link to="/event-reservation" className="w-full">
                         <button className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold">
                             Get Ticket
                         </button>
