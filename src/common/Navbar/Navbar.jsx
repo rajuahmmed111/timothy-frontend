@@ -8,7 +8,7 @@ export default function Navbar() {
     { name: "Stays", url: "/hotel" },
     { name: "Security", url: "/security-reservation" },
     { name: "Car Rental", url: "/car-reservation" },
-    { name: "Attraction", url: "/attraction" }
+    { name: "Attraction", url: "/attraction-reservation" }
   ]
   const [isLanguageOpen, setIsLanguageOpen] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState("EN")
