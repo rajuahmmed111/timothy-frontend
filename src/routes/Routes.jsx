@@ -15,6 +15,8 @@ import SecurityBookingConfirmation from '../pages/SecurityReservation/SecurityBo
 import CarReservation from '../pages/CarReservation/CarReservation';
 import CarDetails from '../pages/CarReservation/CarDetails';
 import CarServiceDetails from '../pages/CarReservation/CarServiceDetails';
+import CarPaymentPage from '../pages/CarReservation/CarPaymentPage';
+import CarBookingConfirmation from '../pages/CarReservation/CarBookingConfirmation';
 import PopularCarPage from '../pages/CarReservation/PopularCarPage';
 
 export const routes = createBrowserRouter([
@@ -81,6 +83,14 @@ export const routes = createBrowserRouter([
             {
                 path: '/car-service-details',
                 element: <CarServiceDetails />,
+            },
+            {
+                path: '/car/payment',
+                element: <CarPaymentPage />,
+            },
+            {
+                path: '/car/booking-confirmation',
+                element: <CarBookingConfirmation />,
             },
             {
                 path: '/popular-car',

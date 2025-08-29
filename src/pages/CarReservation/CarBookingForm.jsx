@@ -29,8 +29,6 @@ export default function CarBookingForm({ car }) {
             carDescription: car?.description || 'Car rental booking',
             location: car?.location || 'Selected Location'
         };
-
-        // Navigate to car payment page with booking details
         navigate('/car/payment', { state: { bookingDetails } });
     };
 
