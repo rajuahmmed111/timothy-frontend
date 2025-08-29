@@ -15,7 +15,11 @@ import SecurityBookingConfirmation from '../pages/SecurityReservation/SecurityBo
 import CarReservation from '../pages/CarReservation/CarReservation';
 import CarDetails from '../pages/CarReservation/CarDetails';
 import CarServiceDetails from '../pages/CarReservation/CarServiceDetails';
+import CarPaymentPage from '../pages/CarReservation/CarPaymentPage';
+import CarBookingConfirmation from '../pages/CarReservation/CarBookingConfirmation';
 import PopularCarPage from '../pages/CarReservation/PopularCarPage';
+import AttractionReservation from '../pages/AttractionReservation/AttractionReservation';
+import AttractionsDetailsPage from '../pages/AttractionReservation/AttractionsDetailsPage';
 
 export const routes = createBrowserRouter([
     {
@@ -83,8 +87,24 @@ export const routes = createBrowserRouter([
                 element: <CarServiceDetails />,
             },
             {
+                path: '/car/payment',
+                element: <CarPaymentPage />,
+            },
+            {
+                path: '/car/booking-confirmation',
+                element: <CarBookingConfirmation />,
+            },
+            {
                 path: '/popular-car',
                 element: <PopularCarPage />,
+            },
+            {
+                path: '/attraction-reservation',
+                element: <AttractionReservation />,
+            },
+            {
+                path: '/attraction-details',
+                element: <AttractionsDetailsPage />,
             },
         ],
     },
