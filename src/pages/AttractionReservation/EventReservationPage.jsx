@@ -1,8 +1,10 @@
 import React, { useState } from "react"
+import { useNavigate } from 'react-router-dom'
 import { MapPin, Star, Users, Wifi, Car, Coffee, Tv, Wind, Waves } from "lucide-react"
 import img1 from '/burj.png';
 
 export default function EventReservationPage() {
+    const navigate = useNavigate()
     const [selectedImage, setSelectedImage] = useState(0)
     const [selectedDate, setSelectedDate] = useState(null)
     const [selectedTime, setSelectedTime] = useState(null)
@@ -280,11 +282,29 @@ export default function EventReservationPage() {
                                 </select>
                             </div>
 
-                            <button className="w-full bg-[#0064D2] text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                            <button 
+                                onClick={() => {
+                                    const bookingDetails = {
+                                        bookingId: 'EVT' + Math.floor(10000000 + Math.random() * 90000000),
+                                        eventName: 'Burj Khalifa: Floors 124 & 125',
+                                        location: 'Dubai, UAE',
+                                        selectedDate,
+                                        selectedTime,
+                                        guests,
+                                        total: 600 * parseInt(guests) + 50
+                                    };
+                                    navigate('/event/payment', { state: { bookingDetails } });
+                                }}
+                                disabled={!selectedDate || !selectedTime}
+                                className={`w-full bg-[#0064D2] text-white py-3 px-6 rounded-lg font-medium transition-colors ${
+                                    !selectedDate || !selectedTime 
+                                        ? 'opacity-70 cursor-not-allowed' 
+                                        : 'hover:bg-blue-700'
+                                }`}
+                            >
                                 Reserve
                             </button>
 
-                            <p className="text-xs text-center text-gray-600">You won't be charged yet</p>
 
                             <div className="border-t border-gray-200 my-4"></div>
 
