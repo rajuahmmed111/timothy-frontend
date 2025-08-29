@@ -35,14 +35,14 @@ export default function CarCard({ car }) {
                         {car?.price}
                     </div>
                     <div className="flex items-center gap-1">
-                        {[...Array(car?.rating || 0)].map((_, i) => (
+                        {[...Array(Math.floor(car?.rating || 0))].map((_, i) => (
                             <Star
                                 key={i}
                                 className="w-4 h-4 fill-yellow-400 text-yellow-400"
                             />
                         ))}
                         <span className="text-sm text-gray-600 ml-1">
-                            ({car?.rating || 0}.0)
+                            ({car?.rating || 0})
                         </span>
                     </div>
                 </div>
