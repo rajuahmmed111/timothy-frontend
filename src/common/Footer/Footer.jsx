@@ -105,7 +105,9 @@ export default function Footer() {
 
                     {/* Contact Us Button */}
                     <div className="flex justify-end items-center w-full mb-8">
-                        <button className="bg-[#0064D2] text-white px-6 py-2 rounded-lg">Contact Us</button>
+                        <Link to="/contact-us" className="bg-[#0064D2] text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Contact Us
+                        </Link>
                     </div>
                 </div>
 
