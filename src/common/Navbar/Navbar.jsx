@@ -94,10 +94,12 @@ export default function Navbar() {
             </button>
 
             {/* Auth buttons - Hidden on mobile */}
-            <button className="hidden sm:block text-gray-700 hover:text-gray-900 font-medium">Sign In</button>
             <button
-            onClick={() => navigate('/dashboard/profile')}
-            className="hidden sm:block bg-[#0064D2] text-white px-6 py-2 rounded-full cursor-pointer">Sign Up</button>
+              onClick={() => navigate('/login')}
+            className="hidden sm:block text-gray-700 hover:text-gray-900 font-medium">Sign In</button>
+            <button
+              onClick={() => navigate('/dashboard/profile')}
+              className="hidden sm:block bg-[#0064D2] text-white px-6 py-2 rounded-full cursor-pointer">Sign Up</button>
 
             {/* Mobile menu button */}
             <button
@@ -179,7 +181,9 @@ export default function Navbar() {
                     Sign In
                   </button>
                 </Link>
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                <button
+
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
                   Sign Up
                 </button>
               </div>
