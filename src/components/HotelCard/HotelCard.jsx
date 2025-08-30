@@ -35,14 +35,14 @@ export default function HotelCard({ hotel }) {
                         {hotel.price}
                     </div>
                     <div className="flex items-center gap-1">
-                        {[...Array(hotel.rating)].map((_, i) => (
+                        {[...Array(5)].map((_, i) => (
                             <Star
                                 key={i}
-                                className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                                className={`w-4 h-4 ${i < Math.floor(hotel.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
                             />
                         ))}
                         <span className="text-sm text-gray-600 ml-1">
-                            ({hotel.rating}.0)
+                            ({hotel.rating ? Number(hotel.rating).toFixed(1) : '0.0'})
                         </span>
                     </div>
                 </div>

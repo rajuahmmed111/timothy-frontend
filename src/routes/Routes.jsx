@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import Layout from '../layout/Layout';
 import Home from '../pages/Home/Home';
 import AboutFasify from '../pages/AboutFasify/AboutFasify';
+import Offers from '../pages/Offers/Offers';
 import HotelReservation from '../pages/HotelReservation/HotelReservation';
 import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
@@ -54,6 +55,10 @@ export const routes = createBrowserRouter([
             {
                 path: '/about',
                 element: <AboutFasify />,
+            },
+            {
+                path: '/offers',
+                element: <Offers />,
             },
             {
                 path: '/hotel',
