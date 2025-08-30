@@ -11,7 +11,8 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    Package
+    Package,
+    ReceiptText
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -63,15 +64,10 @@ export default function Sidebar() {
                     </button>
                 )}
 
-                {/* Account Management */}
+                {/* Profile */}
                 <Section
-                    //   title="Account Management"
                     isActive={isSectionActive(location.pathname, [
                         "/dashboard/profile",
-                        "/dashboard/my-bookings",
-                        "/dashboard/my-vouchers",
-                        "/dashboard/payment-methods",
-
                     ])}
                 >
                     <SidebarButton
@@ -80,6 +76,18 @@ export default function Sidebar() {
                         text="My Profile"
                         onClick={isMobile ? toggleSidebar : undefined}
                     />
+                </Section>
+
+                {/* User Management */}
+                <Section
+                    title="User"
+                    isActive={isSectionActive(location.pathname, [
+                        "/dashboard/my-bookings",
+                        "/dashboard/my-vouchers",
+                        "/dashboard/payment-methods",
+
+                    ])}
+                >
                     <SidebarButton
                         to="/dashboard/payment-methods"
                         icon={<Lock size={18} />}
@@ -88,7 +96,7 @@ export default function Sidebar() {
                     />
                     <SidebarButton
                         to="/dashboard/my-bookings"
-                        icon={<MessageSquare size={18} />}
+                        icon={<ReceiptText size={18} />}
                         text="My Bookings"
                         onClick={isMobile ? toggleSidebar : undefined}
                     />
@@ -97,6 +105,7 @@ export default function Sidebar() {
                         icon={<MessageSquare size={18} />}
                         text="My Vouchers"
                         onClick={isMobile ? toggleSidebar : undefined}
+
                     />
                 </Section>
 

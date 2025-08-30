@@ -25,7 +25,17 @@ import EventPaymentPage from '../pages/AttractionReservation/EventPaymentPage';
 import EventBookingConfirmation from '../pages/AttractionReservation/EventBookingConfirmation';
 import DashboardLayout from '../layout/DashboardLayout';
 import Profile from '../pages/Dashboard/Profile/Profile';
+
 import HotelManagement from '../pages/Dashboard/Profile/HotelManagement/HotelManagement';
+
+import MyVouchers from '../pages/Dashboard/MyVouchers/MyVouchers';
+import PaymentMethods from '../pages/Dashboard/PaymentMethods/PaymentMethods';
+import MyBookings from '../pages/Dashboard/MyBookings/MyBookings';
+import LogIn from '../pages/Auth/LogIn';
+import ForgetPassword from '../pages/Auth/ForgetPassword';
+import VerificationCode from '../pages/Auth/Otp';
+import ResetPassword from '../pages/Auth/ResetPassword';
+
 
 export const routes = createBrowserRouter([
     {
@@ -124,6 +134,22 @@ export const routes = createBrowserRouter([
                 path: '/event/booking-confirmation',
                 element: <EventBookingConfirmation />,
             },
+            {
+                path: "/logIn",
+                element: <LogIn />
+            },
+            {
+                path: "/forget-password",
+                element: <ForgetPassword />
+            },
+            {
+                path: "/verification-code",
+                element: <VerificationCode />
+            },
+            {
+                path: "/new-password",
+                element: <ResetPassword />
+            },
         ],
     },
     {
@@ -137,11 +163,26 @@ export const routes = createBrowserRouter([
                 element: <Profile />,
             },
 
+
             //service provider routes
             {
                 path: "hotel-management",
                 element: <HotelManagement />,
             }
+
+            {
+                path: "my-vouchers",
+                element: <MyVouchers />,
+            },
+            {
+                path: "payment-methods",
+                element: <PaymentMethods />,
+            },
+            {
+                path: "my-bookings",
+                element: <MyBookings />,
+            },
+
         ],
     },
 ]);
