@@ -25,6 +25,9 @@ import EventPaymentPage from '../pages/AttractionReservation/EventPaymentPage';
 import EventBookingConfirmation from '../pages/AttractionReservation/EventBookingConfirmation';
 import DashboardLayout from '../layout/DashboardLayout';
 import Profile from '../pages/Dashboard/Profile/Profile';
+
+import HotelManagement from '../pages/Dashboard/Profile/HotelManagement/HotelManagement';
+
 import MyVouchers from '../pages/Dashboard/MyVouchers/MyVouchers';
 import PaymentMethods from '../pages/Dashboard/PaymentMethods/PaymentMethods';
 import MyBookings from '../pages/Dashboard/MyBookings/MyBookings';
@@ -32,6 +35,7 @@ import LogIn from '../pages/Auth/LogIn';
 import ForgetPassword from '../pages/Auth/ForgetPassword';
 import VerificationCode from '../pages/Auth/Otp';
 import ResetPassword from '../pages/Auth/ResetPassword';
+
 
 export const routes = createBrowserRouter([
     {
@@ -158,6 +162,14 @@ export const routes = createBrowserRouter([
                 path: "profile",
                 element: <Profile />,
             },
+
+
+            //service provider routes
+            {
+                path: "hotel-management",
+                element: <HotelManagement />,
+            }
+
             {
                 path: "my-vouchers",
                 element: <MyVouchers />,
@@ -170,6 +182,7 @@ export const routes = createBrowserRouter([
                 path: "my-bookings",
                 element: <MyBookings />,
             },
+
         ],
     },
 ]);

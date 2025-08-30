@@ -111,36 +111,36 @@ export default function Sidebar() {
 
                 {/* Marketplace Tools */}
                 <Section
-                    title="Marketplace Tools"
+                    title="Service Provider"
                     isActive={isSectionActive(location.pathname, [
-                        "/userdashboard/my-adverts",
-                        "/userdashboard/my-subscriptions",
-                        "/userdashboard/saved-adverts",
-                        "/userdashboard/message-centre"
+                        "/dashboard/hotel-management",
+                        "/dashboard/security-management",
+                        "/dashboard/Car-management",
+                        "/dashboard/Attraction-management",
                     ])}
                 >
                     <SidebarButton
-                        to="/userdashboard/my-adverts"
+                        to="/dashboard/hotel-management"
                         icon={<List size={18} />}
-                        text="My Adverts"
+                        text="Hotel Management"
                         onClick={isMobile ? toggleSidebar : undefined}
                     />
                     <SidebarButton
-                        to="/userdashboard/my-subscriptions"
+                        to="/dashboard/security-management"
                         icon={<Package size={18} />}
-                        text="My Subscriptions"
+                        text="Security Management"
                         onClick={isMobile ? toggleSidebar : undefined}
                     />
                     <SidebarButton
-                        to="/userdashboard/saved-adverts"
+                        to="/dashboard/Car-management"
                         icon={<Pin size={18} />}
-                        text="Saved Adverts"
+                        text="Car Management"
                         onClick={isMobile ? toggleSidebar : undefined}
                     />
                     <SidebarButton
-                        to="/userdashboard/message-centre"
+                        to="/dashboard/Attraction-management"
                         icon={<Mail size={18} />}
-                        text="Message Centre"
+                        text="Attraction Management"
                         onClick={isMobile ? toggleSidebar : undefined}
                     />
                 </Section>
@@ -195,8 +195,8 @@ function SidebarButton({ to, icon, text, onClick }) {
             className={({ isActive }) =>
                 `flex items-center gap-2 px-3 py-2 rounded-md bg-white transition
         ${isActive
-                    ? "!bg-[#00823A] text-white shadow-[inset_0_4px_6px_rgba(0,0,0,0.3)]"
-                    : "shadow-[inset_0_-4px_6px_rgba(0,0,0,0.05)] hover:bg-green-100 hover:text-black"
+                    ? "!bg-[#3b82f6] text-white shadow-[inset_0_4px_6px_rgba(0,0,0,0.3)]"
+                    : "shadow-[inset_0_-4px_6px_rgba(0,0,0,0.05)] hover:bg-blue-100 hover:text-black"
                 }`
             }
         >
