@@ -168,7 +168,7 @@ export const routes = createBrowserRouter([
             {
                 path: "hotel-management",
                 element: <HotelManagement />,
-            }
+            },
 
             {
                 path: "my-vouchers",
