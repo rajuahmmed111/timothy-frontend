@@ -4,6 +4,8 @@ import Layout from '../layout/Layout';
 import Home from '../pages/Home/Home';
 import AboutFasify from '../pages/AboutFasify/AboutFasify';
 import Offers from '../pages/Offers/Offers';
+import PrivacyPolicy from '../pages/Legal/PrivacyPolicy';
+import TermsAndConditions from '../pages/Legal/TermsAndConditions';
 import HotelReservation from '../pages/HotelReservation/HotelReservation';
 import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
@@ -59,6 +61,14 @@ export const routes = createBrowserRouter([
             {
                 path: '/offers',
                 element: <Offers />,
+            },
+            {
+                path: '/privacy-policy',
+                element: <PrivacyPolicy />,
+            },
+            {
+                path: '/terms-and-conditions',
+                element: <TermsAndConditions />,
             },
             {
                 path: '/hotel',

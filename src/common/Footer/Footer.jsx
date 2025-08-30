@@ -69,13 +69,13 @@ export default function Footer() {
                         <h3 className="text-lg font-semibold mb-4">Terms & Settings</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link href="#" className="text-[#090909] hover:text-white transition-colors">
-                                    Privacy & Cookies
+                                <Link to="/privacy-policy" className="text-[#090909] hover:text-white transition-colors">
+                                    Privacy Policy
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="text-[#090909] hover:text-white transition-colors">
-                                    Terms & Condition
+                                <Link to="/terms-and-conditions" className="text-[#090909] hover:text-white transition-colors">
+                                    Terms & Conditions
                                 </Link>
                             </li>
                         </ul>
