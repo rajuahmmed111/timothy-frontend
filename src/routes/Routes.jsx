@@ -25,6 +25,7 @@ import EventPaymentPage from '../pages/AttractionReservation/EventPaymentPage';
 import EventBookingConfirmation from '../pages/AttractionReservation/EventBookingConfirmation';
 import DashboardLayout from '../layout/DashboardLayout';
 import Profile from '../pages/Dashboard/Profile/Profile';
+import HotelManagement from '../pages/Dashboard/Profile/HotelManagement/HotelManagement';
 
 export const routes = createBrowserRouter([
     {
@@ -135,6 +136,12 @@ export const routes = createBrowserRouter([
                 path: "profile",
                 element: <Profile />,
             },
+
+            //service provider routes
+            {
+                path: "hotel-management",
+                element: <HotelManagement />,
+            }
         ],
     },
 ]);
