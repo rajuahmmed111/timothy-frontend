@@ -17,13 +17,13 @@ export default function Footer() {
                         <h3 className="text-lg font-semibold mb-4">Company</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link to="#" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/about" className="text-[#090909] hover:text-white transition-colors">
                                     About FASIFY
                                 </Link>
                             </li>
                             <li>
-                                <Link to="#" className="text-[#090909] hover:text-white transition-colors">
-                                    Service Provider
+                                <Link to="/dashboard/hotel-management" className="text-[#090909] hover:text-white transition-colors">
+                                    Partnership
                                 </Link>
                             </li>
                             <li>
@@ -36,11 +36,6 @@ export default function Footer() {
                                     List Your Property
                                 </Link>
                             </li>
-                            {/* <li>
-                                <Link to="#" className="text-gray-300 hover:text-white transition-colors">
-                                    Partnership
-                                </Link>
-                            </li> */}
                         </ul>
                     </div>
 
