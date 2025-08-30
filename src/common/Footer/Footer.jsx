@@ -78,6 +78,11 @@ export default function Footer() {
                                     Terms & Conditions
                                 </Link>
                             </li>
+                            <li>
+                                <Link to="/dispute-resolution" className="text-[#090909] hover:text-white transition-colors">
+                                    Dispute Resolution
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
@@ -86,12 +91,12 @@ export default function Footer() {
                         <h3 className="text-lg font-semibold mb-4">Help</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link href="#" className="text-[#090909] hover:text-white transition-colors">
-                                    Cancel You Reservation
+                                <Link to="/cancel-reservation" className="text-[#090909] hover:text-white transition-colors">
+                                    Cancel Your Reservation
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/refund-policies" className="text-[#090909] hover:text-white transition-colors">
                                     Refund Timeline, Policies & Process
                                 </Link>
                             </li>

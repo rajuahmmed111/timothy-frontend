@@ -6,6 +6,9 @@ import AboutFasify from '../pages/AboutFasify/AboutFasify';
 import Offers from '../pages/Offers/Offers';
 import PrivacyPolicy from '../pages/Legal/PrivacyPolicy';
 import TermsAndConditions from '../pages/Legal/TermsAndConditions';
+import CancelReservation from '../pages/Help/CancelReservation';
+import RefundPolicies from '../pages/Help/RefundPolicies';
+import DisputeResolution from '../pages/Help/DisputeResolution';
 import HotelReservation from '../pages/HotelReservation/HotelReservation';
 import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
@@ -69,6 +72,18 @@ export const routes = createBrowserRouter([
             {
                 path: '/terms-and-conditions',
                 element: <TermsAndConditions />,
+            },
+            {
+                path: '/cancel-reservation',
+                element: <CancelReservation />,
+            },
+            {
+                path: '/refund-policies',
+                element: <RefundPolicies />,
+            },
+            {
+                path: '/dispute-resolution',
+                element: <DisputeResolution />,
             },
             {
                 path: '/hotel',
