@@ -110,7 +110,26 @@ export default function MyVouchers() {
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-6xl mx-auto">
+            {/* Summary Stats */}
+            <div className="container mx-auto mt-10 grid grid-cols-1 md:grid-cols-4 gap-5">
+                <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+                    <div className="text-2xl font-bold text-blue-600">{vouchers.filter(v => v.status === 'active').length}</div>
+                    <div className="text-sm text-gray-600">Active Vouchers</div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+                    <div className="text-2xl font-bold text-green-600">{vouchers.filter(v => v.status === 'used').length}</div>
+                    <div className="text-sm text-gray-600">Used Vouchers</div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+                    <div className="text-2xl font-bold text-red-600">{vouchers.filter(v => v.status === 'expired').length}</div>
+                    <div className="text-sm text-gray-600">Expired Vouchers</div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-600">{vouchers.length}</div>
+                    <div className="text-sm text-gray-600">Total Vouchers</div>
+                </div>
+            </div>
+            <div className="container mx-auto mt-10">
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">My Vouchers</h1>
@@ -147,7 +166,7 @@ export default function MyVouchers() {
                 </div>
 
                 {/* Vouchers Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-5">
                     {filteredVouchers.map((voucher) => (
                         <div key={voucher.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
                             {/* Voucher Header */}
@@ -241,25 +260,7 @@ export default function MyVouchers() {
                     </div>
                 )}
 
-                {/* Summary Stats */}
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                        <div className="text-2xl font-bold text-blue-600">{vouchers.filter(v => v.status === 'active').length}</div>
-                        <div className="text-sm text-gray-600">Active Vouchers</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                        <div className="text-2xl font-bold text-green-600">{vouchers.filter(v => v.status === 'used').length}</div>
-                        <div className="text-sm text-gray-600">Used Vouchers</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                        <div className="text-2xl font-bold text-red-600">{vouchers.filter(v => v.status === 'expired').length}</div>
-                        <div className="text-sm text-gray-600">Expired Vouchers</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                        <div className="text-2xl font-bold text-purple-600">{vouchers.length}</div>
-                        <div className="text-sm text-gray-600">Total Vouchers</div>
-                    </div>
-                </div>
+
             </div>
         </div>
     );

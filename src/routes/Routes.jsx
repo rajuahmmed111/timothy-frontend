@@ -32,6 +32,7 @@ import PopularCarPage from '../pages/CarReservation/PopularCarPage';
 import AttractionReservation from '../pages/AttractionReservation/AttractionReservation';
 import AttractionsDetailsPage from '../pages/AttractionReservation/AttractionsDetailsPage';
 import EventReservationPage from '../pages/AttractionReservation/EventReservationPage';
+import EventCheckout from '../pages/AttractionReservation/EventCheckout';
 import EventPaymentPage from '../pages/AttractionReservation/EventPaymentPage';
 import EventBookingConfirmation from '../pages/AttractionReservation/EventBookingConfirmation';
 import DashboardLayout from '../layout/DashboardLayout';
@@ -180,6 +181,10 @@ export const routes = createBrowserRouter([
             {
                 path: '/event-reservation',
                 element: <EventReservationPage />,
+            },
+            {
+                path: '/event/checkout',
+                element: <EventCheckout />,
             },
             {
                 path: '/event/payment',

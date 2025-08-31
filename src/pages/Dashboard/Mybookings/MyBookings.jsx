@@ -254,16 +254,16 @@ export default function MyBookings() {
             width: 120,
             render: (_, record) => (
                 <Space>
-                    <Button 
-                        type="primary" 
-                        icon={<EyeOutlined />} 
+                    <Button
+                        type="primary"
+                        icon={<EyeOutlined />}
                         size="small"
                         onClick={() => showBookingDetails(record)}
                     >
                         View
                     </Button>
-                    <Button 
-                        icon={<DownloadOutlined />} 
+                    <Button
+                        icon={<DownloadOutlined />}
                         size="small"
                         onClick={() => downloadReceipt(record)}
                     >
@@ -292,24 +292,44 @@ export default function MyBookings() {
 
     const filteredData = bookingsData.filter(booking => {
         const matchesSearch = booking.title.toLowerCase().includes(searchText.toLowerCase()) ||
-                            booking.bookingId.toLowerCase().includes(searchText.toLowerCase()) ||
-                            booking.location.toLowerCase().includes(searchText.toLowerCase());
-        
+            booking.bookingId.toLowerCase().includes(searchText.toLowerCase()) ||
+            booking.location.toLowerCase().includes(searchText.toLowerCase());
+
         const matchesStatus = selectedStatus === 'all' || booking.status === selectedStatus;
         const matchesService = selectedService === 'all' || booking.service === selectedService;
-        
+
         let matchesDate = true;
         if (dateRange && dateRange.length === 2) {
             const bookingDate = dayjs(booking.checkIn);
             matchesDate = bookingDate.isAfter(dateRange[0]) && bookingDate.isBefore(dateRange[1]);
         }
-        
+
         return matchesSearch && matchesStatus && matchesService && matchesDate;
     });
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-7xl mx-auto">
+
+            {/* Summary Stats */}
+            <div className="mt-10 container mx-auto grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+                    <div className="text-2xl font-bold text-green-600">{bookingsData.filter(b => b.status === 'confirmed').length}</div>
+                    <div className="text-sm text-gray-600">Confirmed</div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+                    <div className="text-2xl font-bold text-orange-600">{bookingsData.filter(b => b.status === 'pending').length}</div>
+                    <div className="text-sm text-gray-600">Pending</div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+                    <div className="text-2xl font-bold text-blue-600">{bookingsData.filter(b => b.status === 'completed').length}</div>
+                    <div className="text-sm text-gray-600">Completed</div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-600">{bookingsData.reduce((sum, b) => sum + b.amount, 0).toFixed(0)}</div>
+                    <div className="text-sm text-gray-600">Total Spent ($)</div>
+                </div>
+            </div>
+            <div className="container mx-auto mt-10">
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">My Bookings</h1>
@@ -492,25 +512,6 @@ export default function MyBookings() {
                     )}
                 </Modal>
 
-                {/* Summary Stats */}
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                        <div className="text-2xl font-bold text-green-600">{bookingsData.filter(b => b.status === 'confirmed').length}</div>
-                        <div className="text-sm text-gray-600">Confirmed</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                        <div className="text-2xl font-bold text-orange-600">{bookingsData.filter(b => b.status === 'pending').length}</div>
-                        <div className="text-sm text-gray-600">Pending</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                        <div className="text-2xl font-bold text-blue-600">{bookingsData.filter(b => b.status === 'completed').length}</div>
-                        <div className="text-sm text-gray-600">Completed</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                        <div className="text-2xl font-bold text-purple-600">{bookingsData.reduce((sum, b) => sum + b.amount, 0).toFixed(0)}</div>
-                        <div className="text-sm text-gray-600">Total Spent ($)</div>
-                    </div>
-                </div>
             </div>
         </div>
     );

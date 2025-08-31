@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom"
+import { DatePicker } from "antd";
 
 export default function AttractionsHero() {
+    const [dateRange, setDateRange] = useState(null);
+    const { RangePicker } = DatePicker;
     return (
         <section
             className="relative h-[600px] bg-cover bg-center"
@@ -16,7 +19,7 @@ export default function AttractionsHero() {
                     <h1 className="text-7xl font-bold mb-10 text-white">Nearest To You And Enjoy</h1>
                     {/* Custom Card */}
                     <div className="bg-white p-5 rounded-2xl shadow-lg w-full">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                        <div className="mb-5">
                             {/* Location Input */}
                             <div className="space-y-2">
                                 <input
@@ -26,14 +29,7 @@ export default function AttractionsHero() {
                                 />
                             </div>
 
-                            {/* Check-in & Check-out */}
-                            <div className="space-y-2">
-                                <input
-                                    type="date"
-                                    placeholder="Check-in - Check-Out"
-                                    className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400"
-                                />
-                            </div>
+
                         </div>
                         {/* Search Button */}
                         <div className="">
