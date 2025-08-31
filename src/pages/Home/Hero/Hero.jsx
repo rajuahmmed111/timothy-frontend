@@ -12,9 +12,9 @@ export default function Hero() {
 
     // Inside your component:
     const [guests, setGuests] = useState({
-        adults: 2,
+        adults: 0,
         children: 0,
-        rooms: 1
+        rooms: 0
     });
 
     const handleGuestsChange = (type, value) => {
@@ -54,12 +54,14 @@ export default function Hero() {
                             />
 
                             {/* Guests and Rooms */}
-
                             <div className="space-y-2 h-full flex flex-col">
                                 <Select
-                                    value={`${guests.adults} ${guests.adults > 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms > 1 ? 'rooms' : 'room'}`}
+                                    value={guests.adults === 0 && guests.children === 0 && guests.rooms === 0
+                                        ? null
+                                        : `${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
+                                    placeholder="0 adults · 0 children · 0 rooms"
                                     className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3"
-                                    style={{ height: '100%'  }}
+                                    style={{ height: '100%' }}
                                     dropdownMatchSelectWidth={false}
                                     dropdownRender={() => (
                                         <div className="p-4 space-y-4 min-w-[300px]">
@@ -140,8 +142,8 @@ export default function Hero() {
                                         </div>
                                     )}
                                 >
-                                    <Option value="guests" >
-                                        {`${guests.adults} ${guests.adults > 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms > 1 ? 'rooms' : 'room'}`}
+                                    <Option value="guests">
+                                        {`${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
                                     </Option>
                                 </Select>
                             </div>
