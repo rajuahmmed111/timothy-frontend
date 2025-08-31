@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import Dashboard from "./Dashboard";
+import Bookings from "./Bookings";
+import Listings from "./Listings";
+import AddBusiness from "./AddBusiness";
+import ReviewBusiness from "./ReviewBusiness";
 
 export default function HotelManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -20,11 +24,10 @@ export default function HotelManagement() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              activeTab === tab.id
-                ? "bg-white text-blue-600 shadow"
-                : "text-white hover:bg-blue-500"
-            }`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === tab.id
+              ? "bg-white text-blue-600 shadow"
+              : "text-white hover:bg-blue-500"
+              }`}
           >
             {tab.label}
           </button>
@@ -37,16 +40,16 @@ export default function HotelManagement() {
           <Dashboard />
         )}
         {activeTab === "booking" && (
-          <div className="p-4 border rounded">Here are your Bookings</div>
+          <Bookings />
         )}
         {activeTab === "listings" && (
-          <div className="p-4 border rounded">Active Listings Page</div>
+          <Listings />
         )}
         {activeTab === "addBusiness" && (
-          <div className="p-4 border rounded">Add a new Business</div>
+          <AddBusiness />
         )}
         {activeTab === "reviewBusiness" && (
-          <div className="p-4 border rounded">Review Business Section</div>
+          <ReviewBusiness />
         )}
       </div>
     </div>

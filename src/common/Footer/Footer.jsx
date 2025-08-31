@@ -17,17 +17,17 @@ export default function Footer() {
                         <h3 className="text-lg font-semibold mb-4">Company</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link to="#" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/about" className="text-[#090909] hover:text-white transition-colors">
                                     About FASIFY
                                 </Link>
                             </li>
                             <li>
-                                <Link to="#" className="text-[#090909] hover:text-white transition-colors">
-                                    Service Provider
+                                <Link to="/dashboard/hotel-management" className="text-[#090909] hover:text-white transition-colors">
+                                    Partnership
                                 </Link>
                             </li>
                             <li>
-                                <Link to="#" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/offers" className="text-[#090909] hover:text-white transition-colors">
                                     Offers
                                 </Link>
                             </li>
@@ -36,11 +36,6 @@ export default function Footer() {
                                     List Your Property
                                 </Link>
                             </li>
-                            {/* <li>
-                                <Link to="#" className="text-gray-300 hover:text-white transition-colors">
-                                    Partnership
-                                </Link>
-                            </li> */}
                         </ul>
                     </div>
 
@@ -74,13 +69,18 @@ export default function Footer() {
                         <h3 className="text-lg font-semibold mb-4">Terms & Settings</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link href="#" className="text-[#090909] hover:text-white transition-colors">
-                                    Privacy & Cookies
+                                <Link to="/privacy-policy" className="text-[#090909] hover:text-white transition-colors">
+                                    Privacy Policy
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="text-[#090909] hover:text-white transition-colors">
-                                    Terms & Condition
+                                <Link to="/terms-and-conditions" className="text-[#090909] hover:text-white transition-colors">
+                                    Terms & Conditions
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/dispute-resolution" className="text-[#090909] hover:text-white transition-colors">
+                                    Dispute Resolution
                                 </Link>
                             </li>
                         </ul>
@@ -91,12 +91,12 @@ export default function Footer() {
                         <h3 className="text-lg font-semibold mb-4">Help</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link href="#" className="text-[#090909] hover:text-white transition-colors">
-                                    Cancel You Reservation
+                                <Link to="/cancel-reservation" className="text-[#090909] hover:text-white transition-colors">
+                                    Cancel Your Reservation
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/refund-policies" className="text-[#090909] hover:text-white transition-colors">
                                     Refund Timeline, Policies & Process
                                 </Link>
                             </li>
@@ -105,7 +105,9 @@ export default function Footer() {
 
                     {/* Contact Us Button */}
                     <div className="flex justify-end items-center w-full mb-8">
-                        <button className="bg-[#0064D2] text-white px-6 py-2 rounded-lg">Contact Us</button>
+                        <Link to="/contact-us" className="bg-[#0064D2] text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Contact Us
+                        </Link>
                     </div>
                 </div>
 

@@ -2,6 +2,14 @@ import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import Layout from '../layout/Layout';
 import Home from '../pages/Home/Home';
+import AboutFasify from '../pages/AboutFasify/AboutFasify';
+import Offers from '../pages/Offers/Offers';
+import PrivacyPolicy from '../pages/Legal/PrivacyPolicy';
+import TermsAndConditions from '../pages/Legal/TermsAndConditions';
+import CancelReservation from '../pages/Help/CancelReservation';
+import RefundPolicies from '../pages/Help/RefundPolicies';
+import DisputeResolution from '../pages/Help/DisputeResolution';
+import ContactUs from '../pages/Contact/ContactUs';
 import HotelReservation from '../pages/HotelReservation/HotelReservation';
 import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
@@ -49,6 +57,38 @@ export const routes = createBrowserRouter([
             {
                 path: '/',
                 element: <Home />,
+            },
+            {
+                path: '/about',
+                element: <AboutFasify />,
+            },
+            {
+                path: '/offers',
+                element: <Offers />,
+            },
+            {
+                path: '/privacy-policy',
+                element: <PrivacyPolicy />,
+            },
+            {
+                path: '/terms-and-conditions',
+                element: <TermsAndConditions />,
+            },
+            {
+                path: '/cancel-reservation',
+                element: <CancelReservation />,
+            },
+            {
+                path: '/refund-policies',
+                element: <RefundPolicies />,
+            },
+            {
+                path: '/dispute-resolution',
+                element: <DisputeResolution />,
+            },
+            {
+                path: '/contact-us',
+                element: <ContactUs />,
             },
             {
                 path: '/hotel',
@@ -168,7 +208,7 @@ export const routes = createBrowserRouter([
             {
                 path: "hotel-management",
                 element: <HotelManagement />,
-            }
+            },
 
             {
                 path: "my-vouchers",

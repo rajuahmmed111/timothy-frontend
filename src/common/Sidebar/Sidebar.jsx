@@ -109,7 +109,7 @@ export default function Sidebar() {
                     />
                 </Section>
 
-                {/* Marketplace Tools */}
+                {/* Service Provider */}
                 <Section
                     title="Service Provider"
                     isActive={isSectionActive(location.pathname, [
@@ -144,22 +144,6 @@ export default function Sidebar() {
                         onClick={isMobile ? toggleSidebar : undefined}
                     />
                 </Section>
-
-                {/* Billing */}
-                <Section
-                    title="Billing"
-                    isActive={isSectionActive(location.pathname, [
-                        "/userdashboard/secure-payments"
-                    ])}
-                >
-                    <SidebarButton
-                        to="/userdashboard/secure-payments"
-                        icon={<CreditCard size={18} />}
-                        text="Secure Payments"
-                        onClick={isMobile ? toggleSidebar : undefined}
-                    />
-                </Section>
-
             </div>
 
             {/* Overlay for mobile */}

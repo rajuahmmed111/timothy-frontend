@@ -30,25 +30,25 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-8">
       {/* Sales Bar Chart */}
-     <div className="bg-gray-100 rounded-2xl shadow p-6">
-  <h2 className="text-xl font-bold mb-4">Total Sales</h2>
-  <ResponsiveContainer width="100%" height={300}>
-    <BarChart data={salesData}>
-      <XAxis dataKey="month" />
-      <YAxis />
-      <Tooltip />
-      <Bar
-        dataKey="sales"
-        fill="#3b82f6"   // blue color
-        barSize={30}     // thinner bars (try 10–20)
-        radius={[10, 10, 0, 0]} // top-left, top-right rounded
-      />
-    </BarChart>
-  </ResponsiveContainer>
-</div>
+      <div className="bg-gray-100 rounded-2xl shadow p-6">
+        <h2 className="text-xl font-bold mb-4">Total Sales</h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={salesData}>
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Bar
+              dataKey="sales"
+              fill="#3b82f6"   // blue color
+              barSize={30}     // thinner bars (try 10–20)
+              radius={[10, 10, 0, 0]} // top-left, top-right rounded
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
 
-<Hotels />
+      <Hotels />
 
     </div>
   );
