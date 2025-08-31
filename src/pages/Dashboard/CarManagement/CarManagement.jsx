@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import Dashboard from "../Profile/HotelManagement/Dashboard";
-import Bookings from "../Profile/HotelManagement/Bookings";
-import Listings from "../Profile/HotelManagement/Listings";
 import AddBusiness from "../Profile/HotelManagement/AddBusiness";
 import ReviewBusiness from "../Profile/HotelManagement/ReviewBusiness";
-import AvailableListing from "../Profile/HotelManagement/AvailableListing";
+import CarBookings from "./CarBookings";
+import CarListings from "./CarListings";
+import AvailableCarListing from "./AvailableCarListing";
 
 
 export default function CarManagement() {
@@ -44,10 +44,10 @@ export default function CarManagement() {
                     <Dashboard />
                 )}
                 {activeTab === "booking" && (
-                    <Bookings />
+                    <CarBookings />
                 )}
                 {activeTab === "listings" && (
-                    <Listings />
+                    <CarListings />
                 )}
                 {activeTab === "addBusiness" && (
                     <AddBusiness />
@@ -56,7 +56,7 @@ export default function CarManagement() {
                     <ReviewBusiness />
                 )}
                 {activeTab === "availableListing" && (
-                    <AvailableListing />
+                    <AvailableCarListing />
                 )}
             </div>
         </div>

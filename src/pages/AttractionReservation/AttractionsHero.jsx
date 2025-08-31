@@ -24,7 +24,7 @@ export default function AttractionsHero() {
                             <div className="space-y-2">
                                 <input
                                     type="text"
-                                    placeholder="Find Your Events"
+                                    placeholder="Search for Attractions"
                                     className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400"
                                 />
                             </div>

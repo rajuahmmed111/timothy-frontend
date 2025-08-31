@@ -1,14 +1,14 @@
 import React, { useState } from "react"
-import { ShoppingCart, ChevronDown, Menu, X } from "lucide-react"
+import { ShoppingCart, ChevronDown, Menu, X, Home, Shield, Car, MapPin } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 
 export default function Navbar() {
   const location = useLocation()
   const navItems = [
-    { name: "Stays", url: "/hotel" },
-    { name: "Security", url: "/security-reservation" },
-    { name: "Car Rental", url: "/car-reservation" },
-    { name: "Attraction", url: "/attraction-reservation" }
+    { name: "Stays", url: "/hotel", icon: Home },
+    { name: "Security", url: "/security-reservation", icon: Shield },
+    { name: "Car Rental", url: "/car-reservation", icon: Car },
+    { name: "Attractions", url: "/attraction-reservation", icon: MapPin }
   ]
   const navigate = useNavigate();
   const [isLanguageOpen, setIsLanguageOpen] = useState(false)
@@ -32,28 +32,32 @@ export default function Navbar() {
       <div className="container mx-auto px-5 md:px-0">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-       <Link to="/">
-        <div className="flex items-center space-x-2">
-            <div className="w-8 h-8  rounded flex items-center justify-center">
-              <img src="/logo.svg" alt="logo" />
+          <Link to="/">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8  rounded flex items-center justify-center">
+                <img src="/logo.svg" alt="logo" />
+              </div>
+              <span className="text-4xl font-bold text-[#0064D2]">FASIFY</span>
             </div>
-            <span className="text-4xl font-bold text-[#0064D2]">FASIFY</span>
-          </div>
-       </Link>
+          </Link>
 
           {/* Navigation Pills */}
           <nav className="hidden md:flex">
             <div className="flex items-center bg-[#0064D2] rounded-full p-1">
-              {navItems.map((item, index) => (
-                <Link
-                  key={item?.name}
-                  to={item?.url}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${location.pathname === item.url ? "bg-white text-[#0064D2] shadow-sm" : "text-white"
-                    }`}
-                >
-                  {item.name}
-                </Link>
-              ))}
+              {navItems.map((item, index) => {
+                const IconComponent = item.icon;
+                return (
+                  <Link
+                    key={item?.name}
+                    to={item?.url}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${location.pathname === item.url ? "bg-white text-[#0064D2] shadow-sm" : "text-white"
+                      }`}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                    {item.name}
+                  </Link>
+                );
+              })}
             </div>
           </nav>
 
@@ -98,7 +102,7 @@ export default function Navbar() {
             {/* Auth buttons - Hidden on mobile */}
             <button
               onClick={() => navigate('/login')}
-            className="hidden sm:block text-gray-700 hover:text-gray-900 font-medium">Sign In</button>
+              className="hidden sm:block text-gray-700 hover:text-gray-900 font-medium">Sign In</button>
             <button
               onClick={() => navigate('/dashboard/profile')}
               className="hidden sm:block bg-[#0064D2] text-white px-6 py-2 rounded-full cursor-pointer">Sign Up</button>

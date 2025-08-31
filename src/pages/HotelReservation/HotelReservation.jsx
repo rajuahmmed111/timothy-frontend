@@ -128,7 +128,7 @@ export default function HotelReservation() {
                     <div className="space-y-2">
                         <input
                             type="text"
-                            placeholder="Find Your Stays"
+                            placeholder="Search For Your Stays"
                             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
                         />
                     </div>
