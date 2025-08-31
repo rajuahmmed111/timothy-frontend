@@ -6,16 +6,16 @@ import { DatePicker, Button } from "antd";
 
 export default function Hero() {
     const [dateRange, setDateRange] = useState(null);
-    const { RangePicker } = DatePicker;
-
-    const { Option } = Select;
-
-    // Inside your component:
     const [guests, setGuests] = useState({
         adults: 0,
         children: 0,
         rooms: 0
     });
+
+    const { RangePicker } = DatePicker;
+
+    const { Option } = Select;
+
 
     const handleGuestsChange = (type, value) => {
         setGuests(prev => ({
@@ -30,7 +30,7 @@ export default function Hero() {
                 backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/hotel.png')`,
             }}
         >
-            <div className="container mx-auto absolute bottom-0 left-1/2 transform -translate-x-1/2 px-5 flex flex-col justify-end pb-10">
+            <div className="container mx-auto absolute bottom-0 left-1/2 transform -translate-x-1/2 px-5 md:px-0 flex flex-col justify-end pb-10">
                 <div>
                     <h1 className="text-7xl font-bold mb-10 text-white">Book Your Stays</h1>
                     {/* Custom Card */}
@@ -47,7 +47,7 @@ export default function Hero() {
 
                             {/* Check-in & Check-out */}
                             <RangePicker
-                                placeholder={['Start Date', 'End Date']}
+                                placeholder={['Check-in', 'Check-out']}
                                 value={dateRange}
                                 onChange={setDateRange}
                                 style={{ width: '100%' }}

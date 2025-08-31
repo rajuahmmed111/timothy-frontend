@@ -15,6 +15,7 @@ import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
 import BookingConfirmation from '../pages/HotelReservation/BookingConfirmation';
 import HotelPaymentPage from '../pages/HotelReservation/PaymentPage';
+import Checkout from '../pages/HotelReservation/Checkout';
 import SecurityReservation from '../pages/SecurityReservation/SecurityReservation';
 import SecurityDetails from '../pages/SecurityReservation/SecurityDetails';
 import SecurityServiceDetails from '../pages/SecurityReservation/SecurityServiceDetails';
@@ -105,6 +106,10 @@ export const routes = createBrowserRouter([
             {
                 path: '/booking-confirmation',
                 element: <BookingConfirmation />,
+            },
+            {
+                path: '/hotel/checkout',
+                element: <Checkout />,
             },
             {
                 path: '/hotel/payment',

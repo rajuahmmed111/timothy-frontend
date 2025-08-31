@@ -1,15 +1,40 @@
 import React, { useState } from 'react';
-import { Calendar, Users, ChevronDown, Star } from 'lucide-react';
+import { Calendar, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Select, Space, Button } from 'antd';
+import { UserOutlined, TeamOutlined, HomeOutlined } from '@ant-design/icons';
 
 export default function BookingForm() {
     const navigate = useNavigate();
     const [checkIn, setCheckIn] = useState('2024-03-15');
     const [checkOut, setCheckOut] = useState('2024-03-18');
-    const [guests, setGuests] = useState(2);
     const [selectedRoom, setSelectedRoom] = useState('deluxe');
-    const [showGuestSelector, setShowGuestSelector] = useState(false);
     const [isBooking, setIsBooking] = useState(false);
+    const [guests, setGuests] = useState({
+        adults: 1,
+        children: 0,
+        rooms: 1
+    });
+    const { Option } = Select;
+
+    const handleGuestsChange = (type, value) => {
+        setGuests(prev => ({
+            ...prev,
+            [type]: value
+        }));
+    };
+
+    const validateForm = () => {
+        if (guests.adults === 0) {
+            alert('Please select at least 1 adult');
+            return false;
+        }
+        if (guests.rooms === 0) {
+            alert('Please select at least 1 room');
+            return false;
+        }
+        return true;
+    };
 
     const rooms = [
         {
@@ -41,25 +66,33 @@ export default function BookingForm() {
 
     const handleBooking = (e) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
         setIsBooking(true);
-        
-        // Simulate API call
-        setTimeout(() => {
-            // In a real app, you would pass booking details via state or context
-            navigate('/booking-confirmation', {
-                state: {
-                    bookingId: 'BK' + Math.floor(10000000 + Math.random() * 90000000),
+
+        // Navigate to checkout page with booking data
+        navigate('/hotel/checkout', {
+            state: {
+                bookingData: {
                     checkIn,
                     checkOut,
                     guests,
                     roomType: rooms.find(room => room.id === selectedRoom)?.name || 'Deluxe Room',
-                    total: total
+                    roomPrice: selectedRoomData.price,
+                    nights: nights,
+                    subtotal: selectedRoomData.price * nights,
+                    total: Math.round(selectedRoomData.price * 1.22 * nights),
+                    hotelName: 'Luxury Beach Resort & Spa',
+                    location: 'Maldives'
                 }
-            });
-            setIsBooking(false);
-        }, 1500);
-    };
+            }
+        });
 
+        setIsBooking(false);
+    };
 
     return (
         <div className="bg-white rounded-2xl shadow-xl p-5 sticky top-5">
@@ -104,45 +137,100 @@ export default function BookingForm() {
                 </div>
 
                 {/* Guests */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Guests</label>
-                    <div className="relative">
-                        <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <button
-                            type="button"
-                            onClick={() => setShowGuestSelector(!showGuestSelector)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-left flex items-center justify-between"
-                        >
-                            <span>{guests} {guests === 1 ? 'Guest' : 'Guests'}</span>
-                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showGuestSelector ? 'rotate-180' : ''}`} />
-                        </button>
-                        {showGuestSelector && (
-                            <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-10 mt-1">
-                                <div className="p-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium">Guests</span>
-                                        <div className="flex items-center space-x-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => setGuests(Math.max(1, guests - 1))}
-                                                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                                            >
-                                                -
-                                            </button>
-                                            <span className="w-4 text-center">{guests}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setGuests(Math.min(8, guests + 1))}
-                                                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
+                <div className="space-y-2 h-full flex flex-col">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Guests and Rooms</label>
+
+                    <Select
+                        value={guests.adults === 0 && guests.children === 0 && guests.rooms === 0
+                            ? null
+                            : `${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
+                        placeholder="0 adults · 0 children · 0 rooms"
+                        className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3"
+                        style={{ height: '100%' }}
+                        dropdownMatchSelectWidth={false}
+                        dropdownRender={() => (
+                            <div className="p-4 space-y-4 min-w-[300px]">
+                                {/* Adults Counter */}
+                                <div className="flex justify-between items-center">
+                                    <Space>
+                                        <UserOutlined className="text-gray-600" />
+                                        <span>Adults</span>
+                                    </Space>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            onClick={() => handleGuestsChange('adults', Math.max(1, guests.adults - 1))}
+                                            disabled={guests.adults <= 1}
+                                            className="flex items-center justify-center w-8 h-8"
+                                        >
+                                            -
+                                        </Button>
+                                        <span className="w-8 text-center">{guests.adults}</span>
+                                        <Button
+                                            onClick={() => handleGuestsChange('adults', guests.adults + 1)}
+                                            disabled={guests.adults >= 8}
+                                            className="flex items-center justify-center w-8 h-8"
+                                        >
+                                            +
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Children Counter */}
+                                <div className="flex justify-between items-center">
+                                    <Space>
+                                        <TeamOutlined className="text-gray-600" />
+                                        <span>Children</span>
+                                    </Space>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            onClick={() => handleGuestsChange('children', Math.max(0, guests.children - 1))}
+                                            disabled={guests.children <= 0}
+                                            className="flex items-center justify-center w-8 h-8"
+                                        >
+                                            -
+                                        </Button>
+                                        <span className="w-8 text-center">{guests.children}</span>
+                                        <Button
+                                            onClick={() => handleGuestsChange('children', guests.children + 1)}
+                                            disabled={guests.children >= 4}
+                                            className="flex items-center justify-center w-8 h-8"
+                                        >
+                                            +
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Rooms Counter */}
+                                <div className="flex justify-between items-center">
+                                    <Space>
+                                        <HomeOutlined className="text-gray-600" />
+                                        <span>Rooms</span>
+                                    </Space>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            onClick={() => handleGuestsChange('rooms', Math.max(1, guests.rooms - 1))}
+                                            disabled={guests.rooms <= 1}
+                                            className="flex items-center justify-center w-8 h-8"
+                                        >
+                                            -
+                                        </Button>
+                                        <span className="w-8 text-center">{guests.rooms}</span>
+                                        <Button
+                                            onClick={() => handleGuestsChange('rooms', guests.rooms + 1)}
+                                            disabled={guests.rooms >= 5}
+                                            className="flex items-center justify-center w-8 h-8"
+                                        >
+                                            +
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
                         )}
-                    </div>
+                    >
+                        <Option value="guests">
+                            {`${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
+                        </Option>
+                    </Select>
                 </div>
 
                 {/* Room Selection */}
@@ -207,67 +295,12 @@ export default function BookingForm() {
                     </div>
                 </div>
 
-                {/* Guest Information */}
-                <div className="border-t pt-4 space-y-4">
-                    <h3 className="font-medium text-gray-900">Guest Information</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                            <input
-                                type="text"
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                            <input
-                                type="text"
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input
-                            type="email"
-                            required
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                        <input
-                            type="tel"
-                            required
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        />
-                    </div>
-                </div>
-
-
-                <button 
-                    type="submit" 
-                    className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        navigate('/hotel/payment', {
-                            state: {
-                                bookingData: {
-                                    checkIn,
-                                    checkOut,
-                                    guests,
-                                    roomType: rooms.find(room => room.id === selectedRoom)?.name || 'Deluxe Room',
-                                    total: Math.round(selectedRoomData.price * 1.22 * nights), // Including taxes
-                                    hotelName: 'Luxury Beach Resort & Spa',
-                                    location: 'Maldives'
-                                }
-                            }
-                        });
-                    }}
+                <button
+                    type="submit"
+                    disabled={isBooking}
+                    className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Reserve Now
+                    {isBooking ? 'Processing...' : 'Continue to Checkout'}
                 </button>
             </form>
         </div>
