@@ -94,7 +94,7 @@ export default function Dashboard() {
 
 
       <div className="space-y-10">
-        <h1 className="text-gray-900 text-2xl font-bold">Recent Hotel Listings</h1>
+        <h1 className="text-gray-900 text-2xl font-bold">Recent Listings</h1>
         <Hotels />
       </div>
 

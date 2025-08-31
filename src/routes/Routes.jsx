@@ -47,6 +47,10 @@ import LogIn from '../pages/Auth/LogIn';
 import ForgetPassword from '../pages/Auth/ForgetPassword';
 import VerificationCode from '../pages/Auth/Otp';
 import ResetPassword from '../pages/Auth/ResetPassword';
+import SecurityManagement from '../pages/Dashboard/SecurityManagement/SecurityManagement';
+import CarManagement from '../pages/Dashboard/CarManagement/CarManagement';
+import AttractionManagement from '../pages/Dashboard/AttractionManagement/AttractionManagement';
+import ReviewBusiness from '../pages/Dashboard/Profile/HotelManagement/ReviewBusiness';
 
 
 export const routes = createBrowserRouter([
@@ -229,6 +233,18 @@ export const routes = createBrowserRouter([
                 path: "hotel-management",
                 element: <HotelManagement />,
             },
+            {
+                path: "security-management",
+                element: <SecurityManagement />,
+            },
+            {
+                path: "car-management",
+                element: <CarManagement />,
+            },
+            {
+                path: "attraction-management",
+                element: <AttractionManagement />,
+            },
 
             {
                 path: "my-vouchers",
@@ -241,6 +257,10 @@ export const routes = createBrowserRouter([
             {
                 path: "my-bookings",
                 element: <MyBookings />,
+            },
+            {
+                path: "review-business",
+                element: <ReviewBusiness />,
             },
 
         ],

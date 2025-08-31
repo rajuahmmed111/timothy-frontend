@@ -132,13 +132,13 @@ export default function Sidebar() {
                         onClick={isMobile ? toggleSidebar : undefined}
                     />
                     <SidebarButton
-                        to="/dashboard/Car-management"
+                        to="/dashboard/car-management"
                         icon={<Pin size={18} />}
                         text="Car Management"
                         onClick={isMobile ? toggleSidebar : undefined}
                     />
                     <SidebarButton
-                        to="/dashboard/Attraction-management"
+                        to="/dashboard/attraction-management"
                         icon={<Mail size={18} />}
                         text="Attraction Management"
                         onClick={isMobile ? toggleSidebar : undefined}

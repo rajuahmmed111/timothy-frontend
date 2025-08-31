@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Building2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 export default function AddBusiness() {
     const [formData, setFormData] = useState({
         businessName: '',
@@ -62,6 +63,36 @@ export default function AddBusiness() {
         e.preventDefault();
         console.log('Form submitted:', formData);
     };
+
+    const AmenityRadioGroup = ({ label, name, value, onChange }) => (
+        <div className="flex items-center justify-between">
+            <label className="text-sm text-gray-700 font-medium">{label}</label>
+            <div className="flex gap-4">
+                <label className="flex items-center gap-1 cursor-pointer">
+                    <input
+                        type="radio"
+                        name={name}
+                        value="yes"
+                        checked={value === 'yes'}
+                        onChange={(e) => onChange(e.target.value)}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-600">Yes</span>
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer">
+                    <input
+                        type="radio"
+                        name={name}
+                        value="no"
+                        checked={value === 'no'}
+                        onChange={(e) => onChange(e.target.value)}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-600">No</span>
+                </label>
+            </div>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -174,13 +205,13 @@ export default function AddBusiness() {
                         </div>
 
                         {/* Business Logo & Description Section */}
-                        <div className="p-6">
+                        <div className="p-5">
                             <h2 className="text-xl font-semibold text-gray-900 mb-6">Business Logo & Description</h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Business Sign-Up
+                                        Business Tagline
                                     </label>
                                     <input
                                         type="text"
@@ -219,103 +250,291 @@ export default function AddBusiness() {
 
                         {/* Create Listings Section */}
                         <div className="p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Create Listings</h2>
+                            <div className="text-center mb-6">
+                                <h2 className="text-xl font-semibold text-gray-900">Create Listings</h2>
+                                <p className="text-sm text-gray-500 mt-1">Please provide business information to setup your account.</p>
+                            </div>
 
-                            <div className="space-y-1">
-                                <RadioGroup
-                                    label="Receive/Checker Type"
-                                    name="packingCheckerType"
-                                    value={formData.packingCheckerType}
-                                    onChange={(value) => handleInputChange('packingCheckerType', value)}
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left Column */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Room/Apartment Type
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.roomApartmentType}
+                                            onChange={(e) => handleInputChange('roomApartmentType', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Select"
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Free File Right"
-                                    name="uploadFromFiles"
-                                    value={formData.uploadFromFiles}
-                                    onChange={(value) => handleInputChange('uploadFromFiles', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Booking Condition
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.bookingCondition}
+                                            onChange={(e) => handleInputChange('bookingCondition', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Aly"
-                                    name="pricing"
-                                    value={formData.pricing}
-                                    onChange={(value) => handleInputChange('pricing', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Room Description
+                                        </label>
+                                        <textarea
+                                            value={formData.roomDescription}
+                                            onChange={(e) => handleInputChange('roomDescription', e.target.value)}
+                                            rows={3}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Branding Options"
-                                    name="brandingOptions"
-                                    value={formData.brandingOptions}
-                                    onChange={(value) => handleInputChange('brandingOptions', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Postal Code
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.postalCode}
+                                            onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Shipping Options"
-                                    name="shipping"
-                                    value={formData.shipping}
-                                    onChange={(value) => handleInputChange('shipping', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            City
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.city}
+                                            onChange={(e) => handleInputChange('city', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Marketing Needs"
-                                    name="marketingNeeds"
-                                    value={formData.marketingNeeds}
-                                    onChange={(value) => handleInputChange('marketingNeeds', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Upload Room Picture
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Social Media"
-                                    name="socialMedia"
-                                    value={formData.socialMedia}
-                                    onChange={(value) => handleInputChange('socialMedia', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            City
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.city2}
+                                            onChange={(e) => handleInputChange('city2', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Online Bank Reserve"
-                                    name="sellOnline"
-                                    value={formData.sellOnline}
-                                    onChange={(value) => handleInputChange('sellOnline', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Upload Room Picture
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                        />
+                                    </div>
+                                </div>
 
-                                <RadioGroup
-                                    label="Gallery"
-                                    name="businessType2"
-                                    value={formData.businessType2}
-                                    onChange={(value) => handleInputChange('businessType2', value)}
-                                />
+                                {/* Right Column */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Price Per Night
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.pricePerNight}
+                                            onChange={(e) => handleInputChange('pricePerNight', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Upload Heat Planning"
-                                    name="urbanHeatPlanning"
-                                    value={formData.urbanHeatPlanning}
-                                    onChange={(value) => handleInputChange('urbanHeatPlanning', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Cancellation Policy
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.cancellationPolicy}
+                                            onChange={(e) => handleInputChange('cancellationPolicy', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Metro Associates License"
-                                    name="metroAssociatesLicenses"
-                                    value={formData.metroAssociatesLicenses}
-                                    onChange={(value) => handleInputChange('metroAssociatesLicenses', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Address
+                                        </label>
+                                        <textarea
+                                            value={formData.address}
+                                            onChange={(e) => handleInputChange('address', e.target.value)}
+                                            rows={3}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
 
-                                <RadioGroup
-                                    label="Policy Government License"
-                                    name="policyGovernmentsLicense"
-                                    value={formData.policyGovernmentsLicense}
-                                    onChange={(value) => handleInputChange('policyGovernmentsLicense', value)}
-                                />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            District/ State/ Province
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.districtStateProvince}
+                                            onChange={(e) => handleInputChange('districtStateProvince', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Country
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.country}
+                                            onChange={(e) => handleInputChange('country', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Policy Documents Upload
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.doc,.docx"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Country
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.country2}
+                                            onChange={(e) => handleInputChange('country2', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Type here..."
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Policy Documents Upload
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.doc,.docx"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Amenities Section */}
+                            <div className="mt-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                                    <AmenityRadioGroup
+                                        label="AC"
+                                        name="ac"
+                                        value={formData.ac}
+                                        onChange={(value) => handleInputChange('ac', value)}
+                                    />
+
+                                    <AmenityRadioGroup
+                                        label="Parking"
+                                        name="parking"
+                                        value={formData.parking}
+                                        onChange={(value) => handleInputChange('parking', value)}
+                                    />
+
+                                    <AmenityRadioGroup
+                                        label="WiFi"
+                                        name="wifi"
+                                        value={formData.wifi}
+                                        onChange={(value) => handleInputChange('wifi', value)}
+                                    />
+
+                                    <AmenityRadioGroup
+                                        label="Breakfast"
+                                        name="breakfast"
+                                        value={formData.breakfast}
+                                        onChange={(value) => handleInputChange('breakfast', value)}
+                                    />
+
+                                    <AmenityRadioGroup
+                                        label="Swimming Pool"
+                                        name="swimmingPool"
+                                        value={formData.swimmingPool}
+                                        onChange={(value) => handleInputChange('swimmingPool', value)}
+                                    />
+
+                                    <AmenityRadioGroup
+                                        label="Smoking"
+                                        name="smoking"
+                                        value={formData.smoking}
+                                        onChange={(value) => handleInputChange('smoking', value)}
+                                    />
+
+                                    <AmenityRadioGroup
+                                        label="TV"
+                                        name="tv"
+                                        value={formData.tv}
+                                        onChange={(value) => handleInputChange('tv', value)}
+                                    />
+
+                                    <AmenityRadioGroup
+                                        label="Washing Machine"
+                                        name="washingMachine"
+                                        value={formData.washingMachine}
+                                        onChange={(value) => handleInputChange('washingMachine', value)}
+                                    />
+                                </div>
                             </div>
                         </div>
 
                         {/* Submit Button */}
                         <div className="p-6 bg-gray-50">
-                            <button
-                                type="submit"
-                                className="w-full bg-blue-600 text-white py-3 px-6 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
-                            >
-                                Next
-                            </button>
+                            <Link to="/dashboard/review-business">
+                                <button
+                                    type="submit"
+                                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                                >
+                                    Next
+                                </button>
+                            </Link>
                         </div>
                     </form>
                 </div>
