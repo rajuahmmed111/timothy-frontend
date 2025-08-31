@@ -228,9 +228,6 @@ export default function DisputeResolution() {
                     placeholder="Please provide detailed information about your dispute or concern..."
                   />
                 </div>
-                <p className="mt-2 text-sm text-gray-500">
-                  Please include all relevant details to help us resolve your issue quickly.
-                </p>
               </div>
 
               <div className="flex items-center justify-end">
@@ -245,21 +242,7 @@ export default function DisputeResolution() {
           </div>
         </div>
 
-        <div className="mt-8 bg-blue-50 p-6 rounded-lg">
-          <h3 className="text-lg font-medium text-blue-800">Need Immediate Assistance?</h3>
-          <div className="mt-2 text-blue-700">
-            <p className="text-sm">
-              For urgent matters, please contact our support team directly:
-            </p>
-            <ul className="mt-2 space-y-1 text-sm">
-              <li>📞 <a href="tel:+15551234567" className="hover:underline">+1 (555) 123-4567</a> (24/7 Support)</li>
-              <li>✉️ <a href="mailto:disputes@fasify.com" className="hover:underline">disputes@fasify.com</a></li>
-            </ul>
-            <p className="mt-3 text-sm">
-              Our team typically responds to disputes within 24-48 hours during business days.
-            </p>
-          </div>
-        </div>
+
       </div>
     </div>
   );

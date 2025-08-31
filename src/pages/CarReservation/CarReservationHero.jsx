@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom"
+import { DatePicker } from "antd";
+
 
 export default function CarReservationHero() {
+    const [dateRange, setDateRange] = useState(null);
+    const { RangePicker } = DatePicker;
     return (
         <section
             className="relative h-[600px] bg-cover bg-center"
@@ -14,7 +18,7 @@ export default function CarReservationHero() {
                     <h1 className="text-7xl font-bold mb-10 text-white">Rent A Car Anytime Anywhere</h1>
                     {/* Custom Card */}
                     <div className="bg-white p-5 rounded-2xl shadow-lg w-full">
-                        <div className="mb-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                             <div className="space-y-2">
                                 <input
                                     type="text"
@@ -22,7 +26,13 @@ export default function CarReservationHero() {
                                     className="w-full p-3 border border-gray-200 rounded-lg"
                                 />
                             </div>
-
+                            {/* Check-in & Check-out */}
+                            <RangePicker
+                                placeholder={['Start Date', 'End Date']}
+                                value={dateRange}
+                                onChange={setDateRange}
+                                style={{ width: '100%' }}
+                            />
                         </div>
                         {/* Search Button */}
                         <div className="">

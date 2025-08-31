@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, User, Shield, CheckCircle } from 'lucide-react';
+import { User, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { DatePicker } from "antd";
+
 
 export default function SecurityBookingForm() {
     const navigate = useNavigate();
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
     const [serviceType, setServiceType] = useState('personal');
     const [isBooking, setIsBooking] = useState(false);
+    const [dateRange, setDateRange] = useState(null);
+
+    const { RangePicker } = DatePicker;
 
     const serviceTypes = [
         {
@@ -22,26 +25,31 @@ export default function SecurityBookingForm() {
     const selectedService = serviceTypes.find(s => s.id === serviceType) || serviceTypes[0];
 
     const calculateTotal = () => {
-        if (!startDate || !endDate) return 0;
-        const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) || 1;
+        if (!dateRange || !dateRange[0] || !dateRange[1]) return 0;
+        const days = Math.ceil((dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) / (1000 * 60 * 60 * 24)) || 1;
         return selectedService.price * days;
+    };
+
+    const getDays = () => {
+        if (!dateRange || !dateRange[0] || !dateRange[1]) return 0;
+        return Math.ceil((dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) / (1000 * 60 * 60 * 24)) || 1;
     };
 
     const handleBooking = (e) => {
         e.preventDefault();
-        if (!startDate || !endDate) return;
+        if (!dateRange || !dateRange[0] || !dateRange[1]) return;
 
         const bookingDetails = {
             bookingId: 'SEC' + Math.floor(10000000 + Math.random() * 90000000),
-            startDate,
-            endDate,
+            startDate: dateRange[0].format('YYYY-MM-DD'),
+            endDate: dateRange[1].format('YYYY-MM-DD'),
             serviceType: selectedService.name,
             total: calculateTotal(),
             serviceDescription: selectedService.description
         };
 
-        // Navigate to security payment page with booking details
-        navigate('/security/payment', { state: { bookingDetails } });
+        // Navigate to security checkout page with booking details
+        navigate('/security/checkout', { state: { bookingDetails } });
     };
 
     return (
@@ -79,36 +87,18 @@ export default function SecurityBookingForm() {
                 </div>
 
                 {/* Date Range */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                        <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="date"
-                                value={startDate}
-                                min={new Date().toISOString().split('T')[0]}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                        <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="date"
-                                value={endDate}
-                                min={startDate || new Date().toISOString().split('T')[0]}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                required
-                                disabled={!startDate}
-                            />
-                        </div>
-                    </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date and End Date</label>
+
+                    {/* Check-in & Check-out */}
+                    <RangePicker
+                        placeholder={['Start-date', 'End-date']}
+                        value={dateRange}
+                        onChange={setDateRange}
+                        style={{ width: '100%', height: '48px' }}
+                        className="border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
+                    />
                 </div>
 
 
@@ -121,10 +111,10 @@ export default function SecurityBookingForm() {
                                 ${selectedService.price} per day
                             </span>
                         </div>
-                        {startDate && endDate && (
+                        {dateRange && dateRange[0] && dateRange[1] && (
                             <div className="flex justify-between">
                                 <span className="text-gray-600">
-                                    {Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) || 1} days
+                                    {getDays()} {getDays() === 1 ? 'day' : 'days'}
                                 </span>
                                 <span>${calculateTotal()}</span>
                             </div>
@@ -139,13 +129,15 @@ export default function SecurityBookingForm() {
 
                 {/* Book Now Button */}
                 <button
-
                     type="submit"
-                    disabled={isBooking || !startDate || !endDate}
-                    className={`w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors ${isBooking || !startDate || !endDate ? 'opacity-70 cursor-not-allowed' : ''
-                        }`}
+                    disabled={isBooking || !dateRange || !dateRange[0] || !dateRange[1]}
+                    className={`w-full bg-[#0064D2] text-white py-3 px-6 rounded-lg font-medium transition-colors ${
+                        isBooking || !dateRange || !dateRange[0] || !dateRange[1] 
+                            ? 'opacity-70 cursor-not-allowed' 
+                            : 'hover:bg-blue-700'
+                    }`}
                 >
-                    {isBooking ? 'Processing...' : 'Book Now'}
+                    {isBooking ? 'Processing...' : 'Continue to Checkout'}
                 </button>
             </form>
         </div>

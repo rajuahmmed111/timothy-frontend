@@ -1,35 +1,44 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, User, Car, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { DatePicker } from "antd";
+
 
 export default function CarBookingForm({ car }) {
     const navigate = useNavigate();
-    const [pickupDate, setPickupDate] = useState('');
-    const [returnDate, setReturnDate] = useState('');
     const [isBooking, setIsBooking] = useState(false);
+    const [dateRange, setDateRange] = useState(null);
+    const { RangePicker } = DatePicker;
+
+
 
     const calculateTotal = () => {
-        if (!pickupDate || !returnDate) return 0;
-        const days = Math.ceil((new Date(returnDate) - new Date(pickupDate)) / (1000 * 60 * 60 * 24)) || 1;
+        if (!dateRange || !dateRange[0] || !dateRange[1]) return 0;
+        const days = Math.ceil((dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) / (1000 * 60 * 60 * 24)) || 1;
         const price = parseInt(car?.price?.replace('$', '') || '50');
         return price * days;
     };
 
+    const getDays = () => {
+        if (!dateRange || !dateRange[0] || !dateRange[1]) return 0;
+        return Math.ceil((dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) / (1000 * 60 * 60 * 24)) || 1;
+    };
+
     const handleBooking = (e) => {
         e.preventDefault();
-        if (!pickupDate || !returnDate) return;
+        if (!dateRange || !dateRange[0] || !dateRange[1]) return;
 
         const bookingDetails = {
             bookingId: 'CAR' + Math.floor(10000000 + Math.random() * 90000000),
             carName: car?.name || 'Selected Car',
-            pickupDate,
-            returnDate,
+            pickupDate: dateRange[0].format('YYYY-MM-DD'),
+            returnDate: dateRange[1].format('YYYY-MM-DD'),
             carType: car?.name || 'Selected Car',
             total: calculateTotal(),
             carDescription: car?.description || 'Car rental booking',
             location: car?.location || 'Selected Location'
         };
-        navigate('/car/payment', { state: { bookingDetails } });
+        navigate('/car/checkout', { state: { bookingDetails } });
     };
 
     return (
@@ -42,7 +51,6 @@ export default function CarBookingForm({ car }) {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Selected Car</label>
                     <div className="p-3 border border-blue-500 bg-blue-50 rounded-lg">
                         <div className="flex items-start space-x-3">
-                            <Car className="w-5 h-5 text-blue-600 mt-0.5" />
                             <div className="flex-1">
                                 <h3 className="font-medium text-gray-900">{car?.name || 'Selected Car'}</h3>
                                 <p className="text-sm text-gray-500">{car?.location || 'Location'}</p>
@@ -54,38 +62,16 @@ export default function CarBookingForm({ car }) {
                         </div>
                     </div>
                 </div>
-
-                {/* Pickup Date */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Date</label>
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="date"
-                            value={pickupDate}
-                            min={new Date().toISOString().split('T')[0]}
-                            onChange={(e) => setPickupDate(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                            required
-                        />
-                    </div>
-                </div>
-
-                {/* Return Date */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Return Date</label>
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="date"
-                            value={returnDate}
-                            min={pickupDate || new Date().toISOString().split('T')[0]}
-                            onChange={(e) => setReturnDate(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                            required
-                            disabled={!pickupDate}
-                        />
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Date and Return Date</label>
+                    <RangePicker
+                        placeholder={['Pickup Date', 'Return Date']}
+                        value={dateRange}
+                        onChange={setDateRange}
+                        style={{ width: '100%', height: '48px' }}
+                        className="border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
+                    />
                 </div>
 
                 {/* Price Summary */}
@@ -97,10 +83,10 @@ export default function CarBookingForm({ car }) {
                                 {car?.price} per day
                             </span>
                         </div>
-                        {pickupDate && returnDate && (
+                        {dateRange && dateRange[0] && dateRange[1] && (
                             <div className="flex justify-between">
                                 <span className="text-gray-600">
-                                    {Math.ceil((new Date(returnDate) - new Date(pickupDate)) / (1000 * 60 * 60 * 24)) || 1} days
+                                    {getDays()} {getDays() === 1 ? 'day' : 'days'}
                                 </span>
                                 <span>${calculateTotal()}</span>
                             </div>
@@ -116,11 +102,14 @@ export default function CarBookingForm({ car }) {
                 {/* Book Now Button */}
                 <button
                     type="submit"
-                    disabled={isBooking || !pickupDate || !returnDate}
-                    className={`w-full bg-[#0064D2] hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors ${isBooking || !pickupDate || !returnDate ? 'opacity-70 cursor-not-allowed' : ''
-                        }`}
+                    disabled={isBooking || !dateRange || !dateRange[0] || !dateRange[1]}
+                    className={`w-full bg-[#0064D2] text-white py-3 px-6 rounded-lg font-medium transition-colors ${
+                        isBooking || !dateRange || !dateRange[0] || !dateRange[1] 
+                            ? 'opacity-70 cursor-not-allowed' 
+                            : 'hover:bg-blue-700'
+                    }`}
                 >
-                    {isBooking ? 'Processing...' : 'Book Now'}
+                    {isBooking ? 'Processing...' : 'Continue to Checkout'}
                 </button>
             </form>
         </div>
