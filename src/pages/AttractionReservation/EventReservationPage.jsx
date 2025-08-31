@@ -5,7 +5,6 @@ import img1 from '/burj.png';
 
 export default function EventReservationPage() {
     const navigate = useNavigate()
-    const [selectedImage, setSelectedImage] = useState(0)
     const [selectedDate, setSelectedDate] = useState(null)
     const [selectedTime, setSelectedTime] = useState(null)
     const [guests, setGuests] = useState("1")
@@ -293,7 +292,7 @@ export default function EventReservationPage() {
                                         guests,
                                         total: 600 * parseInt(guests) + 50
                                     };
-                                    navigate('/event/payment', { state: { bookingDetails } });
+                                    navigate('/event/checkout', { state: { bookingDetails } });
                                 }}
                                 disabled={!selectedDate || !selectedTime}
                                 className={`w-full bg-[#0064D2] text-white py-3 px-6 rounded-lg font-medium transition-colors ${
@@ -302,7 +301,7 @@ export default function EventReservationPage() {
                                         : 'hover:bg-blue-700'
                                 }`}
                             >
-                                Reserve
+                                Continue to Checkout
                             </button>
 
 

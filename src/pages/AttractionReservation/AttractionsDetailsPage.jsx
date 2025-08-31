@@ -1,10 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 import img1 from '/RecommendedAttractions/1.png';
-import img2 from '/RecommendedAttractions/2.png';
-import img3 from '/RecommendedAttractions/3.png';
-import img4 from '/RecommendedAttractions/4.png';
 import EventCard from './EventCard';
+
 export default function AttractionsDetailsPage() {
     const events = [
         {
@@ -222,21 +220,12 @@ export default function AttractionsDetailsPage() {
     return (
         <div className="min-h-screen py-10 container mx-auto">
             <div className="bg-white p-5 rounded-2xl shadow-lg w-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div className="mb-5">
                     {/* Location Input */}
                     <div className="space-y-2">
                         <input
                             type="text"
                             placeholder="Find Your Events"
-                            className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400"
-                        />
-                    </div>
-
-                    {/* Check-in & Check-out */}
-                    <div className="space-y-2">
-                        <input
-                            type="date"
-                            placeholder="Check-in - Check-Out"
                             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400"
                         />
                     </div>
