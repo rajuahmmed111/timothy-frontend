@@ -19,11 +19,13 @@ import Checkout from '../pages/HotelReservation/Checkout';
 import SecurityReservation from '../pages/SecurityReservation/SecurityReservation';
 import SecurityDetails from '../pages/SecurityReservation/SecurityDetails';
 import SecurityServiceDetails from '../pages/SecurityReservation/SecurityServiceDetails';
+import SecurityCheckout from '../pages/SecurityReservation/SecurityCheckout';
 import SecurityPaymentPage from '../pages/Payment/PaymentPage';
 import SecurityBookingConfirmation from '../pages/SecurityReservation/SecurityBookingConfirmation';
 import CarReservation from '../pages/CarReservation/CarReservation';
 import CarDetails from '../pages/CarReservation/CarDetails';
 import CarServiceDetails from '../pages/CarReservation/CarServiceDetails';
+import CarCheckout from '../pages/CarReservation/CarCheckout';
 import CarPaymentPage from '../pages/CarReservation/CarPaymentPage';
 import CarBookingConfirmation from '../pages/CarReservation/CarBookingConfirmation';
 import PopularCarPage from '../pages/CarReservation/PopularCarPage';
@@ -116,6 +118,10 @@ export const routes = createBrowserRouter([
                 element: <HotelPaymentPage />,
             },
             {
+                path: '/security/checkout',
+                element: <SecurityCheckout />,
+            },
+            {
                 path: '/security/payment',
                 element: <SecurityPaymentPage />,
             },
@@ -146,6 +152,10 @@ export const routes = createBrowserRouter([
             {
                 path: '/car-service-details',
                 element: <CarServiceDetails />,
+            },
+            {
+                path: '/car/checkout',
+                element: <CarCheckout />,
             },
             {
                 path: '/car/payment',

@@ -4,8 +4,14 @@ import img2 from "/car/2.png"
 import img3 from "/car/4.png"
 import img4 from "/car/3.png"
 import CarCard from './CarCard';
+import { DatePicker } from "antd";
+
 
 export default function CarDetails() {
+    const [dateRange, setDateRange] = useState(null);
+
+    const { RangePicker } = DatePicker;
+
     const CarProviders = [
         {
             name: "Jacob Jones",
@@ -404,21 +410,23 @@ export default function CarDetails() {
 
     return (
         <div className='py-16'>
-            <div className="bg-white rounded-2xl shadow-lg w-full container mx-auto my-10 p-5">
-                <div className="mb-5">
+            <div className="bg-white rounded-2xl shadow-lg w-full container mx-auto p-5">
+                <div className="mb-5 grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Location Input */}
                     <div className="space-y-2">
-
                         <input
                             type="text"
                             placeholder="Find Location"
                             className="w-full p-3 border border-gray-200 rounded-lg"
                         />
                     </div>
-
-
-
-
+                    {/* Check-in & Check-out */}
+                    <RangePicker
+                        placeholder={['Start Date', 'End Date']}
+                        value={dateRange}
+                        onChange={setDateRange}
+                        style={{ width: '100%' }}
+                    />
                 </div>
                 {/* Search Button */}
                 <div className="">
@@ -428,7 +436,7 @@ export default function CarDetails() {
                 </div>
             </div>
             {/* Services Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto pt-10">
                 {CarProviders.map((car, index) => (
                     <CarCard key={index} car={car} />
                 ))}

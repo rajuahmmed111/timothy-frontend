@@ -5,8 +5,7 @@ import SecurityBookingForm from './SecurityBookingForm';
 
 export default function SecurityServiceDetails() {
     const location = useLocation();
-    
-    // Get service data from location state or use default values
+
     const service = location.state?.service || {
         id: 1,
         name: "Jacob Jones",
@@ -31,7 +30,7 @@ export default function SecurityServiceDetails() {
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="container mx-auto px-4">
-                <div className="max-w-7xl mx-auto">
+                <div className="">
                     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                         <div className="md:flex">
                             {/* Left Column - Service Details */}
@@ -45,11 +44,11 @@ export default function SecurityServiceDetails() {
                                         <span>{service.rating}.0</span>
                                     </div>
                                 </div>
-                                
+
                                 {/* Service Image */}
                                 <div className="mb-8 rounded-lg overflow-hidden">
-                                    <img 
-                                        src={service.image} 
+                                    <img
+                                        src={service.image}
                                         alt={service.name}
                                         className="w-full h-96 object-cover rounded-lg"
                                     />
@@ -104,19 +103,10 @@ export default function SecurityServiceDetails() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Right Column - Booking Form */}
                             <div className="p-6 md:p-8 md:w-1/3 bg-gray-50 border-l border-gray-200">
                                 <SecurityBookingForm />
-                                
-                                {/* <div className="mt-6 pt-6 border-t border-gray-200">
-                                    <div className="flex items-start">
-                                        <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                                        <p className="text-sm text-gray-600">
-                                            Free cancellation up to 24 hours before service. Full refund if cancelled within the free cancellation period.
-                                        </p>
-                                    </div>
-                                </div> */}
                             </div>
                         </div>
                     </div>

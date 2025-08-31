@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function ServiceCard({ service }) {
     const IconComponent = service.icon;
@@ -34,7 +35,9 @@ export default function ServiceCard({ service }) {
                     </div>
                 </div>
                 <div className="border border-[#C0C0C0] p-2 rounded-full">
-                    <ArrowRight className="w-6 h-6" />
+                    <Link to="/security-details">
+                        <ArrowRight className="w-6 h-6" />
+                    </Link>
                 </div>
             </div>
         </div>

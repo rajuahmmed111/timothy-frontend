@@ -243,7 +243,7 @@ export default function Checkout() {
                                     type="submit"
                                     // onClick={handleSubmit}
                                     disabled={isProcessing}
-                                    className="w-full mt-6 bg-[#0064D2] text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full mt-6 bg-[#0064D2] text-white px-6 py-3 rounded-lg font-semibold"
                                 >
                                     {isProcessing ? 'Processing...' : 'Continue to Payment'}
                                 </button>

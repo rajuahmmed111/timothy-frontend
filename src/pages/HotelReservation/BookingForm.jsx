@@ -3,11 +3,11 @@ import { Calendar, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Select, Space, Button } from 'antd';
 import { UserOutlined, TeamOutlined, HomeOutlined } from '@ant-design/icons';
+import { DatePicker } from "antd";
+
 
 export default function BookingForm() {
     const navigate = useNavigate();
-    const [checkIn, setCheckIn] = useState('2024-03-15');
-    const [checkOut, setCheckOut] = useState('2024-03-18');
     const [selectedRoom, setSelectedRoom] = useState('deluxe');
     const [isBooking, setIsBooking] = useState(false);
     const [guests, setGuests] = useState({
@@ -16,6 +16,9 @@ export default function BookingForm() {
         rooms: 1
     });
     const { Option } = Select;
+    const [dateRange, setDateRange] = useState(null);
+
+    const { RangePicker } = DatePicker;
 
     const handleGuestsChange = (type, value) => {
         setGuests(prev => ({
@@ -25,6 +28,10 @@ export default function BookingForm() {
     };
 
     const validateForm = () => {
+        if (!dateRange || !dateRange[0] || !dateRange[1]) {
+            alert('Please select check-in and check-out dates');
+            return false;
+        }
         if (guests.adults === 0) {
             alert('Please select at least 1 adult');
             return false;
@@ -61,7 +68,12 @@ export default function BookingForm() {
     ];
 
     const selectedRoomData = rooms.find(room => room.id === selectedRoom) || rooms[0];
-    const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 3600 * 24));
+    
+    // Calculate nights from dateRange
+    const nights = dateRange && dateRange[0] && dateRange[1] 
+        ? Math.ceil((dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) / (1000 * 3600 * 24))
+        : 1;
+    
     const total = selectedRoomData.price * nights;
 
     const handleBooking = (e) => {
@@ -77,8 +89,8 @@ export default function BookingForm() {
         navigate('/hotel/checkout', {
             state: {
                 bookingData: {
-                    checkIn,
-                    checkOut,
+                    checkIn: dateRange[0].format('YYYY-MM-DD'),
+                    checkOut: dateRange[1].format('YYYY-MM-DD'),
                     guests,
                     roomType: rooms.find(room => room.id === selectedRoom)?.name || 'Deluxe Room',
                     roomPrice: selectedRoomData.price,
@@ -109,31 +121,17 @@ export default function BookingForm() {
 
             <form onSubmit={handleBooking} className="space-y-4">
                 {/* Dates */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
-                        <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="date"
-                                value={checkIn}
-                                onChange={(e) => setCheckIn(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
-                        <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="date"
-                                value={checkOut}
-                                onChange={(e) => setCheckOut(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                            />
-                        </div>
-                    </div>
+                <div className="">
+                    {/* Check-in & Check-out */}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Check-in and Check-out</label>
+                    <RangePicker
+                        placeholder={['Check-in', 'Check-out']}
+                        value={dateRange}
+                        onChange={setDateRange}
+                        style={{ width: '100%', height: '48px' }}
+                        className="border-gray-300 rounded-lg focus:border-[#0064D2] focus:ring-1 focus:ring-[#0064D2]"
+                        disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
+                    />
                 </div>
 
                 {/* Guests */}
@@ -276,7 +274,7 @@ export default function BookingForm() {
                 {/* Price Breakdown */}
                 <div className="border-t pt-4 space-y-2">
                     <div className="flex justify-between text-sm">
-                        <span>${selectedRoomData.price} × {nights} nights</span>
+                        <span>${selectedRoomData.price} × {nights} {nights === 1 ? 'night' : 'nights'}</span>
                         <span>${selectedRoomData.price * nights}</span>
                     </div>
                     <div className="flex justify-between text-sm">
@@ -298,7 +296,7 @@ export default function BookingForm() {
                 <button
                     type="submit"
                     disabled={isBooking}
-                    className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold"
                 >
                     {isBooking ? 'Processing...' : 'Continue to Checkout'}
                 </button>
