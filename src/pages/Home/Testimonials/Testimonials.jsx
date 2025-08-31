@@ -9,7 +9,7 @@ export default function Testimonials() {
             name: "Giulia Rossi",
             location: "Rome, Italy",
             text: "The staff were incredibly welcoming and the room was spotless. I loved the local recommendations, they made my stay even more special!",
-            avatar: "/woman-profile.png",
+            avatar: "https://avatar.iran.liara.run/public/30",
             rating: 5,
             date: "March 2024",
             verified: true
@@ -18,7 +18,7 @@ export default function Testimonials() {
             name: "Andi Pratama",
             location: "Bali, Indonesia",
             text: "Amazing beach view and peaceful surroundings! Perfect for a honeymoon trip. We especially enjoyed the spa and sunset dinners.",
-            avatar: "/man-profile.png",
+            avatar: "https://avatar.iran.liara.run/public/31",
             rating: 5,
             date: "February 2024",
             verified: true
@@ -27,7 +27,7 @@ export default function Testimonials() {
             name: "Rebecca Thompson",
             location: "New York, USA",
             text: "A seamless check-in experience and top-notch service. I travel often for work, and this was one of the most comfortable stays I've had.",
-            avatar: "/woman-business-profile.png",
+            avatar: "https://avatar.iran.liara.run/public/32",
             rating: 5,
             date: "January 2024",
             verified: true
@@ -36,7 +36,7 @@ export default function Testimonials() {
             name: "Claire Dubois",
             location: "Paris, France",
             text: "Staying here felt like a dream. The location was ideal for exploring the city, and the breakfast croissants were unforgettable!",
-            avatar: "/french-woman-profile.png",
+            avatar: "https://avatar.iran.liara.run/public/33",
             rating: 5,
             date: "December 2023",
             verified: true
@@ -45,7 +45,7 @@ export default function Testimonials() {
             name: "Marco Silva",
             location: "Lisbon, Portugal",
             text: "Exceptional hospitality and breathtaking views! The concierge helped us discover hidden gems in the city. Truly a memorable experience.",
-            avatar: "/man-profile.png",
+            avatar: "https://avatar.iran.liara.run/public/34",
             rating: 5,
             date: "November 2023",
             verified: true
@@ -54,7 +54,7 @@ export default function Testimonials() {
             name: "Sophie Chen",
             location: "Singapore",
             text: "Modern amenities with a personal touch. The rooftop pool was amazing and the staff went above and beyond to make our anniversary special.",
-            avatar: "/woman-profile.png",
+            avatar: "https://avatar.iran.liara.run/public/35",
             rating: 5,
             date: "October 2023",
             verified: true

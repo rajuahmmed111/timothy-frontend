@@ -34,7 +34,7 @@ export default function Profile() {
                         </div>
                         <div>
                             <p className="text-xl md:text-3xl font-bold">Shah Aman</p>
-                            <p className="text-xl font-semibold">Admin</p>
+                            <p className="text-xl font-semibold">User</p>
                         </div>
                     </div>
 
