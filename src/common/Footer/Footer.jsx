@@ -4,35 +4,31 @@ import { Link } from "react-router-dom"
 
 export default function Footer() {
     return (
-        <footer className="bg-[#BCBCBC] text-white relative overflow-hidden">
-            {/* <div className="absolute bottom-0 inset-0 flex items-center justify-center pointer-events-none">
-                <div className="text-[12rem] md:text-[16rem] lg:text-[20rem] font-bold text-gray-800/20 select-none">
-                    FASIFY
-                </div>
-            </div> */}
+        <footer className="relative bg-[#BCBCBC] text-white relative overflow-hidden">
+
             <div className="container mx-auto px-6 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-5">
                     {/* Company Section */}
                     <div>
-                        <h3 className="text-lg font-semibold mb-4">Company</h3>
+                        <h3 className="text-xl font-bold mb-5 text-[#090909]">Company</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link to="/about" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/about" className="text-[#090909] font-semibold">
                                     About FASIFY
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/dashboard/hotel-management" className="text-[#090909] hover:text-white transition-colors">
-                                    Partnership
+                                <Link to="/dashboard/hotel-management" className="text-[#090909] font-semibold">
+                                    Partnerships
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/offers" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/offers" className="text-[#090909] font-semibold">
                                     Offers
                                 </Link>
                             </li>
                             <li>
-                                <Link to="#" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="#" className="text-[#090909] font-semibold">
                                     List Your Property
                                 </Link>
                             </li>
@@ -41,23 +37,23 @@ export default function Footer() {
 
                     {/* Social Section */}
                     <div>
-                        <h3 className="text-lg font-semibold mb-4">Social</h3>
+                        <h3 className="text-xl font-bold mb-5 text-[#090909]">Social</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link href="#" className="flex items-center gap-2 text-[#090909] hover:text-white transition-colors">
-                                    <Instagram className="w-4 h-4 text-pink-500" />
+                                <Link href="#" className="flex items-center gap-2 text-[#090909]">
+                                    <Instagram className="w-6 h-6 text-[#090909]" />
                                     Instagram
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="flex items-center gap-2 text-[#090909] hover:text-white transition-colors">
-                                    <Facebook className="w-4 h-4 text-blue-500" />
+                                <Link href="#" className="flex items-center gap-2 text-[#090909]">
+                                    <Facebook className="w-6 h-6" />
                                     Facebook
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="flex items-center gap-2 text-[#090909] hover:text-white transition-colors">
-                                    <Youtube className="w-4 h-4 text-red-500" />
+                                <Link href="#" className="flex items-center gap-2 text-[#090909]">
+                                    <Youtube className="w-6 h-6" />
                                     Youtube
                                 </Link>
                             </li>
@@ -66,20 +62,20 @@ export default function Footer() {
 
                     {/* Terms & Settings Section */}
                     <div>
-                        <h3 className="text-lg font-semibold mb-4">Terms & Settings</h3>
+                        <h3 className="text-xl font-bold mb-5 text-[#090909]">Settings</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link to="/privacy-policy" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/privacy-policy" className="text-[#090909] font-semibold">
                                     Privacy Policy
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/terms-and-conditions" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/terms-and-conditions" className="text-[#090909] font-semibold">
                                     Terms & Conditions
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/dispute-resolution" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/dispute-resolution" className="text-[#090909] font-semibold">
                                     Dispute Resolution
                                 </Link>
                             </li>
@@ -88,15 +84,15 @@ export default function Footer() {
 
                     {/* Help Section */}
                     <div>
-                        <h3 className="text-lg font-semibold mb-4">Help</h3>
+                        <h3 className="text-xl font-bold mb-5 text-[#090909]">Help</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link to="/cancel-reservation" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/cancel-reservation" className="text-[#090909] font-semibold">
                                     Cancel Your Reservation
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/refund-policies" className="text-[#090909] hover:text-white transition-colors">
+                                <Link to="/refund-policies" className="text-[#090909] font-semibold">
                                     Refund Timeline, Policies & Process
                                 </Link>
                             </li>
@@ -105,16 +101,24 @@ export default function Footer() {
 
                     {/* Contact Us Button */}
                     <div className="flex justify-end items-center w-full mb-8">
-                        <Link to="/contact-us" className="bg-[#0064D2] text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <Link to="/contact-us" className="bg-[#0064D2] text-white px-5 py-2 rounded-lg">
                             Contact Us
                         </Link>
                     </div>
                 </div>
 
-                <div className="text-center text-gray-200 pt-5">
+                <div className="text-center text-[#090909] pt-5">
                     © 2025, FASIFY, All Rights Reserved.
                 </div>
             </div>
-        </footer>
+            {/* Bottom image */}
+            <div className="w-full flex justify-center pointer-events-none z-0">
+                <img
+                    src="/bottom.png"
+                    alt="Footer decoration"
+                    className="w-full max-w-6xl mx-auto"
+                />
+            </div>
+        </footer >
     )
 }
