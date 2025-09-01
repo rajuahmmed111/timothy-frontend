@@ -42,7 +42,6 @@ import HotelManagement from '../pages/Dashboard/Profile/HotelManagement/HotelMan
 
 import MyVouchers from '../pages/Dashboard/MyVouchers/MyVouchers';
 import PaymentMethods from '../pages/Dashboard/PaymentMethods/PaymentMethods';
-import MyBookings from '../pages/Dashboard/MyBookings/MyBookings';
 import LogIn from '../pages/Auth/LogIn';
 import ForgetPassword from '../pages/Auth/ForgetPassword';
 import VerificationCode from '../pages/Auth/Otp';
@@ -51,6 +50,7 @@ import SecurityManagement from '../pages/Dashboard/SecurityManagement/SecurityMa
 import CarManagement from '../pages/Dashboard/CarManagement/CarManagement';
 import AttractionManagement from '../pages/Dashboard/AttractionManagement/AttractionManagement';
 import ReviewBusiness from '../pages/Dashboard/Profile/HotelManagement/ReviewBusiness';
+import MyBookings from '../pages/Dashboard/Mybookings/MyBookings';
 
 
 export const routes = createBrowserRouter([
