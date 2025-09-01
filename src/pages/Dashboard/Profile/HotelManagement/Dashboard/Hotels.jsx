@@ -132,7 +132,7 @@ const hotels = [
   ];
 
   return (
-    <div className="p-6">
+    <div className="">
       <ConfigProvider
         theme={{
           components: {

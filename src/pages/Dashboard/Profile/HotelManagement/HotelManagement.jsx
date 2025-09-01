@@ -4,6 +4,7 @@ import Bookings from "./Bookings";
 import Listings from "./Listings";
 import AddBusiness from "./AddBusiness";
 import ReviewBusiness from "./ReviewBusiness";
+import AvailableListing from "./AvailableListing";
 
 export default function HotelManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -14,6 +15,8 @@ export default function HotelManagement() {
     { id: "listings", label: "Active Listings" },
     { id: "addBusiness", label: "Add Business" },
     { id: "reviewBusiness", label: "Review Business" },
+    { id: "availableListing", label: "Available Listing" },
+
   ];
 
   return (
@@ -50,6 +53,9 @@ export default function HotelManagement() {
         )}
         {activeTab === "reviewBusiness" && (
           <ReviewBusiness />
+        )}
+        {activeTab === "availableListing" && (
+          <AvailableListing />
         )}
       </div>
     </div>

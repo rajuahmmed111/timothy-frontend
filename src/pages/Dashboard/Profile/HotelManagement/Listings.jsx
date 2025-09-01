@@ -9,143 +9,143 @@ export default function Listings() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState(null);
 
-const hotels = [
-  {
-    id: 1,
-    name: "Azure Oasis",
-    location: "Thailand",
-    price: 580,
-    rating: 4.9,
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 2,
-    name: "Mountain Escape",
-    location: "Switzerland",
-    price: 720,
-    rating: 4.7,
-    image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 3,
-    name: "Desert Pearl",
-    location: "Dubai, UAE",
-    price: 650,
-    rating: 4.8,
-    image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 4,
-    name: "Ocean Breeze Resort",
-    location: "Maldives",
-    price: 950,
-    rating: 5.0,
-    image:
-      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 5,
-    name: "Forest Retreat",
-    location: "Canada",
-    price: 430,
-    rating: 4.6,
-    image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 1,
-    name: "Azure Oasis",
-    location: "Thailand",
-    price: 580,
-    rating: 4.9,
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 2,
-    name: "Mountain Escape",
-    location: "Switzerland",
-    price: 720,
-    rating: 4.7,
-    image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 3,
-    name: "Desert Pearl",
-    location: "Dubai, UAE",
-    price: 650,
-    rating: 4.8,
-    image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 4,
-    name: "Ocean Breeze Resort",
-    location: "Maldives",
-    price: 950,
-    rating: 5.0,
-    image:
-      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 5,
-    name: "Forest Retreat",
-    location: "Canada",
-    price: 430,
-    rating: 4.6,
-    image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 1,
-    name: "Azure Oasis",
-    location: "Thailand",
-    price: 580,
-    rating: 4.9,
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 2,
-    name: "Mountain Escape",
-    location: "Switzerland",
-    price: 720,
-    rating: 4.7,
-    image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 3,
-    name: "Desert Pearl",
-    location: "Dubai, UAE",
-    price: 650,
-    rating: 4.8,
-    image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 4,
-    name: "Ocean Breeze Resort",
-    location: "Maldives",
-    price: 950,
-    rating: 5.0,
-    image:
-      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 5,
-    name: "Forest Retreat",
-    location: "Canada",
-    price: 430,
-    rating: 4.6,
-    image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
-  },
-];
+  const hotels = [
+    {
+      id: 1,
+      name: "Azure Oasis",
+      location: "Thailand",
+      price: 580,
+      rating: 4.9,
+      image:
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 2,
+      name: "Mountain Escape",
+      location: "Switzerland",
+      price: 720,
+      rating: 4.7,
+      image:
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 3,
+      name: "Desert Pearl",
+      location: "Dubai, UAE",
+      price: 650,
+      rating: 4.8,
+      image:
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 4,
+      name: "Ocean Breeze Resort",
+      location: "Maldives",
+      price: 950,
+      rating: 5.0,
+      image:
+        "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 5,
+      name: "Forest Retreat",
+      location: "Canada",
+      price: 430,
+      rating: 4.6,
+      image:
+        "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 1,
+      name: "Azure Oasis",
+      location: "Thailand",
+      price: 580,
+      rating: 4.9,
+      image:
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 2,
+      name: "Mountain Escape",
+      location: "Switzerland",
+      price: 720,
+      rating: 4.7,
+      image:
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 3,
+      name: "Desert Pearl",
+      location: "Dubai, UAE",
+      price: 650,
+      rating: 4.8,
+      image:
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 4,
+      name: "Ocean Breeze Resort",
+      location: "Maldives",
+      price: 950,
+      rating: 5.0,
+      image:
+        "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 5,
+      name: "Forest Retreat",
+      location: "Canada",
+      price: 430,
+      rating: 4.6,
+      image:
+        "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 1,
+      name: "Azure Oasis",
+      location: "Thailand",
+      price: 580,
+      rating: 4.9,
+      image:
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 2,
+      name: "Mountain Escape",
+      location: "Switzerland",
+      price: 720,
+      rating: 4.7,
+      image:
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 3,
+      name: "Desert Pearl",
+      location: "Dubai, UAE",
+      price: 650,
+      rating: 4.8,
+      image:
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 4,
+      name: "Ocean Breeze Resort",
+      location: "Maldives",
+      price: 950,
+      rating: 5.0,
+      image:
+        "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=600&q=80",
+    },
+    {
+      id: 5,
+      name: "Forest Retreat",
+      location: "Canada",
+      price: 430,
+      rating: 4.6,
+      image:
+        "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
+    },
+  ];
 
 
   // Open view modal
@@ -222,7 +222,16 @@ const hotels = [
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-5">
+      <div className="mb-5 flex justify-end items-center ">
+        <div className="space-y-2 w-[400px]">
+          <input
+            type="text"
+            placeholder="Search bookings"
+            className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
+          />
+        </div>
+      </div>
       <ConfigProvider
         theme={{
           components: {
@@ -242,7 +251,7 @@ const hotels = [
           dataSource={hotels}
           columns={columns}
           pagination={{ pageSize: 10 }}
-        
+
         />
       </ConfigProvider>
 

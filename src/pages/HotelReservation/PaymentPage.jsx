@@ -18,6 +18,7 @@ export default function PaymentPage() {
 
     const [cardNumber, setCardNumber] = useState('');
     const [cardName, setCardName] = useState('');
+    const [cardType, setCardType] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCvv] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -144,6 +145,26 @@ export default function PaymentPage() {
                                         />
                                         {errors.cardName && (
                                             <p className="mt-1 text-sm text-red-600">{errors.cardName}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Card Type */}
+                                    <div>
+                                        <label htmlFor="card-type" className="block text-sm font-medium text-gray-700 mb-2">
+                                            Card Type *
+                                        </label>
+                                        <select
+                                            id="card-type"
+                                            value={cardType}
+                                            onChange={(e) => setCardType(e.target.value)}
+                                            className={`w-full px-4 py-3 border ${errors.cardType ? 'border-red-500' : 'border-gray-300'} rounded  transition-colors`}
+                                        >
+                                            <option value="">Select Card Type</option>
+                                            <option value="visa">💳 Visa</option>
+                                            <option value="mastercard">💳 MasterCard</option>
+                                        </select>
+                                        {errors.cardType && (
+                                            <p className="mt-1 text-sm text-red-600">{errors.cardType}</p>
                                         )}
                                     </div>
 

@@ -11,7 +11,11 @@ export default function Checkout() {
         firstName: '',
         lastName: '',
         email: '',
-        phone: ''
+        phone: '',
+        street: '',
+        city: '',
+        postcode: '',
+        zipCode: ''
     });
 
     const [isProcessing, setIsProcessing] = useState(false);
@@ -203,6 +207,66 @@ export default function Checkout() {
                                         required
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
                                         placeholder="Enter your phone number"
+                                    />
+                                </div>
+                                {/* <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                       Billing Address
+                                    </label>
+                                </div> */}
+
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Address *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={guestInfo.street}
+                                        onChange={(e) => handleGuestInfoChange('street', e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                        placeholder="Enter your street address"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        City *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={guestInfo.city}
+                                        onChange={(e) => handleGuestInfoChange('city', e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                        placeholder="Enter your city"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Postcode *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={guestInfo.postcode}
+                                        onChange={(e) => handleGuestInfoChange('postcode', e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                        placeholder="Enter your postcode"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Country*
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={guestInfo.street}
+                                        onChange={(e) => handleGuestInfoChange('street', e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                        placeholder="Enter your street address"
                                     />
                                 </div>
                             </form>
