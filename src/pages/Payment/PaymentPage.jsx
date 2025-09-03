@@ -11,11 +11,12 @@ export default function SecurityPaymentPage() {
     const [cardNumber, setCardNumber] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCvv] = useState('');
-    const [cardholderName, setCardholderName] = useState('');
+    const [cardName, setCardName] = useState('');
+    const [errors, setErrors] = useState({});
 
-    const handlePayment = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        if (!cardNumber || !expiryDate || !cvv || !cardholderName) return;
+        if (!cardNumber || !expiryDate || !cvv || !cardName) return;
         
         setIsProcessing(true);
         
@@ -116,103 +117,128 @@ export default function SecurityPaymentPage() {
                             )}
                         </div>
 
-                        <form onSubmit={handlePayment} className="space-y-6">
-                            <div>
-                                <h2 className="text-lg font-medium text-gray-900 mb-4">Payment Method</h2>
-                                
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                                        <div className="relative">
-                                            <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                            <input
-                                                type="text"
-                                                value={cardNumber}
-                                                onChange={handleCardNumberChange}
-                                                placeholder="1234 5678 9012 3456"
-                                                maxLength={19}
-                                                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                                required
-                                            />
-                                        </div>
+                        {/* Payment Form */}
+                        <div className="lg:col-span-2">
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                                    <h2 className="text-lg font-semibold text-gray-900">Payment Method</h2>
+                                    <div className="flex items-center space-x-3">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/124px-PayPal.svg.png" alt="PayPal" className="h-6" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="MasterCard" className="h-6" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png" alt="Visa" className="h-6" />
                                     </div>
+                                </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                <form onSubmit={handleSubmit} className="p-6">
+                                    <div className="space-y-6">
+                                        {/* Card Number */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                            <input
-                                                type="text"
-                                                value={expiryDate}
-                                                onChange={handleExpiryDateChange}
-                                                placeholder="MM/YY"
-                                                maxLength={5}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg transition-colors"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                            <label htmlFor="card-number" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Card Number
+                                            </label>
                                             <div className="relative">
-                                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                                 <input
                                                     type="text"
-                                                    value={cvv}
-                                                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                                    placeholder="123"
-                                                    maxLength={4}
-                                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg transition-colors"
-                                                    required
+                                                    id="card-number"
+                                                    value={formatCardNumber(cardNumber)}
+                                                    onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, ''))}
+                                                    placeholder="0000 0000 0000 0000"
+                                                    maxLength={19}
+                                                    className={`w-full pl-11 pr-4 py-3 border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors`}
                                                 />
                                             </div>
+                                            {errors.cardNumber && (
+                                                <p className="mt-1 text-sm text-red-600">{errors.cardNumber}</p>
+                                            )}
                                         </div>
-                                    </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
-                                        <input
-                                            type="text"
-                                            value={cardholderName}
-                                            onChange={(e) => setCardholderName(e.target.value)}
-                                            placeholder="John Doe"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg transition-colors"
-                                            required
-                                        />
+                                        {/* Cardholder Name */}
+                                        <div>
+                                            <label htmlFor="card-name" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Cardholder Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="card-name"
+                                                value={cardName}
+                                                onChange={(e) => setCardName(e.target.value)}
+                                                placeholder="John Doe"
+                                                className={`w-full px-4 py-3 border ${errors.cardName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors`}
+                                            />
+                                            {errors.cardName && (
+                                                <p className="mt-1 text-sm text-red-600">{errors.cardName}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {/* Expiry Date */}
+                                            <div>
+                                                <label htmlFor="expiry-date" className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Expiry Date
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="expiry-date"
+                                                    value={expiryDate}
+                                                    onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
+                                                    placeholder="MM/YY"
+                                                    maxLength={5}
+                                                    className={`w-full px-4 py-3 border ${errors.expiryDate ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors`}
+                                                />
+                                                {errors.expiryDate && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.expiryDate}</p>
+                                                )}
+                                            </div>
+
+                                            {/* CVV */}
+                                            <div>
+                                                <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-1">
+                                                    CVV
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="cvv"
+                                                    value={cvv}
+                                                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, ''))}
+                                                    placeholder="123"
+                                                    maxLength={4}
+                                                    className={`w-full px-4 py-3 border ${errors.cvv ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors`}
+                                                />
+                                                {errors.cvv && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.cvv}</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Security Info */}
+                                        <div className="flex items-center text-sm text-gray-500">
+                                            <Lock className="w-4 h-4 mr-2 text-green-500" />
+                                            <span>Your payment is secured with 256-bit SSL encryption</span>
+                                        </div>
+
+                                        {/* Submit Button */}
+                                        <button
+                                            type="submit"
+                                            disabled={isProcessing}
+                                            className={`w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 flex items-center justify-center ${isProcessing ? 'opacity-75 cursor-not-allowed' : ''}`}
+                                        >
+                                            {isProcessing ? (
+                                                <>
+                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                'Pay Now'
+                                            )}
+                                        </button>
                                     </div>
-                                </div>
+                                </form>
                             </div>
-
-                            {/* <div className="flex items-center justify-between text-sm text-gray-500">
-                                <div className="flex items-center">
-                                    <Lock className="w-4 h-4 mr-1 text-green-500" />
-                                    <span>Secure payment</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="mr-2">We accept</span>
-                                    <div className="flex space-x-2">
-                                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">VISA</span>
-                                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">MC</span>
-                                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">AMEX</span>
-                                    </div>
-                                </div>
-                            </div> */}
-
-                            <button
-                                type="submit"
-                                disabled={isProcessing || !cardNumber || !expiryDate || !cvv || !cardholderName}
-                                className={`w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors ${
-                                    isProcessing || !cardNumber || !expiryDate || !cvv || !cardholderName 
-                                        ? 'opacity-70 cursor-not-allowed' 
-                                        : ''
-                                }`}
-                            >
-                                {isProcessing ? 'Processing...' : `Pay $${bookingDetails?.total || '0'}`}
-                            </button>
-
-                            {/* <div className="flex items-center justify-center text-sm text-gray-500 mt-4">
-                                <Shield className="w-4 h-4 mr-2 text-green-500" />
-                                <span>Your payment is secure and encrypted</span>
-                            </div> */}
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>

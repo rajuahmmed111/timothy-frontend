@@ -18,7 +18,7 @@ export default function PaymentPage() {
 
     const [cardNumber, setCardNumber] = useState('');
     const [cardName, setCardName] = useState('');
-    const [cardType, setCardType] = useState('');
+    // const [cardType, setCardType] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCvv] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -82,9 +82,9 @@ export default function PaymentPage() {
     };
 
     // Calculate nights from check-in and check-out dates
-    const nights = Math.ceil(
-        (new Date(bookingData.checkOut) - new Date(bookingData.checkIn)) / (1000 * 60 * 60 * 24)
-    );
+    // const nights = Math.ceil(
+    //     (new Date(bookingData.checkOut) - new Date(bookingData.checkIn)) / (1000 * 60 * 60 * 24)
+    // );
 
     // Format currency
     const formatCurrency = (amount) => {
@@ -102,8 +102,13 @@ export default function PaymentPage() {
                     {/* Payment Form */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="p-6 border-b border-gray-200">
+                            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                                 <h2 className="text-lg font-semibold text-gray-900">Payment Method</h2>
+                                <div className="flex items-center space-x-3">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/124px-PayPal.svg.png" alt="PayPal" className="h-6" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="MasterCard" className="h-6" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png" alt="Visa" className="h-6" />
+                                </div>
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-6">
@@ -148,25 +153,7 @@ export default function PaymentPage() {
                                         )}
                                     </div>
 
-                                    {/* Card Type */}
-                                    <div>
-                                        <label htmlFor="card-type" className="block text-sm font-medium text-gray-700 mb-2">
-                                            Card Type *
-                                        </label>
-                                        <select
-                                            id="card-type"
-                                            value={cardType}
-                                            onChange={(e) => setCardType(e.target.value)}
-                                            className={`w-full px-4 py-3 border ${errors.cardType ? 'border-red-500' : 'border-gray-300'} rounded  transition-colors`}
-                                        >
-                                            <option value="">Select Card Type</option>
-                                            <option value="visa">💳 Visa</option>
-                                            <option value="mastercard">💳 MasterCard</option>
-                                        </select>
-                                        {errors.cardType && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.cardType}</p>
-                                        )}
-                                    </div>
+                         
 
                                     <div className="grid grid-cols-2 gap-4">
                                         {/* Expiry Date */}
@@ -236,6 +223,8 @@ export default function PaymentPage() {
                             </form>
                         </div>
                     </div>
+ 
+
 
                     {/* Booking Summary */}
                     <div className="lg:col-span-1">

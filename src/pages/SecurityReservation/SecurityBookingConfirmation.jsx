@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, Shield, Calendar, Clock, MapPin } from 'lucide-react';
+import { CheckCircle, Shield, Calendar, Clock, MapPin, Users, Phone, Mail, CreditCard, Star, User } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export default function SecurityBookingConfirmation() {
@@ -13,7 +13,62 @@ export default function SecurityBookingConfirmation() {
         endDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
         serviceType: 'Personal Security',
         total: 500,
-        serviceDescription: 'Dedicated protection for individuals'
+        serviceDescription: 'Dedicated protection for individuals',
+        paymentStatus: 'completed',
+        paymentDate: new Date().toISOString(),
+        paymentMethod: '•••• •••• •••• 4242'
+    };
+
+    
+    // Security service details
+    const securityDetails = {
+        serviceName: 'Elite Security Services',
+        provider: 'SecureGuard Professional',
+        rating: 4.9,
+        location: 'Metropolitan Area Coverage',
+        description: 'Professional security services with highly trained personnel',
+        serviceFeatures: [
+            '24/7 Professional Security Personnel',
+            'Advanced Surveillance Equipment',
+            'Emergency Response Protocol',
+            'Real-time Communication System',
+            'Incident Reporting & Documentation',
+            'Crowd Control Management',
+            'Access Control Systems',
+            'Mobile Patrol Services'
+        ],
+        reviews: [
+            {
+                name: 'Robert Anderson',
+                date: 'March 2024',
+                comment: 'Exceptional security service with professional staff. Highly recommend for any security needs.'
+            },
+            {
+                name: 'Lisa Thompson',
+                date: 'February 2024',
+                comment: 'Outstanding service quality and very responsive team. Made us feel completely secure.'
+            },
+            {
+                name: 'David Wilson',
+                date: 'January 2024',
+                comment: 'Professional, reliable, and efficient security services. Great value for money.'
+            }
+        ]
+    };
+
+    // Client details
+    const clientDetails = {
+        primaryClient: {
+            name: 'John Smith',
+            email: 'john.smith@email.com',
+            phone: '+1 (555) 123-4567'
+        },
+        specialRequests: 'Additional patrol during evening hours',
+        additionalNotes: 'VIP protection required for special event',
+        emergencyContact: {
+            name: 'Jane Smith',
+            phone: '+1 (555) 987-6543'
+        }
     };
 
     const formatDate = (dateString) => {
@@ -38,71 +93,174 @@ export default function SecurityBookingConfirmation() {
                         <p className="text-blue-100">Your booking ID: {booking.bookingId}</p>
                     </div>
 
-                    <div className=" overflow-hidden">
-                        <div className="px-6 py-5 border-b border-gray-200">
-                            <h2 className="text-lg font-medium text-gray-900">Booking Details</h2>
+                    <div className="p-6 md:p-8">
+                        {/* Security Service Details */}
+                        <div className="mb-8">
+                            <h2 className="text-xl font-bold text-gray-900 mb-6">Security Service Details</h2>
+                            <div className="bg-gray-50 rounded-lg p-6">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900">{securityDetails.serviceName}</h3>
+                                        <p className="text-gray-600">{securityDetails.provider}</p>
+                                        <div className="flex items-center mt-2">
+                                            <div className="flex items-center">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star key={i} className={`w-4 h-4 ${i < Math.floor(securityDetails.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                                                ))}
+                                            </div>
+                                            <span className="ml-2 text-sm text-gray-600">{securityDetails.rating}/5</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="flex items-center text-gray-600">
+                                            <MapPin className="w-4 h-4 mr-1" />
+                                            <span className="text-sm">{securityDetails.location}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className="text-gray-600 mb-4">{securityDetails.description}</p>
+                            </div>
                         </div>
-                        <div className="px-6 py-5">
-                            <div className="space-y-6">
-                                <div className="flex items-start">
-                                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <Shield className="h-5 w-5 text-blue-600" />
+
+                        {/* Booking Information */}
+                        <div className="border-t border-gray-200 pt-6 mb-8">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Information</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="flex items-center">
+                                        <Calendar className="w-5 h-5 text-gray-400 mr-3" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Service Period</p>
+                                            <p className="font-medium">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
+                                            <p className="text-sm text-gray-500">{calculateDays(booking.startDate, booking.endDate)} day{calculateDays(booking.startDate, booking.endDate) > 1 ? 's' : ''}</p>
+                                        </div>
                                     </div>
-                                    <div className="ml-4">
-                                        <h3 className="text-sm font-medium text-gray-900">Service Type</h3>
-                                        <p className="text-sm text-gray-500">{booking.serviceType}</p>
-                                        <p className="mt-1 text-sm text-gray-500">{booking.serviceDescription}</p>
+                                    <div className="flex items-center">
+                                        <Shield className="w-5 h-5 text-gray-400 mr-3" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Service Type</p>
+                                            <p className="font-medium">{booking.serviceType}</p>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div className="flex items-start">
-                                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <Calendar className="h-5 w-5 text-blue-600" />
+                                <div className="space-y-4">
+                                    <div className="flex items-center">
+                                        <Clock className="w-5 h-5 text-gray-400 mr-3" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Availability</p>
+                                            <p className="font-medium">24/7 Service</p>
+                                        </div>
                                     </div>
-                                    <div className="ml-4">
-                                        <h3 className="text-sm font-medium text-gray-900">Service Period</h3>
-                                        <p className="text-sm text-gray-500">
-                                            {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
-                                        </p>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            {calculateDays(booking.startDate, booking.endDate)} day{calculateDays(booking.startDate, booking.endDate) > 1 ? 's' : ''}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start">
-                                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <Clock className="h-5 w-5 text-blue-600" />
-                                    </div>
-                                    <div className="ml-4">
-                                        <h3 className="text-sm font-medium text-gray-900">Availability</h3>
-                                        <p className="text-sm text-gray-500">24/7 Service</p>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Your security personnel will be available round the clock during the service period.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start">
-                                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <MapPin className="h-5 w-5 text-blue-600" />
-                                    </div>
-                                    <div className="ml-4">
-                                        <h3 className="text-sm font-medium text-gray-900">Service Location</h3>
-                                        <p className="text-sm text-gray-500">
-                                            Your specified location
-                                        </p>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Our team will contact you to confirm the exact service location details.
-                                        </p>
+                                    <div className="flex items-center">
+                                        <Users className="w-5 h-5 text-gray-400 mr-3" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Service Coverage</p>
+                                            <p className="font-medium">Professional Security Team</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-gray-50 px-6 py-4 border border-gray-200">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium text-gray-900">Total Amount</span>
-                                <span className="text-xl font-bold text-gray-900">${booking.total}</span>
+
+                        {/* Service Features */}
+                        <div className="border-t border-gray-200 pt-6 mb-8">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Features</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {securityDetails.serviceFeatures.map((feature, index) => (
+                                    <div key={index} className="flex items-center text-gray-600">
+                                        <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+                                        <span>{feature}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+           
+
+                        {/* Client Information */}
+                        <div className="border-t border-gray-200 pt-6 mb-8">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Client Information</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Primary Client</p>
+                                            <p className="font-medium">{clientDetails.primaryClient.name}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Email</p>
+                                            <p className="font-medium">{clientDetails.primaryClient.email}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Phone</p>
+                                            <p className="font-medium">{clientDetails.primaryClient.phone}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Special Requests</p>
+                                            <p className="font-medium">{clientDetails.specialRequests}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Additional Notes</p>
+                                            <p className="font-medium">{clientDetails.additionalNotes}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Payment Method</p>
+                                            <p className="font-medium flex items-center">
+                                                <CreditCard className="w-4 h-4 mr-2 text-gray-500" />
+                                                {booking.paymentMethod}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Emergency Contact */}
+                        <div className="border-t border-gray-200 pt-6 mb-8">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Emergency Contact</h3>
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <div className="flex items-center">
+                                    <User className="w-5 h-5 text-red-600 mr-3" />
+                                    <div>
+                                        <p className="font-medium text-red-900">{clientDetails.emergencyContact.name}</p>
+                                        <p className="text-red-700">{clientDetails.emergencyContact.phone}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Payment Summary */}
+                        <div className="border-t border-gray-200 pt-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Summary</h3>
+                            <div className="bg-gray-50 rounded-lg p-6">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Service Fee</span>
+                                        <span className="font-medium">${booking.total}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Security Deposit</span>
+                                        <span className="font-medium">$0</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Taxes & Fees</span>
+                                        <span className="font-medium">Included</span>
+                                    </div>
+                                    <div className="border-t border-gray-200 pt-2 mt-2">
+                                        <div className="flex justify-between">
+                                            <span className="text-lg font-semibold text-gray-900">Total Paid</span>
+                                            <span className="text-lg font-bold text-gray-900">${booking.total}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-4 flex items-center text-green-600">
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    <span className="text-sm">Payment completed successfully</span>
+                                </div>
                             </div>
                         </div>
                     </div>

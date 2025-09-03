@@ -6,6 +6,16 @@ export default function CarCheckout() {
     const location = useLocation();
     const navigate = useNavigate();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [guestInfo, setGuestInfo] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        street: "",
+        city: "",
+        postcode: "",
+        country: "",
+    });
 
     // Get booking details from navigation state
     const bookingDetails = location.state?.bookingDetails || {
@@ -56,6 +66,13 @@ export default function CarCheckout() {
 
     const handleGoBack = () => {
         navigate(-1);
+    };
+
+    const handleGuestInfoChange = (field, value) => {
+        setGuestInfo((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
     };
 
     return (
@@ -138,6 +155,144 @@ export default function CarCheckout() {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Guest Information Form */}
+                            <div className="bg-white rounded-2xl shadow-sm p-6">
+                                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                                    Reserve information
+                                </h2>
+
+                                <form className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                First Name *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={guestInfo.firstName}
+                                                onChange={(e) =>
+                                                    handleGuestInfoChange("firstName", e.target.value)
+                                                }
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                                placeholder="Enter your first name"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Last Name *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={guestInfo.lastName}
+                                                onChange={(e) =>
+                                                    handleGuestInfoChange("lastName", e.target.value)
+                                                }
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                                placeholder="Enter your last name"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Email Address *
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={guestInfo.email}
+                                            onChange={(e) =>
+                                                handleGuestInfoChange("email", e.target.value)
+                                            }
+                                            required
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                            placeholder="Enter your email address"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Phone Number *
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={guestInfo.phone}
+                                            onChange={(e) =>
+                                                handleGuestInfoChange("phone", e.target.value)
+                                            }
+                                            required
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                            placeholder="Enter your phone number"
+                                        />
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Address *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={guestInfo.street}
+                                            onChange={(e) =>
+                                                handleGuestInfoChange("street", e.target.value)
+                                            }
+                                            required
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                            placeholder="Enter your street address"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            City *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={guestInfo.city}
+                                            onChange={(e) =>
+                                                handleGuestInfoChange("city", e.target.value)
+                                            }
+                                            required
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                            placeholder="Enter your city"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Postcode *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={guestInfo.postcode}
+                                            onChange={(e) =>
+                                                handleGuestInfoChange("postcode", e.target.value)
+                                            }
+                                            required
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                            placeholder="Enter your postcode"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Country *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={guestInfo.country}
+                                            onChange={(e) =>
+                                                handleGuestInfoChange("country", e.target.value)
+                                            }
+                                            required
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                                            placeholder="Enter your country"
+                                        />
+                                    </div>
+                                </form>
                             </div>
                         </div>
 

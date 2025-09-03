@@ -111,7 +111,7 @@ export const routes = createBrowserRouter([
                 element: <ReservationDetails />,
             },
             {
-                path: '/booking-confirmation',
+                path: '/booking-confirmation', // this is for stays booking confirmation
                 element: <BookingConfirmation />,
             },
             {
@@ -126,6 +126,7 @@ export const routes = createBrowserRouter([
                 path: '/security/checkout',
                 element: <SecurityCheckout />,
             },
+            
             {
                 path: '/security/payment',
                 element: <SecurityPaymentPage />,

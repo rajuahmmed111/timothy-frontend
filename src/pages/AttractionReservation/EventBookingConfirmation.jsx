@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, Calendar, MapPin, CreditCard, Download, Home, Users } from 'lucide-react';
+import { CheckCircle, Calendar, MapPin, CreditCard, Download, Home, Users, Star, Clock, Phone, Mail, User } from 'lucide-react';
 
 export default function EventBookingConfirmation() {
     const navigate = useNavigate();
@@ -17,6 +17,8 @@ export default function EventBookingConfirmation() {
         navigate('/');
     };
 
+
+    
     const handleBookAnother = () => {
         navigate('/attraction-reservation');
     };
@@ -40,7 +42,7 @@ export default function EventBookingConfirmation() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="container mx-auto px-4 max-w-2xl">
+            <div className="container mx-auto px-4 max-w-4xl">
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                     {/* Success Header */}
                     <div className="bg-green-50 p-6 text-center border-b border-green-100">
@@ -51,60 +53,240 @@ export default function EventBookingConfirmation() {
                         <p className="text-gray-600">Your event reservation has been successfully booked</p>
                     </div>
 
-                    {/* Booking Details */}
                     <div className="p-6 md:p-8">
+                        {/* Event Information */}
                         <div className="mb-8">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Booking Details</h2>
-
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <div className="flex items-start space-x-3 mb-4">
-                                    <Calendar className="w-5 h-5 text-blue-600 mt-1" />
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Event Information</h2>
+                            <div className="bg-gray-50 p-6 rounded-lg">
+                                <div className="flex items-start space-x-4 mb-6">
+                                    <div className="flex-shrink-0">
+                                        <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <Calendar className="w-8 h-8 text-blue-600" />
+                                        </div>
+                                    </div>
                                     <div className="flex-1">
-                                        <h3 className="font-medium text-gray-900">{bookingDetails.eventName || 'Burj Khalifa: Floors 124 & 125'}</h3>
-                                        <div className="flex items-center text-sm text-gray-600 mt-1">
+                                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                            {bookingDetails.eventName || 'Burj Khalifa: Floors 124 & 125'}
+                                        </h3>
+                                        <div className="flex items-center mb-2">
+                                            <div className="flex items-center mr-4">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                                                ))}
+                                                <span className="ml-1 text-sm text-gray-600">(4.8)</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center text-gray-600 mb-2">
                                             <MapPin className="w-4 h-4 mr-1" />
-                                            <span>{bookingDetails.location || 'Dubai, UAE'}</span>
+                                            <span>{bookingDetails.location || 'Downtown Dubai, Dubai, UAE'}</span>
                                         </div>
+                                        <p className="text-gray-600 text-sm">
+                                            Experience breathtaking views from the world's tallest building. Visit the observation decks on floors 124 & 125 for panoramic views of Dubai's skyline, desert, and coastline.
+                                        </p>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Booking ID:</span>
-                                            <span className="font-medium">{bookingDetails.bookingId}</span>
+                                {/* Event Features */}
+                                <div className="mb-6">
+                                    <h4 className="font-medium text-gray-900 mb-3">Event Features</h4>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="flex items-center text-sm text-gray-600">
+                                            <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
+                                            <span>High-speed elevators</span>
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Event Date:</span>
-                                            <span>{bookingDetails.selectedDate ? new Date(bookingDetails.selectedDate).toLocaleDateString() : 'Selected Date'}</span>
+                                        <div className="flex items-center text-sm text-gray-600">
+                                            <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
+                                            <span>360° panoramic views</span>
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Event Time:</span>
-                                            <span>{bookingDetails.selectedTime || 'Selected Time'}</span>
+                                        <div className="flex items-center text-sm text-gray-600">
+                                            <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
+                                            <span>Interactive displays</span>
                                         </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Guests:</span>
-                                            <span className="flex items-center">
-                                                <Users className="w-4 h-4 mr-1" />
-                                                {bookingDetails.guests || 1} guest{(bookingDetails.guests || 1) > 1 ? 's' : ''}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Payment Status:</span>
-                                            <span className="text-green-600 font-medium">Paid</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Payment Method:</span>
-                                            <span>{bookingDetails.paymentMethod}</span>
+                                        <div className="flex items-center text-sm text-gray-600">
+                                            <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
+                                            <span>Professional photography</span>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                <div className="flex justify-between font-medium pt-4 mt-4 border-t border-gray-200">
-                                    <span>Total Paid:</span>
-                                    <span className="text-lg text-green-600">${bookingDetails.total || 650}</span>
+                        {/* Booking Information */}
+                        <div className="mb-8">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Booking Information</h2>
+                            <div className="bg-gray-50 p-6 rounded-lg">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <Calendar className="h-5 w-5 text-blue-600" />
+                                            </div>
+                                            <div className="ml-4">
+                                                <h3 className="text-sm font-medium text-gray-900">Event Date & Time</h3>
+                                                <p className="text-sm text-gray-500">
+                                                    {bookingDetails.selectedDate ? new Date(bookingDetails.selectedDate).toLocaleDateString('en-US', { 
+                                                        weekday: 'long', 
+                                                        year: 'numeric', 
+                                                        month: 'long', 
+                                                        day: 'numeric' 
+                                                    }) : 'December 15, 2024'}
+                                                </p>
+                                                <p className="text-sm text-gray-500 flex items-center mt-1">
+                                                    <Clock className="w-4 h-4 mr-1" />
+                                                    {bookingDetails.selectedTime || '2:00 PM - 4:00 PM'}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <Users className="h-5 w-5 text-green-600" />
+                                            </div>
+                                            <div className="ml-4">
+                                                <h3 className="text-sm font-medium text-gray-900">Guest Count</h3>
+                                                <p className="text-sm text-gray-500">
+                                                    {bookingDetails.guests || 2} guest{(bookingDetails.guests || 2) > 1 ? 's' : ''}
+                                                </p>
+                                                <p className="text-sm text-gray-400">Adult tickets included</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <MapPin className="h-5 w-5 text-purple-600" />
+                                            </div>
+                                            <div className="ml-4">
+                                                <h3 className="text-sm font-medium text-gray-900">Meeting Point</h3>
+                                                <p className="text-sm text-gray-500">Burj Khalifa Entrance</p>
+                                                <p className="text-sm text-gray-400">Level B2, Dubai Mall</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                <CreditCard className="h-5 w-5 text-yellow-600" />
+                                            </div>
+                                            <div className="ml-4">
+                                                <h3 className="text-sm font-medium text-gray-900">Booking ID</h3>
+                                                <p className="text-sm text-gray-500 font-mono">
+                                                    {bookingDetails.bookingId || 'EVT-2024-001234'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Personal Information */}
+                        <div className="mb-8">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h2>
+                            <div className="bg-gray-50 p-6 rounded-lg">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <User className="h-5 w-5 text-blue-600" />
+                                            </div>
+                                            <div className="ml-4">
+                                                <h3 className="text-sm font-medium text-gray-900">Primary Guest</h3>
+                                                <p className="text-sm text-gray-500">
+                                                    {bookingDetails.guestName || 'John Smith'}
+                                                </p>
+                                                <p className="text-sm text-gray-400">Lead visitor</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <Mail className="h-5 w-5 text-green-600" />
+                                            </div>
+                                            <div className="ml-4">
+                                                <h3 className="text-sm font-medium text-gray-900">Email Address</h3>
+                                                <p className="text-sm text-gray-500">
+                                                    {bookingDetails.email || 'john.smith@email.com'}
+                                                </p>
+                                                <p className="text-sm text-gray-400">Confirmation sent</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <Phone className="h-5 w-5 text-purple-600" />
+                                            </div>
+                                            <div className="ml-4">
+                                                <h3 className="text-sm font-medium text-gray-900">Contact Number</h3>
+                                                <p className="text-sm text-gray-500">
+                                                    {bookingDetails.phone || '+1 (555) 123-4567'}
+                                                </p>
+                                                <p className="text-sm text-gray-400">For event updates</p>
+                                            </div>
+                                        </div>
+
+                                        {bookingDetails.specialRequests && (
+                                            <div className="flex items-start">
+                                                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                                                    <Calendar className="h-5 w-5 text-orange-600" />
+                                                </div>
+                                                <div className="ml-4">
+                                                    <h3 className="text-sm font-medium text-gray-900">Special Requests</h3>
+                                                    <p className="text-sm text-gray-500">{bookingDetails.specialRequests}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Emergency Contact */}
+                                <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <h4 className="text-sm font-medium text-red-800 mb-2">Emergency Contact</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span className="text-red-700">Event Support:</span>
+                                            <span className="ml-2 font-medium text-red-800">+971 4 888 8888</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-red-700">24/7 Assistance:</span>
+                                            <span className="ml-2 font-medium text-red-800">support@burjkhalifa.ae</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Payment Summary */}
+                        <div className="mb-8">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Summary</h2>
+                            <div className="bg-gray-50 p-6 rounded-lg">
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Event Tickets ({bookingDetails.guests || 2} guests)</span>
+                                        <span>${(bookingDetails.total || 650) - 50}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Service Fee</span>
+                                        <span>$50</span>
+                                    </div>
+                                    <div className="border-t border-gray-200 pt-3 flex justify-between font-semibold">
+                                        <span>Total Paid</span>
+                                        <span className="text-green-600">${bookingDetails.total || 650}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm mt-2">
+                                        <span className="text-gray-600">Payment Method</span>
+                                        <span>{bookingDetails.paymentMethod || '•••• •••• •••• 1234'}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Payment Status</span>
+                                        <span className="text-green-600 font-medium">✓ Confirmed</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Payment Date</span>
+                                        <span>{bookingDetails.paymentDate ? new Date(bookingDetails.paymentDate).toLocaleDateString() : new Date().toLocaleDateString()}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
