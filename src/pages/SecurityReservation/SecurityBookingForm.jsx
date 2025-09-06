@@ -17,7 +17,7 @@ export default function SecurityBookingForm() {
     const serviceTypes = [
         {
             id: 'personal',
-            name: 'Personal Security',
+            name: 'Security',
             description: 'Dedicated protection for individuals',
             icon: <User className="w-5 h-5 text-blue-600" />,
             price: 500
@@ -110,11 +110,11 @@ export default function SecurityBookingForm() {
 
                 {/* Security Personnel */}
                 <div className="space-y-2 h-full flex flex-col">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Security Personnel</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Security</label>
                     <Select
                         value={personnelCount === 0 
                             ? null 
-                            : `${personnelCount} ${personnelCount !== 1 ? 'personnel' : 'person'}`}
+                            : `${personnelCount}`}
                         placeholder="0 personnel"
                         className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3"
                         style={{ height: '48px' }}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, Calendar, MapPin, CreditCard, Download, Home, Users, Star, Clock, Phone, Mail, User } from 'lucide-react';
+import { CheckCircle, Calendar, MapPin, CreditCard, Download, Home, Users, Star, Clock, Phone, Mail, User, DollarSign } from 'lucide-react';
 
 export default function EventBookingConfirmation() {
     const navigate = useNavigate();
@@ -18,10 +18,6 @@ export default function EventBookingConfirmation() {
     };
 
 
-    
-    // const handleBookAnother = () => {
-    //     navigate('/attraction-reservation');
-    // };
 
     if (!bookingDetails) {
         return (
@@ -87,7 +83,7 @@ export default function EventBookingConfirmation() {
                                 </div>
 
                                 {/* Event Features */}
-                                <div className="mb-6">
+                                {/* <div className="mb-6">
                                     <h4 className="font-medium text-gray-900 mb-3">Event Features</h4>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="flex items-center text-sm text-gray-600">
@@ -107,7 +103,7 @@ export default function EventBookingConfirmation() {
                                             <span>Professional photography</span>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
 
@@ -175,6 +171,17 @@ export default function EventBookingConfirmation() {
                                                 </p>
                                             </div>
                                         </div>
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                <DollarSign className="h-5 w-5 text-yellow-600" />
+                                            </div>
+                                            <div className="ml-4">
+                                                <h3 className="text-sm font-medium text-gray-900">Total</h3>
+                                                <p className="text-sm text-gray-500 font-mono">
+                                                   $1000
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -214,18 +221,7 @@ export default function EventBookingConfirmation() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <div className="flex items-start">
-                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                                <Phone className="h-5 w-5 text-purple-600" />
-                                            </div>
-                                            <div className="ml-4">
-                                                <h3 className="text-sm font-medium text-gray-900">Contact Number</h3>
-                                                <p className="text-sm text-gray-500">
-                                                    {bookingDetails.phone || '+1 (555) 123-4567'}
-                                                </p>
-                                                <p className="text-sm text-gray-400">For event updates</p>
-                                            </div>
-                                        </div>
+                                      
 
                                         {bookingDetails.specialRequests && (
                                             <div className="flex items-start">
@@ -241,20 +237,7 @@ export default function EventBookingConfirmation() {
                                     </div>
                                 </div>
 
-                                {/* Emergency Contact */}
-                                <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                    <h4 className="text-sm font-medium text-red-800 mb-2">Emergency Contact</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <span className="text-red-700">Event Support:</span>
-                                            <span className="ml-2 font-medium text-red-800">+971 4 888 8888</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-red-700">24/7 Assistance:</span>
-                                            <span className="ml-2 font-medium text-red-800">support@burjkhalifa.ae</span>
-                                        </div>
-                                    </div>
-                                </div>
+                             
                             </div>
                         </div>
 
