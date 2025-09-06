@@ -154,7 +154,7 @@ export default function EventCheckout() {
                             {/* Guest Information Form */}
                             <div className="bg-white rounded-2xl shadow-sm p-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                                    Reserve information
+                                    Guest
                                 </h2>
 
                                 <form className="space-y-6">

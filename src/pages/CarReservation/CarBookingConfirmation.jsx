@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, Car, Calendar, MapPin, CreditCard, Download, Home, Users, Phone, Mail, Star, Fuel, Settings, Shield } from 'lucide-react';
+import { CheckCircle, Car, Calendar, MapPin, CreditCard, Download, Home, Users, Phone, Mail, Star, Fuel, Settings, Shield, DollarSign } from 'lucide-react';
 
 export default function CarBookingConfirmation() {
     const navigate = useNavigate();
@@ -16,7 +16,8 @@ export default function CarBookingConfirmation() {
         location: 'Downtown Location',
         total: 150,
         paymentMethod: '•••• •••• •••• 4242',
-        paymentStatus: 'completed'
+        paymentStatus: 'completed',
+        total: 150,
     };
 
     // Car details
@@ -186,22 +187,18 @@ export default function CarBookingConfirmation() {
                                             <p className="font-medium">{booking.location}</p>
                                         </div>
                                     </div>
+                                    <div className="flex items-center">
+                                        <DollarSign className="w-5 h-5 text-gray-400 mr-3" />
+                                        <div>
+                                            <p className="text-sm text-gray-500">Total</p>
+                                            <p className="font-medium">${booking.total}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Car Features */}
-                        <div className="border-t border-gray-200 pt-6 mb-8">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Car Features</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {carDetails.features.map((feature, index) => (
-                                    <div key={index} className="flex items-center text-gray-600">
-                                        <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-                                        <span>{feature}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                      
 
                         {/* Driver Information */}
                         <div className="border-t border-gray-200 pt-6 mb-8">
@@ -227,46 +224,11 @@ export default function CarBookingConfirmation() {
                                         </div>
                                     </div>
                                 </div>
-                                <div>
-                                    <div className="space-y-2">
-                                        <div>
-                                            <p className="text-sm text-gray-500">Additional Driver</p>
-                                            <p className="font-medium">{clientDetails.additionalDriver.name}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">License Number</p>
-                                            <p className="font-medium">{clientDetails.additionalDriver.licenseNumber}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Special Requests</p>
-                                            <p className="font-medium">{clientDetails.specialRequests}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Payment Method</p>
-                                            <p className="font-medium flex items-center">
-                                                <CreditCard className="w-4 h-4 mr-2 text-gray-500" />
-                                                {booking.paymentMethod}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+                              
                             </div>
                         </div>
 
-                        {/* Emergency Contact */}
-                        <div className="border-t border-gray-200 pt-6 mb-8">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Emergency Contact</h3>
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                                <div className="flex items-center">
-                                    <Phone className="w-5 h-5 text-red-600 mr-3" />
-                                    <div>
-                                        <p className="font-medium text-red-900">{clientDetails.emergencyContact.name}</p>
-                                        <p className="text-red-700">{clientDetails.emergencyContact.phone}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+                      
                         {/* Payment Summary */}
                         <div className="border-t border-gray-200 pt-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Summary</h3>

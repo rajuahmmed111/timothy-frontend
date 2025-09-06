@@ -114,6 +114,7 @@ export default function BookingConfirmation() {
                     {/* Hotel Information */}
                     <div className="p-6 md:p-8">
                         <div className="mb-8">
+                            {/* <p className='text-gray-600 mb-4 font-semibold text-lg'>Thanks for booking timothy</p> */}
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">{bookingData.hotelName}</h2>
                             <p className="text-gray-600 mb-4">{hotelDetails.description}</p>
                             <div className="space-y-3">
@@ -121,14 +122,7 @@ export default function BookingConfirmation() {
                                     <MapPin className="w-5 h-5 mr-2 text-sky-600" />
                                     <span>{hotelDetails.address}</span>
                                 </div>
-                                <div className="flex items-center text-gray-600">
-                                    <Phone className="w-5 h-5 mr-2 text-sky-600" />
-                                    <span>{hotelDetails.phone}</span>
-                                </div>
-                                <div className="flex items-center text-gray-600">
-                                    <Mail className="w-5 h-5 mr-2 text-sky-600" />
-                                    <span>{hotelDetails.email}</span>
-                                </div>
+                              
                             </div>
                         </div>
 
@@ -186,25 +180,12 @@ export default function BookingConfirmation() {
                             </div>
                         </div>
 
-                        {/* Room Features */}
-                        <div className="border-t border-gray-200 pt-6 mb-8">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Room Features</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {hotelDetails.roomFeatures.map((feature, index) => (
-                                    <div key={index} className="flex items-center text-gray-600">
-                                        <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-                                        <span>{feature}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
                       
 
                         {/* Guest Information */}
                         <div className="border-t border-gray-200 pt-6 mb-8">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Guest Information</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
                                 <div>
                                     <div className="space-y-2">
                                         <div>
@@ -221,26 +202,8 @@ export default function BookingConfirmation() {
                                         </div>
                                     </div>
                                 </div>
-                                <div>
-                                    <div className="space-y-2">
-                                        <div>
-                                            <p className="text-sm text-gray-500">Special Requests</p>
-                                            <p className="font-medium">{guestDetails.specialRequests}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Additional Notes</p>
-                                            <p className="font-medium">{guestDetails.additionalNotes}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Payment Method</p>
-                                            <p className="font-medium flex items-center">
-                                                <CreditCard className="w-4 h-4 mr-2 text-gray-500" />
-                                                {bookingData.paymentMethod}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                               
+                            {/* </div> */}
                         </div>
 
 
