@@ -1,31 +1,52 @@
-import React, { useState } from "react"
-import { ShoppingCart, ChevronDown, Menu, X, Home, Shield, Car, MapPin } from "lucide-react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import React, { useState } from "react";
+import {
+  ShoppingCart,
+  ChevronDown,
+  Menu,
+  X,
+  Home,
+  Shield,
+  Car,
+  MapPin,
+} from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
-  const location = useLocation()
+  const location = useLocation();
   const navItems = [
-    { name: "Stays", url: "/hotel", icon: Home },
-    { name: "Security", url: "/security-reservation", icon: Shield },
-    { name: "Car Rental", url: "/car-reservation", icon: Car },
-    { name: "Attractions", url: "/attraction-reservation", icon: MapPin }
-  ]
+    { name: "Stays", url: "/hotel", icon: "/navbar/stays.svg" },
+    {
+      name: "Security",
+      url: "/security-reservation",
+      icon: "/navbar/security.svg",
+    },
+    { name: "Car Rental", url: "/car-reservation", icon: "/navbar/car.svg" },
+    {
+      name: "Attractions",
+      url: "/attraction-reservation",
+      icon: "/navbar/attractions.svg",
+    },
+  ];
+
   const navigate = useNavigate();
-  const [isLanguageOpen, setIsLanguageOpen] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState("EN")
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("EN");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const languages = [
     { code: "EN", name: "English", flag: "/flags/us.svg" },
     { code: "ES", name: "Español", flag: "/flags/es.svg" },
     { code: "FR", name: "Français", flag: "/flags/fr.svg" },
     { code: "DE", name: "Deutsch", flag: "/flags/de.svg" },
-    { code: "IT", name: "Italiano", flag: "/flags/it.svg" }
-  ]
+    { code: "IT", name: "Italiano", flag: "/flags/it.svg" },
+  ];
 
   const getCurrentFlag = () => {
-    return languages.find(lang => lang.code === selectedLanguage)?.flag || "/flags/us.svg"
-  }
+    return (
+      languages.find((lang) => lang.code === selectedLanguage)?.flag ||
+      "/flags/us.svg"
+    );
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[9999] bg-white border-b border-gray-200">
@@ -44,20 +65,30 @@ export default function Navbar() {
           {/* Navigation Pills */}
           <nav className="hidden md:flex">
             <div className="flex items-center bg-[#0064D2] rounded-full p-1">
-              {navItems.map((item, index) => {
-                const IconComponent = item.icon;
-                return (
-                  <Link
-                    key={item?.name}
-                    to={item?.url}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${location.pathname === item.url ? "bg-white text-[#0064D2] shadow-sm" : "text-white"
-                      }`}
-                  >
-                    <IconComponent className="w-4 h-4" />
-                    {item.name}
-                  </Link>
-                );
-              })}
+              {navItems.map((item, index) => (
+                <Link
+                  key={item.name}
+                  to={item.url}
+                  id={`nav-item-${index}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    location.pathname === item.url
+                      ? "bg-white text-[#0064D2] shadow-sm"
+                      : "text-white"
+                  }`}
+                >
+                  <img
+                    src={item.icon}
+                    alt={item.name}
+                    className={`${item.icon.includes('car') ? 'size-8' : 'size-5'} object-contain`}
+                    style={{
+                      filter: location.pathname === item.url 
+                        ? 'brightness(0) saturate(100%) invert(25%) sepia(99%) saturate(2613%) hue-rotate(208deg) brightness(98%) contrast(101%)' 
+                        : 'brightness(0) saturate(100%) invert(100%)'
+                    }}
+                  />
+                  {item.name}
+                </Link>
+              ))}
             </div>
           </nav>
 
@@ -69,8 +100,14 @@ export default function Navbar() {
                 onClick={() => setIsLanguageOpen(!isLanguageOpen)}
                 className="flex items-center space-x-1 p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <img src={getCurrentFlag()} alt="flag" className="w-5 h-4 rounded-full" />
-                <span className="text-sm font-medium text-gray-700">{selectedLanguage}</span>
+                <img
+                  src={getCurrentFlag()}
+                  alt="flag"
+                  className="w-5 h-4 rounded-full"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  {selectedLanguage}
+                </span>
                 <ChevronDown className="w-4 h-4 text-gray-600" />
               </button>
 
@@ -80,13 +117,20 @@ export default function Navbar() {
                     <button
                       key={language.code}
                       onClick={() => {
-                        setSelectedLanguage(language.code)
-                        setIsLanguageOpen(false)
+                        setSelectedLanguage(language.code);
+                        setIsLanguageOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center space-x-2 ${selectedLanguage === language.code ? "bg-blue-50 text-blue-600" : "text-gray-700"
-                        }`}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center space-x-2 ${
+                        selectedLanguage === language.code
+                          ? "bg-blue-50 text-blue-600"
+                          : "text-gray-700"
+                      }`}
                     >
-                      <img src={language.flag} alt={`${language.name} flag`} className="w-5 h-4 rounded-full" />
+                      <img
+                        src={language.flag}
+                        alt={`${language.name} flag`}
+                        className="w-5 h-4 rounded-full"
+                      />
                       <span>{language.name}</span>
                     </button>
                   ))}
@@ -101,11 +145,17 @@ export default function Navbar() {
 
             {/* Auth buttons - Hidden on mobile */}
             <button
-              onClick={() => navigate('/login')}
-              className="hidden sm:block text-gray-700 hover:text-gray-900 font-medium">Sign In</button>
+              onClick={() => navigate("/login")}
+              className="hidden sm:block text-gray-700 hover:text-gray-900 font-medium"
+            >
+              Sign In
+            </button>
             <button
-              onClick={() => navigate('/dashboard/profile')}
-              className="hidden sm:block bg-[#0064D2] text-white px-6 py-2 rounded-full cursor-pointer">Sign Up</button>
+              onClick={() => navigate("/dashboard/profile")}
+              className="hidden sm:block bg-[#0064D2] text-white px-6 py-2 rounded-full cursor-pointer"
+            >
+              Sign Up
+            </button>
 
             {/* Mobile menu button */}
             <button
@@ -131,8 +181,11 @@ export default function Navbar() {
                   <Link
                     key={item.name}
                     to={item.url}
-                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${index === 0 ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-100"
-                      }`}
+                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      index === 0
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
                   >
                     {item.name}
                   </Link>
@@ -147,7 +200,11 @@ export default function Navbar() {
                     className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <div className="flex items-center space-x-2">
-                      <img src={getCurrentFlag()} alt="flag" className="w-5 h-4 rounded-full" />
+                      <img
+                        src={getCurrentFlag()}
+                        alt="flag"
+                        className="w-5 h-4 rounded-full"
+                      />
                       <span>Language ({selectedLanguage})</span>
                     </div>
                     <ChevronDown className="w-4 h-4 text-gray-600" />
@@ -159,13 +216,20 @@ export default function Navbar() {
                         <button
                           key={language.code}
                           onClick={() => {
-                            setSelectedLanguage(language.code)
-                            setIsLanguageOpen(false)
+                            setSelectedLanguage(language.code);
+                            setIsLanguageOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center space-x-2 ${selectedLanguage === language.code ? "bg-blue-50 text-blue-600" : "text-gray-700"
-                            }`}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center space-x-2 ${
+                            selectedLanguage === language.code
+                              ? "bg-blue-50 text-blue-600"
+                              : "text-gray-700"
+                          }`}
                         >
-                          <img src={language.flag} alt={`${language.name} flag`} className="w-5 h-4 rounded-full" />
+                          <img
+                            src={language.flag}
+                            alt={`${language.name} flag`}
+                            className="w-5 h-4 rounded-full"
+                          />
                           <span>{language.name}</span>
                         </button>
                       ))}
@@ -182,14 +246,11 @@ export default function Navbar() {
                 </button>
 
                 <Link to="/profile">
-                  <button
-                    className="cursor-pointer w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                  <button className="cursor-pointer w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
                     Sign In
                   </button>
                 </Link>
-                <button
-
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
                   Sign Up
                 </button>
               </div>
@@ -198,5 +259,5 @@ export default function Navbar() {
         )}
       </div>
     </header>
-  )
+  );
 }

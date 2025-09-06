@@ -7,10 +7,10 @@ import { DatePicker, Button } from "antd";
 
 
 
-import ing1 from "../../../public/hotel/1.png"
-import ing2 from "../../../public/hotel/2.png"
-import ing3 from "../../../public/hotel/3.png"
-import ing4 from "../../../public/hotel/4.png"
+import ing1 from "/hotel/1.png"
+import ing2 from "/hotel/2.png"
+import ing3 from "/hotel/3.png"
+import ing4 from "/hotel/4.png"
 import HotelCard from '../../components/HotelCard/HotelCard';
 
 

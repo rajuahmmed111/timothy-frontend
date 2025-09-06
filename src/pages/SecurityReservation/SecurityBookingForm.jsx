@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, CheckCircle } from 'lucide-react';
+import { User, CheckCircle, Plus, Minus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DatePicker } from "antd";
 
@@ -7,8 +7,9 @@ import { DatePicker } from "antd";
 export default function SecurityBookingForm() {
     const navigate = useNavigate();
     const [serviceType, setServiceType] = useState('personal');
-    const [isBooking, setIsBooking] = useState(false);
+    const [isBooking, ] = useState(false);
     const [dateRange, setDateRange] = useState(null);
+    const [personnelCount, setPersonnelCount] = useState(1);
 
     const { RangePicker } = DatePicker;
 
@@ -27,7 +28,15 @@ export default function SecurityBookingForm() {
     const calculateTotal = () => {
         if (!dateRange || !dateRange[0] || !dateRange[1]) return 0;
         const days = Math.ceil((dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) / (1000 * 60 * 60 * 24)) || 1;
-        return selectedService.price * days;
+        return selectedService.price * days * personnelCount;
+    };
+
+    const increasePersonnel = () => {
+        setPersonnelCount(prev => prev + 1);
+    };
+
+    const decreasePersonnel = () => {
+        setPersonnelCount(prev => prev > 1 ? prev - 1 : 1);
     };
 
     const getDays = () => {
@@ -44,6 +53,7 @@ export default function SecurityBookingForm() {
             startDate: dateRange[0].format('YYYY-MM-DD'),
             endDate: dateRange[1].format('YYYY-MM-DD'),
             serviceType: selectedService.name,
+            personnelCount: personnelCount,
             total: calculateTotal(),
             serviceDescription: selectedService.description
         };
@@ -101,6 +111,40 @@ export default function SecurityBookingForm() {
                     />
                 </div>
 
+                {/* Personnel Count */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Number of Security Personnel</label>
+                    <div className="flex items-center justify-between bg-gray-50 border border-gray-300 rounded-lg p-3">
+                        <button
+                            type="button"
+                            onClick={decreasePersonnel}
+                            disabled={personnelCount <= 1}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                personnelCount <= 1 
+                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                                    : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                            }`}
+                        >
+                            <Minus className="w-4 h-4" />
+                        </button>
+                        
+                        <div className="flex items-center space-x-2">
+                            <User className="w-5 h-5 text-blue-600" />
+                            <span className="text-lg font-medium text-gray-900">{personnelCount}</span>
+                            <span className="text-sm text-gray-500">
+                                {personnelCount === 1 ? 'person' : 'people'}
+                            </span>
+                        </div>
+                        
+                        <button
+                            type="button"
+                            onClick={increasePersonnel}
+                            className="w-8 h-8 rounded-full bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors"
+                        >
+                            <Plus className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
 
                 {/* Price Summary */}
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -108,8 +152,14 @@ export default function SecurityBookingForm() {
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                             <span className="text-gray-600">
-                                ${selectedService.price} per day
+                                ${selectedService.price} per day per person
                             </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">
+                                {personnelCount} {personnelCount === 1 ? 'person' : 'people'}
+                            </span>
+                            <span>${selectedService.price * personnelCount} per day</span>
                         </div>
                         {dateRange && dateRange[0] && dateRange[1] && (
                             <div className="flex justify-between">

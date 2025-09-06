@@ -19,9 +19,9 @@ export default function EventBookingConfirmation() {
 
 
     
-    const handleBookAnother = () => {
-        navigate('/attraction-reservation');
-    };
+    // const handleBookAnother = () => {
+    //     navigate('/attraction-reservation');
+    // };
 
     if (!bookingDetails) {
         return (

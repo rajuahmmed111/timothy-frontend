@@ -1,8 +1,4 @@
 import React from 'react';
-import ing1 from "../../../public/car/1.png"
-import ing2 from "../../../public/car/2.png"
-import ing3 from "../../../public/car/3.png"
-import ing4 from "../../../public/car/4.png"
 import CarCard from './CarCard';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,28 +8,28 @@ export default function PopularCar() {
         {
             name: "Mazda MX5",
             location: "New York, USA",
-            image: ing1,
+            image: "/car/1.png",
             price: "$500",
             rating: 5,
         },
         {
             name: "Mercedes E 300 ",
             location: "New York, USA",
-            image: ing2,
+            image: "/car/2.png",
             price: "$75",
             rating: 4,
         },
         {
             name: "Toyota Corolla",
             location: "New York, USA",
-            image: ing3,
+            image: "/car/3.png",
             price: "$425",
             rating: 5,
         },
         {
             name: "BMW X7",
             location: "New York, USA",
-            image: ing4,
+            image: "/car/4.png",
             price: "$450",
             rating: 5,
         },

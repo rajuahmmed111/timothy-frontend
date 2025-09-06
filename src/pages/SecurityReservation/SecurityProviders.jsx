@@ -1,8 +1,4 @@
 import React from 'react';
-import ing1 from "../../../public/SecurityProviders/1.png"
-import ing2 from "../../../public/SecurityProviders/2.png"
-import ing3 from "../../../public/SecurityProviders/3.png"
-import ing4 from "../../../public/SecurityProviders/4.png"
 import SecurityCard from './SecurityCard';
 
 export default function SecurityProviders() {
@@ -10,28 +6,28 @@ export default function SecurityProviders() {
         {
             name: "Jacob Jones",
             location: "New York, USA",
-            image: ing1,
+            image: "/SecurityProviders/1.png",
             price: "$500",
             rating: 5,
         },
         {
             name: "Ralph Edwards",
             location: "New York, USA",
-            image: ing2,
+            image: "/SecurityProviders/2.png",
             price: "$75",
             rating: 4,
         },
         {
             name: "Leslie Alexander",
             location: "New York, USA",
-            image: ing3,
+            image: "/SecurityProviders/3.png",
             price: "$425",
             rating: 5,
         },
         {
             name: "Savannah Nguyen",
             location: "New York, USA",
-            image: ing4,
+            image: "/SecurityProviders/4.png",
             price: "$450",
             rating: 5,
         },

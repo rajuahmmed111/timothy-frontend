@@ -1,34 +1,30 @@
 import React from 'react';
 import ServiceCard from '../../../components/ServiceCard/ServiceCard';
 import { Car, Shield, MapPin, House } from 'lucide-react';
-import hotelBookingService from '../../../../public/ExploreAllServices/1.png';
-import carRentalService from '../../../../public/ExploreAllServices/2.png';
-import securityService from '../../../../public/ExploreAllServices/3.png';
-import touristAttractions from '../../../../public/ExploreAllServices/4.png';
 
 export default function ExploreAllServices() {
     const services = [
         {
             title: "Hotel Reservation",
-            image: hotelBookingService,
+            image: "/ExploreAllServices/1.png",
             icon: House,
             description: "24 available",
         },
         {
             title: "Car Rental",
-            image: carRentalService,
+            image: "/ExploreAllServices/2.png",
             icon: Car,
             description: "12 available",
         },
         {
             title: "Security Protocol",
-            image: securityService,
+            image: "/ExploreAllServices/3.png",
             icon: Shield,
             description: "20 available",
         },
         {
             title: "Attractions",
-            image: touristAttractions,
+            image: "/ExploreAllServices/4.png",
             icon: MapPin,
             description: "25 available",
         },
