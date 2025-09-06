@@ -1,10 +1,6 @@
 import React from 'react';
 import { Car, Shield, MapPin, House } from 'lucide-react';
 
-import img1 from '../../../public/security/1.png';
-import img2 from '../../../public/security/2.png';
-import img3 from '../../../public/security/3.png';
-import img4 from '../../../public/security/4.png';
 
 
 
@@ -14,25 +10,25 @@ export default function AvailableService() {
     const services = [
         {
             title: "Personal Bodyguard",
-            image: img1,
+            image: "/security/1.png",
             // icon: House,
             description: "24 available",
         },
         {
             title: "Security Guard",
-            image: img2,
+            image: "/security/2.png",
             // icon: Car,
             description: "12 available",
         },
         {
             title: "Executive Protection",
-            image: img3,
+            image: "/security/3.png",
             // icon: Shield,
             description: "20 available",
         },
         {
             title: "Event Security",
-            image: img4,
+            image: "/security/4.png",
             // icon: MapPin,
             description: "25 available",
         },

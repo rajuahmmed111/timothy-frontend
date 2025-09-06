@@ -1,34 +1,30 @@
 import React from 'react';
 import ServiceCard from '../../../components/ServiceCard/ServiceCard';
 import { MapPin } from 'lucide-react';
-import Dubai from '../../../../public/RecommendedAttractions/1.png';
-import London from '../../../../public/RecommendedAttractions/2.png';
-import Istanbul from '../../../../public/RecommendedAttractions/3.png';
-import NewYork from '../../../../public/RecommendedAttractions/4.png';
 
 export default function RecommendedAttractions() {
     const services = [
         {
             title: "Dubai",
-            image: Dubai,
+            image: "/RecommendedAttractions/1.png",
             icon: MapPin,
             description: "564 things to do",
         },
         {
             title: "London",
-            image: London,
+            image: "/RecommendedAttractions/2.png",
             icon: MapPin,
             description: "564 things to do",
         },
         {
             title: "Istanbul",
-            image: Istanbul,
+            image: "/RecommendedAttractions/3.png",
             icon: MapPin,
             description: "564 things to do",
         },
         {
             title: "New York",
-            image: NewYork,
+            image: "/RecommendedAttractions/4.png",
             icon: MapPin,
             description: "564 things to do",
         },

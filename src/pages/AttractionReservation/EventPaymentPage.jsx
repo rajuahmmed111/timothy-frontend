@@ -11,11 +11,12 @@ export default function EventPaymentPage() {
     const [cardNumber, setCardNumber] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCvv] = useState('');
-    const [cardholderName, setCardholderName] = useState('');
+    const [cardName, setCardName] = useState('');
+    // const [errors, setErrors] = useState({});
 
     const handlePayment = (e) => {
         e.preventDefault();
-        if (!cardNumber || !expiryDate || !cvv || !cardholderName) return;
+        if (!cardNumber || !expiryDate || !cvv || !cardName) return;
         
         setIsProcessing(true);
         
@@ -137,7 +138,14 @@ export default function EventPaymentPage() {
 
                         <form onSubmit={handlePayment} className="space-y-6">
                             <div>
-                                <h2 className="text-lg font-medium text-gray-900 mb-4">Payment Method</h2>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-lg font-medium text-gray-900">Payment Method</h2>
+                                    <div className="flex items-center space-x-2">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-6" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6" />
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-6" />
+                                    </div>
+                                </div>
                                 
                                 <div className="space-y-4">
                                     <div>
@@ -150,10 +158,22 @@ export default function EventPaymentPage() {
                                                 onChange={handleCardNumberChange}
                                                 placeholder="1234 5678 9012 3456"
                                                 maxLength={19}
-                                                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg"
+                                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                 required
                                             />
                                         </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
+                                        <input
+                                            type="text"
+                                            value={cardName}
+                                            onChange={(e) => setCardName(e.target.value)}
+                                            placeholder="John Doe"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            required
+                                        />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
@@ -165,7 +185,7 @@ export default function EventPaymentPage() {
                                                 onChange={handleExpiryDateChange}
                                                 placeholder="MM/YY"
                                                 maxLength={5}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                 required
                                             />
                                         </div>
@@ -179,40 +199,43 @@ export default function EventPaymentPage() {
                                                     onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
                                                     placeholder="123"
                                                     maxLength={4}
-                                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg"
+                                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                     required
                                                 />
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
-                                        <input
-                                            type="text"
-                                            value={cardholderName}
-                                            onChange={(e) => setCardholderName(e.target.value)}
-                                            placeholder="John Doe"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
-                                            required
-                                        />
+                                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <Shield className="w-4 h-4 mr-2 text-green-600" />
+                                        <span>Your payment information is secured with 256-bit SSL encryption</span>
                                     </div>
                                 </div>
                             </div>
 
                             <button
                                 type="submit"
-                                disabled={isProcessing || !cardNumber || !expiryDate || !cvv || !cardholderName}
-                                className={`w-full bg-[#0064D2] hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors ${
-                                    isProcessing || !cardNumber || !expiryDate || !cvv || !cardholderName 
+                                disabled={isProcessing || !cardNumber || !expiryDate || !cvv || !cardName}
+                                className={`w-full bg-[#0064D2] hover:bg-blue-700 text-white py-4 px-6 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
+                                    isProcessing || !cardNumber || !expiryDate || !cvv || !cardName 
                                         ? 'opacity-70 cursor-not-allowed' 
-                                        : ''
+                                        : 'hover:shadow-lg'
                                 }`}
                             >
-                                {isProcessing ? 'Processing Payment...' : `Pay $${bookingDetails?.total || '650'}`}
+                                {isProcessing ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                        <span>Processing Payment...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock className="w-5 h-5" />
+                                        <span>Pay ${bookingDetails?.total || '650'}</span>
+                                    </>
+                                )}
                             </button>
-
-                            
                         </form>
                     </div>
                 </div>

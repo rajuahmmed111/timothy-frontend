@@ -1,22 +1,78 @@
 import React from 'react';
-import { CheckCircle, MapPin, Calendar, Users, Clock, CreditCard } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { CheckCircle, MapPin, Calendar, Users, Clock, CreditCard, Phone, Mail, Wifi, Car, Coffee, Utensils, Waves } from 'lucide-react';
+import { Link, useLocation, } from 'react-router-dom';
 
 export default function BookingConfirmation() {
     const location = useLocation();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     
     // Get booking data from location state or use default values
     const bookingData = location.state || {
         bookingId: 'BK' + Math.floor(10000000 + Math.random() * 90000000),
-        hotelName: 'Luxury Beach Resort & Spa',
-        location: 'Maldives',
+        hotelName: 'Azure Oasis',
+        location: 'Riviera Resort, Pristine Thailand',
         checkIn: new Date().toISOString().split('T')[0],
-        checkOut: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        guests: 2,
+        checkOut: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        guests: 1,
         roomType: 'Deluxe Room',
-        total: 3500,
-        bookingDate: new Date().toISOString().split('T')[0]
+        total: 4000,
+        bookingDate: new Date().toISOString().split('T')[0],
+        paymentMethod: 'Card ending in 4242',
+        rating: 4.8
+    };
+    
+
+    // Hotel details
+    const hotelDetails = {
+        address: 'Riviera Resort, Pristine Thailand',
+        phone: '+66 2-123-4567',
+        email: 'reservations@azureoasis.com',
+        checkInTime: '3:00 PM',
+        checkOutTime: '12:00 PM',
+        description: 'Nestled along the pristine shores of Thailand\'s Riviera, Azure Oasis offers an unparalleled luxury experience. Our Mediterranean-inspired architecture blends seamlessly with tropical surroundings, creating an oasis of tranquility and sophistication. Each room is thoughtfully designed with modern amenities and stunning ocean views.',
+        amenities: [
+            { icon: Wifi, name: 'Free WiFi' },
+            { icon: Car, name: 'Free Parking' },
+            { icon: Coffee, name: 'Coffee Bar' },
+            { icon: Waves, name: 'Swimming Pool' },
+            { icon: Utensils, name: 'Restaurant' }
+        ],
+        roomFeatures: [
+            'Ocean View',
+            'King Bed',
+            'Mini Bar',
+            'Mediterranean-inspired design',
+            'Modern amenities',
+            'Stunning ocean views'
+        ],
+        reviews: [
+            {
+                name: 'Sarah Johnson',
+                date: 'March 2024',
+                comment: 'Absolutely stunning property! The ocean views were breathtaking and the staff went above and beyond to make our stay memorable. The facilities were top-notch and the room was immaculate.'
+            },
+            {
+                name: 'Michael Chen',
+                date: 'February 2024',
+                comment: 'Great location and beautiful architecture. The swimming pool area was fantastic and the restaurant served excellent food. Only minor issue was the WiFi speed in some areas.'
+            },
+            {
+                name: 'Emma Rodriguez',
+                date: 'January 2024',
+                comment: 'Perfect honeymoon destination! The Mediterranean-inspired design is beautiful and the sunset views from our balcony were unforgettable. Highly recommend the spa services.'
+            }
+        ]
+    };
+
+    // Guest details (dummy data)
+    const guestDetails = {
+        primaryGuest: {
+            name: 'John Smith',
+            email: 'john.smith@email.com',
+            phone: '+1 (555) 123-4567'
+        },
+        specialRequests: 'Late check-in, Ocean view preferred',
+        additionalNotes: 'Celebrating anniversary'
     };
 
     // Calculate nights from check-in and check-out dates
@@ -55,51 +111,134 @@ export default function BookingConfirmation() {
                         <p className="text-blue-100">Your booking ID: {bookingData.bookingId}</p>
                     </div>
 
-                    {/* Booking Summary */}
+                    {/* Hotel Information */}
                     <div className="p-6 md:p-8">
                         <div className="mb-8">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">{bookingData.hotelName}</h2>
+                            <p className="text-gray-600 mb-4">{hotelDetails.description}</p>
                             <div className="space-y-3">
                                 <div className="flex items-center text-gray-600">
                                     <MapPin className="w-5 h-5 mr-2 text-sky-600" />
-                                    <span>{bookingData.location}</span>
+                                    <span>{hotelDetails.address}</span>
                                 </div>
                                 <div className="flex items-center text-gray-600">
-                                    <Calendar className="w-5 h-5 mr-2 text-sky-600" />
-                                    <span>
-                                        {formatDate(bookingData.checkIn)} - {formatDate(bookingData.checkOut)}
-                                        <span className="mx-2">•</span>
-                                        {nights} {nights === 1 ? 'night' : 'nights'}
-                                    </span>
+                                    <Phone className="w-5 h-5 mr-2 text-sky-600" />
+                                    <span>{hotelDetails.phone}</span>
                                 </div>
                                 <div className="flex items-center text-gray-600">
-                                    <Users className="w-5 h-5 mr-2 text-sky-600" />
-                                    <span>{bookingData.guests} {bookingData.guests === 1 ? 'guest' : 'guests'}</span>
+                                    <Mail className="w-5 h-5 mr-2 text-sky-600" />
+                                    <span>{hotelDetails.email}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="border-t border-b border-gray-200 py-6 my-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Details</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Hotel Amenities */}
+                        <div className="mb-8">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Hotel Amenities</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {hotelDetails.amenities.map((amenity, index) => (
+                                    <div key={index} className="flex items-center text-gray-600">
+                                        <amenity.icon className="w-5 h-5 mr-2 text-sky-600" />
+                                        <span>{amenity.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Reservation Details */}
+                        <div className="border-t border-gray-200 pt-6 mb-8">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Reservation Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="flex items-center text-gray-600">
+                                        <Calendar className="w-5 h-5 mr-2 text-sky-600" />
+                                        <div>
+                                            <p className="font-medium">Check-in: {formatDate(bookingData.checkIn)}</p>
+                                            <p className="text-sm text-gray-500">After {hotelDetails.checkInTime}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center text-gray-600">
+                                        <Calendar className="w-5 h-5 mr-2 text-sky-600" />
+                                        <div>
+                                            <p className="font-medium">Check-out: {formatDate(bookingData.checkOut)}</p>
+                                            <p className="text-sm text-gray-500">Before {hotelDetails.checkOutTime}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center text-gray-600">
+                                        <Users className="w-5 h-5 mr-2 text-sky-600" />
+                                        <span>{bookingData.guests} {bookingData.guests === 1 ? 'guest' : 'guests'} • {nights} {nights === 1 ? 'night' : 'nights'}</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-sm text-gray-500">Room Type</p>
+                                        <p className="font-medium">{bookingData.roomType}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500">Booking Date</p>
+                                        <p className="font-medium">{formatDate(bookingData.bookingDate)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500">Total Amount</p>
+                                        <p className="text-xl font-bold text-sky-700">{formatCurrency(bookingData.total * 1.12)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Room Features */}
+                        <div className="border-t border-gray-200 pt-6 mb-8">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Room Features</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {hotelDetails.roomFeatures.map((feature, index) => (
+                                    <div key={index} className="flex items-center text-gray-600">
+                                        <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+                                        <span>{feature}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                      
+
+                        {/* Guest Information */}
+                        <div className="border-t border-gray-200 pt-6 mb-8">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Guest Information</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <p className="text-sm text-gray-500">Room Type</p>
-                                    <p className="font-medium">{bookingData.roomType}</p>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Primary Guest</p>
+                                            <p className="font-medium">{guestDetails.primaryGuest.name}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Email</p>
+                                            <p className="font-medium">{guestDetails.primaryGuest.email}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Phone</p>
+                                            <p className="font-medium">{guestDetails.primaryGuest.phone}</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Booking Date</p>
-                                    <p className="font-medium">{formatDate(bookingData.bookingDate)}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500">Total Amount</p>
-                                    <p className="text-xl font-bold text-sky-700">{formatCurrency(bookingData.total)}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500">Payment Method</p>
-                                    <p className="font-medium flex items-center">
-                                        <CreditCard className="w-4 h-4 mr-2 text-gray-500" />
-                                        {bookingData.paymentMethod || 'Credit card (ending in 4242)'}
-                                    </p>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Special Requests</p>
+                                            <p className="font-medium">{guestDetails.specialRequests}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Additional Notes</p>
+                                            <p className="font-medium">{guestDetails.additionalNotes}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Payment Method</p>
+                                            <p className="font-medium flex items-center">
+                                                <CreditCard className="w-4 h-4 mr-2 text-gray-500" />
+                                                {bookingData.paymentMethod}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

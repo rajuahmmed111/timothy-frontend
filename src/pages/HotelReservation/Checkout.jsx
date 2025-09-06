@@ -18,7 +18,7 @@ export default function Checkout() {
         zipCode: ''
     });
 
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [isProcessing] = useState(false);
 
     // Redirect if no booking data
     if (!bookingData) {
@@ -149,7 +149,7 @@ export default function Checkout() {
 
                         {/* Guest Information Form */}
                         <div className="bg-white rounded-2xl shadow-sm p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Guest Information</h2>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Reserve information</h2>
 
                             <form className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -272,6 +272,7 @@ export default function Checkout() {
                             </form>
                         </div>
                     </div>
+
 
                     {/* Sidebar - Price Summary */}
                     <div className="lg:col-span-1">
