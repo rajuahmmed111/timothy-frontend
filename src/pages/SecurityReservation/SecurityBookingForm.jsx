@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { User, CheckCircle, Plus, Minus } from 'lucide-react';
+import { User, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { DatePicker } from "antd";
+import { DatePicker, Select, Button, Space } from "antd";
+import { UserOutlined } from '@ant-design/icons';
 
 
 export default function SecurityBookingForm() {
@@ -31,12 +32,8 @@ export default function SecurityBookingForm() {
         return selectedService.price * days * personnelCount;
     };
 
-    const increasePersonnel = () => {
-        setPersonnelCount(prev => prev + 1);
-    };
-
-    const decreasePersonnel = () => {
-        setPersonnelCount(prev => prev > 1 ? prev - 1 : 1);
+    const handlePersonnelChange = (value) => {
+        setPersonnelCount(value);
     };
 
     const getDays = () => {
@@ -111,39 +108,46 @@ export default function SecurityBookingForm() {
                     />
                 </div>
 
-                {/* Personnel Count */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Number of Security Personnel</label>
-                    <div className="flex items-center justify-between bg-gray-50 border border-gray-300 rounded-lg p-3">
-                        <button
-                            type="button"
-                            onClick={decreasePersonnel}
-                            disabled={personnelCount <= 1}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                personnelCount <= 1 
-                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                                    : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-                            }`}
-                        >
-                            <Minus className="w-4 h-4" />
-                        </button>
-                        
-                        <div className="flex items-center space-x-2">
-                            <User className="w-5 h-5 text-blue-600" />
-                            <span className="text-lg font-medium text-gray-900">{personnelCount}</span>
-                            <span className="text-sm text-gray-500">
-                                {personnelCount === 1 ? 'person' : 'people'}
-                            </span>
-                        </div>
-                        
-                        <button
-                            type="button"
-                            onClick={increasePersonnel}
-                            className="w-8 h-8 rounded-full bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors"
-                        >
-                            <Plus className="w-4 h-4" />
-                        </button>
-                    </div>
+                {/* Security Personnel */}
+                <div className="space-y-2 h-full flex flex-col">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Security Personnel</label>
+                    <Select
+                        value={personnelCount === 0 
+                            ? null 
+                            : `${personnelCount} ${personnelCount !== 1 ? 'personnel' : 'person'}`}
+                        placeholder="0 personnel"
+                        className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3"
+                        style={{ height: '48px' }}
+                        dropdownMatchSelectWidth={false}
+                        dropdownRender={() => (
+                            <div className="p-4 space-y-4 min-w-[300px]">
+                                {/* Personnel Counter */}
+                                <div className="flex justify-between items-center">
+                                    <Space>
+                                        <UserOutlined className="text-gray-600" />
+                                        <span>Security Personnel</span>
+                                    </Space>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            onClick={() => handlePersonnelChange(Math.max(1, personnelCount - 1))}
+                                            disabled={personnelCount <= 1}
+                                            className="flex items-center justify-center w-8 h-8"
+                                        >
+                                            -
+                                        </Button>
+                                        <span className="w-8 text-center">{personnelCount}</span>
+                                        <Button
+                                            onClick={() => handlePersonnelChange(personnelCount + 1)}
+                                            disabled={personnelCount >= 10}
+                                            className="flex items-center justify-center w-8 h-8"
+                                        >
+                                            +
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    />
                 </div>
 
                 {/* Price Summary */}

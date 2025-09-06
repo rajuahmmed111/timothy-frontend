@@ -177,17 +177,27 @@ export default function Navbar() {
             <div className="px-4 py-3 space-y-3">
               {/* Mobile Navigation */}
               <div className="space-y-2">
-                {navItems.map((item, index) => (
+                {navItems.map((item) => (
                   <Link
                     key={item.name}
                     to={item.url}
-                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      index === 0
+                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center space-x-3 ${
+                      location.pathname === item.url
                         ? "bg-blue-600 text-white"
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
-                    {item.name}
+                    <img
+                      src={item.icon}
+                      alt={item.name}
+                      className={`${item.icon.includes('car') ? 'size-6' : 'size-5'} object-contain`}
+                      style={{
+                        filter: location.pathname === item.url 
+                          ? 'brightness(0) saturate(100%) invert(100%)' 
+                          : 'brightness(0) saturate(100%) invert(25%) sepia(99%) saturate(2613%) hue-rotate(208deg) brightness(98%) contrast(101%)'
+                      }}
+                    />
+                    <span>{item.name}</span>
                   </Link>
                 ))}
               </div>
