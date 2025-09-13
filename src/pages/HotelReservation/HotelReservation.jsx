@@ -16,7 +16,7 @@ import HotelCard from '../../components/HotelCard/HotelCard';
 export default function HotelReservation() {
     const [dateRange, setDateRange] = useState(null);
     const [guests, setGuests] = useState({
-        adults: 0,
+        adults: 2,
         children: 0,
         rooms: 0
     });
@@ -25,7 +25,9 @@ export default function HotelReservation() {
         nameSearch: '',
         selectedCity: ''
     });
+    const [mainSearch, setMainSearch] = useState('');
     const [filteredHotels, setFilteredHotels] = useState([]);
+    const [showFilters, setShowFilters] = useState(false);
     const { RangePicker } = DatePicker;
     const { Option } = Select;
 
@@ -43,6 +45,14 @@ export default function HotelReservation() {
             ...prev,
             [filterType]: value
         }));
+    };
+
+    const handleSearch = () => {
+        // Scroll to results section
+        const resultsSection = document.getElementById('hotels-results');
+        if (resultsSection) {
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
     };
 
     const hotels = [
@@ -140,10 +150,15 @@ export default function HotelReservation() {
             const nameMatch = hotel.name.toLowerCase().includes(filters.nameSearch.toLowerCase());
             const cityMatch = filters.selectedCity === '' || hotel.location.includes(filters.selectedCity);
             
-            return priceInRange && nameMatch && cityMatch;
+            // Main search functionality - searches both name and location
+            const mainSearchMatch = mainSearch === '' || 
+                hotel.name.toLowerCase().includes(mainSearch.toLowerCase()) ||
+                hotel.location.toLowerCase().includes(mainSearch.toLowerCase());
+            
+            return priceInRange && nameMatch && cityMatch && mainSearchMatch;
         });
         setFilteredHotels(filtered);
-    }, [filters, hotels]);
+    }, [filters, mainSearch, hotels]);
 
     // Get unique cities for dropdown
     const uniqueCities = [...new Set(hotels.map(hotel => {
@@ -156,14 +171,16 @@ export default function HotelReservation() {
         setFilteredHotels(hotels);
     }, []);
     return (
-        <div className='py-16 container mx-auto'>
-            <div className="bg-white p-5 rounded-2xl shadow-lg w-full">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5 ">
+        <div className='py-8 md:py-16 container mx-auto px-4'>
+            <div className="bg-white p-4 md:p-5 rounded-2xl shadow-lg w-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 mb-5">
                     {/* Location Input */}
                     <div className="space-y-2">
                         <input
                             type="text"
                             placeholder="Search For Your Stays"
+                            value={mainSearch}
+                            onChange={(e) => setMainSearch(e.target.value)}
                             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
                         />
                     </div>
@@ -179,10 +196,8 @@ export default function HotelReservation() {
                     {/* Guests and Rooms */}
                     <div className="space-y-2 h-full flex flex-col">
                         <Select
-                            value={guests.adults === 0 && guests.children === 0 && guests.rooms === 0
-                                ? null
-                                : `${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
-                            placeholder="0 adults · 0 children · 0 rooms"
+                            value={`${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
+                            placeholder="2 adults · 0 children · 1 room"
                             className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3"
                             style={{ height: '100%' }}
                             dropdownMatchSelectWidth={false}
@@ -196,8 +211,8 @@ export default function HotelReservation() {
                                         </Space>
                                         <div className="flex items-center gap-2">
                                             <Button
-                                                onClick={() => handleGuestsChange('adults', Math.max(1, guests.adults - 1))}
-                                                disabled={guests.adults <= 1}
+                                                onClick={() => handleGuestsChange('adults', Math.max(2, guests.adults - 1))}
+                                                disabled={guests.adults <= 2}
                                                 className="flex items-center justify-center w-8 h-8"
                                             >
                                                 -
@@ -274,96 +289,107 @@ export default function HotelReservation() {
                 </div>
                 {/* Search Button */}
                 <div className="">
-                    <Link to="/hotel" className="w-full">
-                        <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
-                            Search
-                        </button>
-                    </Link>
+                    <button 
+                        onClick={handleSearch}
+                        className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold hover:bg-[#0052A3] transition-colors"
+                    >
+                        Search Hotels
+                    </button>
                 </div>
             </div>
             {/* Main Content with Sidebar and Hotels */}
-            <div className="flex gap-6 py-10">
+            <div id="hotels-results" className="flex flex-col lg:flex-row gap-4 lg:gap-6 py-6 md:py-10">
                 {/* Filter Sidebar */}
-                <div className="w-80 bg-white p-6 rounded-2xl shadow-lg h-fit">
-                    <div className="flex items-center gap-2 mb-6">
-                        <FilterOutlined className="text-[#0064D2]" />
-                        <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
-                    </div>
-
-                    {/* Name Search Filter */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Hotel Name</label>
-                        <Input
-                            placeholder="Search by hotel name"
-                            prefix={<SearchOutlined className="text-gray-400" />}
-                            value={filters.nameSearch}
-                            onChange={(e) => handleFilterChange('nameSearch', e.target.value)}
-                            className="w-full"
-                        />
-                    </div>
-
-                    {/* City Filter */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                        <Select
-                            placeholder="Select city"
-                            value={filters.selectedCity}
-                            onChange={(value) => handleFilterChange('selectedCity', value)}
-                            className="w-full"
-                            allowClear
-                        >
-                            {uniqueCities.map(city => (
-                                <Option key={city} value={city}>{city}</Option>
-                            ))}
-                        </Select>
-                    </div>
-
-                    {/* Price Range Filter */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}
-                        </label>
-                        <Slider
-                            range
-                            min={0}
-                            max={600}
-                            value={filters.priceRange}
-                            onChange={(value) => handleFilterChange('priceRange', value)}
-                            className="w-full"
-                            trackStyle={[{ backgroundColor: '#0064D2' }]}
-                            handleStyle={[{ borderColor: '#0064D2' }, { borderColor: '#0064D2' }]}
-                        />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>$0</span>
-                            <span>$600</span>
+                <div className="w-full lg:w-80 bg-white p-4 md:p-6 rounded-2xl shadow-lg h-fit">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2">
+                            <FilterOutlined className="text-[#0064D2]" />
+                            <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
                         </div>
+                        <button 
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="lg:hidden text-[#0064D2] font-medium"
+                        >
+                            {showFilters ? 'Hide' : 'Show'}
+                        </button>
                     </div>
 
-                    {/* Clear Filters Button */}
-                    <Button
-                        onClick={() => setFilters({ priceRange: [0, 600], nameSearch: '', selectedCity: '' })}
-                        className="w-full"
-                        type="default"
-                    >
-                        Clear All Filters
-                    </Button>
+                    <div className={`${showFilters ? 'block' : 'hidden'} lg:block space-y-6`}>
+                        {/* Name Search Filter */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Hotel Name</label>
+                            <Input
+                                placeholder="Search by hotel name"
+                                prefix={<SearchOutlined className="text-gray-400" />}
+                                value={filters.nameSearch}
+                                onChange={(e) => handleFilterChange('nameSearch', e.target.value)}
+                                className="w-full"
+                            />
+                        </div>
+
+                        {/* City Filter */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                            <Select
+                                placeholder="Select city"
+                                value={filters.selectedCity}
+                                onChange={(value) => handleFilterChange('selectedCity', value)}
+                                className="w-full"
+                                allowClear
+                            >
+                                {uniqueCities.map(city => (
+                                    <Option key={city} value={city}>{city}</Option>
+                                ))}
+                            </Select>
+                        </div>
+
+                        {/* Price Range Filter */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}
+                            </label>
+                            <Slider
+                                range
+                                min={0}
+                                max={600}
+                                value={filters.priceRange}
+                                onChange={(value) => handleFilterChange('priceRange', value)}
+                                className="w-full"
+                                trackStyle={[{ backgroundColor: '#0064D2' }]}
+                                handleStyle={[{ borderColor: '#0064D2' }, { borderColor: '#0064D2' }]}
+                            />
+                            <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>$0</span>
+                                <span>$600</span>
+                            </div>
+                        </div>
+
+                        {/* Clear Filters Button */}
+                        <Button
+                            onClick={() => setFilters({ priceRange: [0, 600], nameSearch: '', selectedCity: '' })}
+                            className="w-full"
+                            type="default"
+                        >
+                            Clear All Filters
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Hotels Grid */}
                 <div className="flex-1">
                     <div className="mb-4">
-                        <p className="text-gray-600">
+                        <p className="text-sm md:text-base text-gray-600">
                             Showing {filteredHotels.length} of {hotels.length} hotels
                         </p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
                         {filteredHotels.map((hotel, index) => (
                             <HotelCard key={index} hotel={hotel} />
                         ))}
                     </div>
                     {filteredHotels.length === 0 && (
-                        <div className="text-center py-12">
-                            <p className="text-gray-500 text-lg">No hotels found matching your criteria</p>
+                        <div className="col-span-full text-center py-8 md:py-12">
+                            <p className="text-gray-500 text-base md:text-lg">No hotels found matching your criteria</p>
                             <p className="text-gray-400 text-sm mt-2">Try adjusting your filters</p>
                         </div>
                     )}
