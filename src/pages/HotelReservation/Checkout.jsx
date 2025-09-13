@@ -77,25 +77,25 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
-        <div className="flex items-center mb-5">
+        <div className="flex items-center mb-4 md:mb-6">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <ArrowLeft className="w-8 h-8 mr-2" />
-          <h1 className="text-3xl font-bold text-gray-900 ml-4">Checkout</h1>
+            <ArrowLeft className="w-6 h-6 md:w-8 md:h-8 mr-2" />
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 ml-2 md:ml-4">Checkout</h1>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Booking Summary */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-sm p-4 md:p-6">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
                 Booking Summary
               </h2>
 
@@ -153,13 +153,13 @@ export default function Checkout() {
             </div>
 
             {/* Guest Information Form */}
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Guest
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-sm p-4 md:p-6">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4 md:mb-6">
+                Guest Information
               </h2>
 
               <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       First Name *
@@ -171,7 +171,7 @@ export default function Checkout() {
                         handleGuestInfoChange("firstName", e.target.value)
                       }
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                      className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg transition-colors text-sm md:text-base"
                       placeholder="Enter your first name"
                     />
                   </div>
@@ -187,7 +187,7 @@ export default function Checkout() {
                         handleGuestInfoChange("lastName", e.target.value)
                       }
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                      className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg transition-colors text-sm md:text-base"
                       placeholder="Enter your last name"
                     />
                   </div>
@@ -204,7 +204,7 @@ export default function Checkout() {
                       handleGuestInfoChange("email", e.target.value)
                     }
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg transition-colors text-sm md:text-base"
                     placeholder="Enter your email address"
                   />
                 </div>
@@ -213,45 +213,45 @@ export default function Checkout() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number *
                   </label>
-                  <div className="flex">
-                    <div className="relative">
+                  <div className="flex flex-col sm:flex-row">
+                    <div className="relative w-full sm:w-auto">
                       <button
                         type="button"
                         onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                        className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white hover:bg-gray-50 min-w-[130px]"
+                        className="flex items-center justify-between w-full sm:w-auto px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg sm:rounded-l-lg sm:rounded-r-none transition-colors bg-white min-w-[110px] md:min-w-[130px]"
                       >
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg">{selectedCountry?.flag}</span>
-                          <span className="text-sm font-medium">{selectedCountry?.code}</span>
+                          <span className="text-base md:text-lg">{selectedCountry?.flag}</span>
+                          <span className="text-sm md:text-base font-medium">{selectedCountry?.code}</span>
                         </div>
                         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isCountryDropdownOpen ? 'rotate-180' : ''}`} />
                       </button>
                       
                       {isCountryDropdownOpen && (
-                        <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                        <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto w-full sm:min-w-[200px]">
                           {countryCodes.map((country) => (
                             <button
                               key={country.code}
                               type="button"
                               onClick={() => handleCountrySelect(country.code)}
-                              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                              className="w-full flex items-center space-x-3 px-3 md:px-4 py-2.5 md:py-3 hover:bg-gray-50 transition-colors text-left"
                             >
-                              <span className="text-lg">{country.flag}</span>
-                              <span className="text-sm font-medium">{country.code}</span>
-                              <span className="text-sm text-gray-500">{country.country}</span>
+                              <span className="text-base md:text-lg">{country.flag}</span>
+                              <span className="text-sm md:text-base font-medium">{country.code}</span>
+                              <span className="text-xs md:text-sm text-gray-500">{country.country}</span>
                             </button>
                           ))}
                         </div>
                       )}
                     </div>
                     <input
-                      type="tel"
+                      type="tel" 
                       value={guestInfo.phone}
                       onChange={(e) =>
                         handleGuestInfoChange("phone", e.target.value)
                       }
                       required
-                      className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                      className="flex-1 w-full mt-2 sm:mt-0 px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg sm:border-l-0 sm:rounded-l-none sm:rounded-r-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm md:text-base"
                       placeholder="Enter your phone number"
                     />
                   </div>
@@ -268,7 +268,7 @@ export default function Checkout() {
                       handleGuestInfoChange("street", e.target.value)
                     }
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg transition-colors text-sm md:text-base"
                     placeholder="Enter your street address"
                   />
                 </div>
@@ -278,7 +278,7 @@ export default function Checkout() {
 
           {/* Sidebar - Price Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-8">
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-sm p-4 md:p-6 lg:sticky lg:top-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Price Summary
               </h3>
@@ -309,7 +309,7 @@ export default function Checkout() {
                   type="submit"
                   // onClick={handleSubmit}
                   disabled={isProcessing}
-                  className="w-full mt-6 bg-[#0064D2] text-white px-6 py-3 rounded-lg font-semibold"
+                  className="w-full mt-4 md:mt-6 bg-[#0064D2] text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-semibold text-sm md:text-base hover:bg-[#0052A3] transition-colors"
                 >
                   {isProcessing ? "Processing..." : "Continue to Payment"}
                 </button>

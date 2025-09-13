@@ -104,8 +104,8 @@ export default function PropertyDetails() {
 
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <h3 className="text-xl font-semibold text-gray-900">Guest Reviews</h3>
-          <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
+          <h3 className="text-xl font-semibold text-gray-900 whitespace-nowrap">Guest Reviews</h3>
+          <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full whitespace-nowrap">
             overall rating (Good)
           </span>
         </div>
