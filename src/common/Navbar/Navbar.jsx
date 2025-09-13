@@ -14,19 +14,64 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 export default function Navbar() {
   const location = useLocation();
   const navItems = [
-    { name: "Stays", url: "/hotel", icon: "/navbar/stays.svg" },
+    {
+      name: "Stays",
+      url: "/hotel",
+      icon: "/navbar/stays.svg",
+      routes: [
+        "/hotel",
+        "/hotel-details",
+        "/reserv-details",
+        "/booking-confirmation",
+        "/hotel/checkout",
+        "/hotel/payment",
+      ],
+    },
     {
       name: "Security",
       url: "/security-reservation",
       icon: "/navbar/security.svg",
+      routes: [
+        "/security-reservation",
+        "/security-details",
+        "/security-service-details",
+        "/security/checkout",
+        "/security/payment",
+        "/security/booking-confirmation",
+      ],
     },
-    { name: "Car Rental", url: "/car-reservation", icon: "/navbar/car.svg" },
+    {
+      name: "Car Rental",
+      url: "/car-reservation",
+      icon: "/navbar/car.svg",
+      routes: [
+        "/car-reservation",
+        "/car-service-details",
+        "/car/checkout",
+        "/car/payment",
+        "/car/booking-confirmation",
+      ],
+    },
     {
       name: "Attractions",
       url: "/attraction-reservation",
       icon: "/navbar/attractions.svg",
+      routes: [
+        "/attraction-reservation",
+        "/attraction-details",
+        "/event-reservation",
+        "/event/checkout",
+        "/event/payment",
+      ],
     },
   ];
+
+  const isActiveRoute = (item) => {
+    return item.routes.some(
+      (route) =>
+        location.pathname === route || location.pathname.startsWith(route)
+    );
+  };
 
   const navigate = useNavigate();
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
@@ -71,7 +116,7 @@ export default function Navbar() {
                   to={item.url}
                   id={`nav-item-${index}`}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    location.pathname === item.url
+                    isActiveRoute(item)
                       ? "bg-white text-[#0064D2] shadow-sm"
                       : "text-white"
                   }`}
@@ -79,11 +124,13 @@ export default function Navbar() {
                   <img
                     src={item.icon}
                     alt={item.name}
-                    className={`${item.icon.includes('car') ? 'size-8' : 'size-5'} object-contain`}
+                    className={`${
+                      item.icon.includes("car") ? "size-8" : "size-5"
+                    } object-contain`}
                     style={{
-                      filter: location.pathname === item.url 
-                        ? 'brightness(0) saturate(100%) invert(25%) sepia(99%) saturate(2613%) hue-rotate(208deg) brightness(98%) contrast(101%)' 
-                        : 'brightness(0) saturate(100%) invert(100%)'
+                      filter: isActiveRoute(item)
+                        ? "brightness(0) saturate(100%) invert(25%) sepia(99%) saturate(2613%) hue-rotate(208deg) brightness(98%) contrast(101%)"
+                        : "brightness(0) saturate(100%) invert(100%)",
                     }}
                   />
                   {item.name}
@@ -182,7 +229,7 @@ export default function Navbar() {
                     key={item.name}
                     to={item.url}
                     className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center space-x-3 ${
-                      location.pathname === item.url
+                      isActiveRoute(item)
                         ? "bg-blue-600 text-white"
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
@@ -190,11 +237,13 @@ export default function Navbar() {
                     <img
                       src={item.icon}
                       alt={item.name}
-                      className={`${item.icon.includes('car') ? 'size-6' : 'size-5'} object-contain`}
+                      className={`${
+                        item.icon.includes("car") ? "size-6" : "size-5"
+                      } object-contain`}
                       style={{
-                        filter: location.pathname === item.url 
-                          ? 'brightness(0) saturate(100%) invert(100%)' 
-                          : 'brightness(0) saturate(100%) invert(25%) sepia(99%) saturate(2613%) hue-rotate(208deg) brightness(98%) contrast(101%)'
+                        filter: isActiveRoute(item)
+                          ? "brightness(0) saturate(100%) invert(100%)"
+                          : "brightness(0) saturate(100%) invert(25%) sepia(99%) saturate(2613%) hue-rotate(208deg) brightness(98%) contrast(101%)",
                       }}
                     />
                     <span>{item.name}</span>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Users, MapPin, Star } from "lucide-react";
+import { ArrowLeft, Calendar, Users, MapPin, Star, ChevronDown } from "lucide-react";
 
 export default function Checkout() {
   const location = useLocation();
@@ -12,6 +12,7 @@ export default function Checkout() {
     lastName: "",
     email: "",
     phone: "",
+    countryCode: "+1",
     street: "",
     city: "",
     postcode: "",
@@ -19,6 +20,31 @@ export default function Checkout() {
   });
 
   const [isProcessing] = useState(false);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+
+  // Common country codes
+  const countryCodes = [
+    { code: "+1", country: "US/CA", flag: "🇺🇸" },
+    { code: "+44", country: "UK", flag: "🇬🇧" },
+    { code: "+91", country: "IN", flag: "🇮🇳" },
+    { code: "+86", country: "CN", flag: "🇨🇳" },
+    { code: "+81", country: "JP", flag: "🇯🇵" },
+    { code: "+49", country: "DE", flag: "🇩🇪" },
+    { code: "+33", country: "FR", flag: "🇫🇷" },
+    { code: "+39", country: "IT", flag: "🇮🇹" },
+    { code: "+34", country: "ES", flag: "🇪🇸" },
+    { code: "+61", country: "AU", flag: "🇦🇺" },
+    { code: "+55", country: "BR", flag: "🇧🇷" },
+    { code: "+52", country: "MX", flag: "🇲🇽" },
+    { code: "+7", country: "RU", flag: "🇷🇺" },
+    { code: "+82", country: "KR", flag: "🇰🇷" },
+    { code: "+65", country: "SG", flag: "🇸🇬" },
+    { code: "+971", country: "AE", flag: "🇦🇪" },
+    { code: "+966", country: "SA", flag: "🇸🇦" },
+    { code: "+20", country: "EG", flag: "🇪🇬" },
+    { code: "+27", country: "ZA", flag: "🇿🇦" },
+    { code: "+234", country: "NG", flag: "🇳🇬" },
+  ];
 
   if (!bookingData) {
     navigate("/");
@@ -33,6 +59,13 @@ export default function Checkout() {
       [field]: value,
     }));
   };
+
+  const handleCountrySelect = (countryCode) => {
+    handleGuestInfoChange("countryCode", countryCode);
+    setIsCountryDropdownOpen(false);
+  };
+
+  const selectedCountry = countryCodes.find(c => c.code === guestInfo.countryCode);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -180,16 +213,48 @@ export default function Checkout() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number *
                   </label>
-                  <input
-                    type="tel"
-                    value={guestInfo.phone}
-                    onChange={(e) =>
-                      handleGuestInfoChange("phone", e.target.value)
-                    }
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                    placeholder="Enter your phone number"
-                  />
+                  <div className="flex">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                        className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white hover:bg-gray-50 min-w-[130px]"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">{selectedCountry?.flag}</span>
+                          <span className="text-sm font-medium">{selectedCountry?.code}</span>
+                        </div>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isCountryDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {isCountryDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                          {countryCodes.map((country) => (
+                            <button
+                              key={country.code}
+                              type="button"
+                              onClick={() => handleCountrySelect(country.code)}
+                              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                            >
+                              <span className="text-lg">{country.flag}</span>
+                              <span className="text-sm font-medium">{country.code}</span>
+                              <span className="text-sm text-gray-500">{country.country}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      type="tel"
+                      value={guestInfo.phone}
+                      onChange={(e) =>
+                        handleGuestInfoChange("phone", e.target.value)
+                      }
+                      required
+                      className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">
@@ -227,7 +292,7 @@ export default function Checkout() {
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span>Taxes</span>
+                  <span>VAT</span>
                   <span>${Math.round(bookingData.subtotal * 0.12)}</span>
                 </div>
 

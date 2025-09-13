@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   MapPin,
   Star,
@@ -8,16 +8,25 @@ import {
   CheckCircle,
   Fuel,
   Settings,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import CarBookingForm from "./CarBookingForm";
-import img1 from "/car/1.png";
 
 export default function CarServiceDetails() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const car = {
     id: 1,
     name: "Toyota Camry",
     location: "New York, USA",
-    image: img1,
+    images: [
+      "/car/1.png",
+      "/car/2.png",
+      "/car/3.png",
+      "/car/4.png",
+      "/car/5.png"
+    ],
     price: "$500",
     rating: 5,
     availability: "Available",
@@ -28,6 +37,18 @@ export default function CarServiceDetails() {
     year: 2022,
     description:
       "The Toyota Camry 2022 offers a perfect balance of comfort, performance, and reliability. With its powerful yet fuel-efficient petrol engine, smooth automatic transmission, and spacious 5-seater design, it's an ideal choice for family trips and city drives. Equipped with modern features and a stylish exterior, the Camry delivers a premium driving experience.",
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % car.images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + car.images.length) % car.images.length);
+  };
+
+  const goToImage = (index) => {
+    setCurrentImageIndex(index);
   };
 
   return (
@@ -50,13 +71,59 @@ export default function CarServiceDetails() {
                   </div>
                 </div>
 
-                {/* Car Image */}
-                <div className="mb-8 rounded-lg overflow-hidden">
-                  <img
-                    src={car.image}
-                    alt={car.name}
-                    className="w-full h-96 object-cover rounded-lg"
-                  />
+                {/* Image Gallery */}
+                <div className="mb-8">
+                  {/* Main Image Display */}
+                  <div className="relative mb-4 rounded-lg overflow-hidden">
+                    <img
+                      src={car.images[currentImageIndex]}
+                      alt={`${car.name} - Image ${currentImageIndex + 1}`}
+                      className="w-full h-96 object-cover rounded-lg"
+                    />
+                    
+                    {/* Navigation Arrows */}
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                    
+                    {/* Image Counter */}
+                    <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                      {currentImageIndex + 1} / {car.images.length}
+                    </div>
+                  </div>
+                  
+                  {/* Thumbnail Gallery */}
+                  <div className="grid grid-cols-5 gap-2">
+                    {car.images.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => goToImage(index)}
+                        className={`relative rounded-lg overflow-hidden aspect-square ${
+                          currentImageIndex === index 
+                            ? 'ring-2 ring-sky-500' 
+                            : 'hover:opacity-80'
+                        }`}
+                      >
+                        <img
+                          src={image}
+                          alt={`${car.name} thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {currentImageIndex === index && (
+                          <div className="absolute inset-0 bg-sky-500 bg-opacity-20"></div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="mb-6">
