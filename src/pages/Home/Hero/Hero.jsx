@@ -7,7 +7,7 @@ import { DatePicker, Button } from "antd";
 export default function Hero() {
     const [dateRange, setDateRange] = useState(null);
     const [guests, setGuests] = useState({
-        adults: 0,
+        adults: 2,
         children: 0,
         rooms: 0
     });
@@ -56,10 +56,8 @@ export default function Hero() {
                             {/* Guests and Rooms */}
                             <div className="space-y-2 h-full flex flex-col">
                                 <Select
-                                    value={guests.adults === 0 && guests.children === 0 && guests.rooms === 0
-                                        ? null
-                                        : `${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
-                                    placeholder="0 adults · 0 children · 0 rooms"
+                                    value={`${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
+                                    placeholder="2 adults · 0 children · 0 room"
                                     className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3"
                                     style={{ height: '100%' }}
                                     dropdownMatchSelectWidth={false}
@@ -73,8 +71,8 @@ export default function Hero() {
                                                 </Space>
                                                 <div className="flex items-center gap-2">
                                                     <Button
-                                                        onClick={() => handleGuestsChange('adults', Math.max(1, guests.adults - 1))}
-                                                        disabled={guests.adults <= 1}
+                                                        onClick={() => handleGuestsChange('adults', Math.max(2, guests.adults - 1))}
+                                                        disabled={guests.adults <= 2}
                                                         className="flex items-center justify-center w-8 h-8"
                                                     >
                                                         -
@@ -123,8 +121,8 @@ export default function Hero() {
                                                 </Space>
                                                 <div className="flex items-center gap-2">
                                                     <Button
-                                                        onClick={() => handleGuestsChange('rooms', Math.max(1, guests.rooms - 1))}
-                                                        disabled={guests.rooms <= 1}
+                                                        onClick={() => handleGuestsChange('rooms', Math.max(0, guests.rooms - 1))}
+                                                        disabled={guests.rooms <= 0}
                                                         className="flex items-center justify-center w-8 h-8"
                                                     >
                                                         -

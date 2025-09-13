@@ -95,7 +95,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[9999] bg-white border-b border-gray-200">
-      <div className="container mx-auto px-5 md:px-0">
+      <div className="container mx-auto px-5 md:px-0 py-2 lg:py-3">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/">
@@ -109,7 +109,7 @@ export default function Navbar() {
 
           {/* Navigation Pills */}
           <nav className="hidden md:flex">
-            <div className="flex items-center bg-[#0064D2] rounded-full p-1">
+            <div className="flex items-center bg-[#0064D2] rounded-full p-2">
               {navItems.map((item, index) => (
                 <Link
                   key={item.name}
