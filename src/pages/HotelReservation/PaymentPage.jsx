@@ -252,7 +252,7 @@ export default function PaymentPage() {
                                         <span>{formatCurrency(bookingData.total)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-600">Taxes & Fees</span>
+                                        <span className="text-gray-600">VAT</span>
                                         <span>{formatCurrency(bookingData.total * 0.12)}</span>
                                     </div>
                                     <div className="flex justify-between font-semibold text-lg pt-2 border-t border-gray-200">

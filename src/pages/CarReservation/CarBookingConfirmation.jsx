@@ -243,7 +243,7 @@ export default function CarBookingConfirmation() {
                                         <span className="font-medium">$0</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-600">Taxes & Fees</span>
+                                        <span className="text-gray-600">VAT</span>
                                         <span className="font-medium">Included</span>
                                     </div>
                                     <div className="border-t border-gray-200 pt-2 mt-2">

@@ -315,7 +315,7 @@ export default function CarCheckout() {
                                     </div>
 
                                     <div className="flex justify-between">
-                                        <span className="text-gray-600">Taxes & fees</span>
+                                        <span className="text-gray-600">VAT</span>
                                         <span className="text-gray-900">${taxes}</span>
                                     </div>
 
