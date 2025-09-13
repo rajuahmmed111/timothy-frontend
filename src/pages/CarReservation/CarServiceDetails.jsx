@@ -25,7 +25,7 @@ export default function CarServiceDetails() {
       "/car/2.png",
       "/car/3.png",
       "/car/4.png",
-      "/car/5.png"
+      "/car/5.png",
     ],
     price: "$500",
     rating: 5,
@@ -44,7 +44,9 @@ export default function CarServiceDetails() {
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + car.images.length) % car.images.length);
+    setCurrentImageIndex(
+      (prev) => (prev - 1 + car.images.length) % car.images.length
+    );
   };
 
   const goToImage = (index) => {
@@ -59,16 +61,22 @@ export default function CarServiceDetails() {
             <div className="md:flex">
               {/* Left Column - Car Details */}
               <div className="p-6 md:p-8 md:w-2/3">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {car?.name}
-                </h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    {car?.name}
+                  </h1>
+                  <div className="flex items-center">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                      />
+                    ))}
+                  </div>
+                </div>
                 <div className="flex items-center text-gray-600 mb-6">
                   <MapPin className="w-5 h-5 mr-1 text-sky-600" />
                   <span>{car?.location}</span>
-                  <div className="flex items-center ml-4">
-                    <Star className="w-5 h-5 text-yellow-400 mr-1" />
-                    <span>{car?.rating}.0</span>
-                  </div>
                 </div>
 
                 {/* Image Gallery */}
@@ -80,7 +88,7 @@ export default function CarServiceDetails() {
                       alt={`${car.name} - Image ${currentImageIndex + 1}`}
                       className="w-full h-96 object-cover rounded-lg"
                     />
-                    
+
                     {/* Navigation Arrows */}
                     <button
                       onClick={prevImage}
@@ -94,13 +102,13 @@ export default function CarServiceDetails() {
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
-                    
+
                     {/* Image Counter */}
                     <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
                       {currentImageIndex + 1} / {car.images.length}
                     </div>
                   </div>
-                  
+
                   {/* Thumbnail Gallery */}
                   <div className="grid grid-cols-5 gap-2">
                     {car.images.map((image, index) => (
@@ -108,9 +116,9 @@ export default function CarServiceDetails() {
                         key={index}
                         onClick={() => goToImage(index)}
                         className={`relative rounded-lg overflow-hidden aspect-square ${
-                          currentImageIndex === index 
-                            ? 'ring-2 ring-sky-500' 
-                            : 'hover:opacity-80'
+                          currentImageIndex === index
+                            ? "ring-2 ring-sky-500"
+                            : "hover:opacity-80"
                         }`}
                       >
                         <img
