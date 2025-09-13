@@ -119,10 +119,10 @@ export default function BookingForm() {
           <span className="text-2xl font-bold text-gray-900">
             ${selectedRoomData.price}
           </span>
-          <div className="flex items-center text-sm text-gray-600">
+          {/* <div className="flex items-center text-sm text-gray-600">
             <Star className="w-4 h-4 text-yellow-400 mr-1" />
             <span>{selectedRoomData.rating}</span>
-          </div>
+          </div> */}
         </div>
         <span className="text-gray-600">per night</span>
       </div>
@@ -151,7 +151,6 @@ export default function BookingForm() {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Guests and Rooms
           </label>
-
           <Select
             value={
               guests.adults === 0 && guests.children === 0 && guests.rooms === 0
