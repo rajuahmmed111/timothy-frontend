@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CheckCircle, MapPin, Calendar, Users, Clock, CreditCard, Phone, Mail, Wifi, Car, Coffee, Utensils, Waves } from 'lucide-react';
 import { Link, useLocation, } from 'react-router-dom';
 
 export default function BookingConfirmation() {
     const location = useLocation();
     // const navigate = useNavigate();
+    const [isEmailSending, setIsEmailSending] = useState(false);
     
     // Get booking data from location state or use default values
     const bookingData = location.state || {
@@ -62,6 +63,29 @@ export default function BookingConfirmation() {
                 comment: 'Perfect honeymoon destination! The Mediterranean-inspired design is beautiful and the sunset views from our balcony were unforgettable. Highly recommend the spa services.'
             }
         ]
+    };
+
+    // Handle send to email functionality
+    const handleSendToEmail = async () => {
+        setIsEmailSending(true);
+        
+        try {
+            // Simulate API call to send email
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // In a real application, you would make an API call here
+            // const response = await fetch('/api/send-confirmation-email', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ bookingData, guestDetails })
+            // });
+            
+            alert('Booking confirmation has been sent to your email!');
+        } catch (error) {
+            alert('Failed to send email. Please try again.');
+        } finally {
+            setIsEmailSending(false);
+        }
     };
 
     // Guest details (dummy data)
@@ -216,6 +240,15 @@ export default function BookingConfirmation() {
                                     Back to Home
                                 </Link>
                             </div>
+                            <button
+                                type="button"
+                                className="w-full inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={handleSendToEmail}
+                                disabled={isEmailSending}
+                            >
+                                <Mail className="w-5 h-5 mr-2" />
+                                {isEmailSending ? 'Sending...' : 'Send to Email'}
+                            </button>
                             <button
                                 type="button"
                                 className="w-full inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"

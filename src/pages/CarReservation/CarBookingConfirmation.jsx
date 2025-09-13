@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, Car, Calendar, MapPin, CreditCard, Download, Home, Users, Phone, Mail, Star, Fuel, Settings, Shield, DollarSign } from 'lucide-react';
 
@@ -6,6 +6,7 @@ export default function CarBookingConfirmation() {
     const navigate = useNavigate();
     const location = useLocation();
     const { bookingDetails } = location.state || {};
+    const [isEmailSending, setIsEmailSending] = useState(false);
 
     // Enhanced booking data with defaults
     const booking = bookingDetails || {
@@ -18,6 +19,29 @@ export default function CarBookingConfirmation() {
         paymentMethod: '•••• •••• •••• 4242',
         paymentStatus: 'completed',
         total: 150,
+    };
+
+    // Handle send to email functionality
+    const handleSendToEmail = async () => {
+        setIsEmailSending(true);
+        
+        try {
+            // Simulate API call to send email
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // In a real application, you would make an API call here
+            // const response = await fetch('/api/send-confirmation-email', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ booking, guestDetails })
+            // });
+            
+            alert('Car rental confirmation has been sent to your email!');
+        } catch (error) {
+            alert('Failed to send email. Please try again.');
+        } finally {
+            setIsEmailSending(false);
+        }
     };
 
     // Car details
@@ -243,7 +267,7 @@ export default function CarBookingConfirmation() {
                                         <span className="font-medium">$0</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-600">Taxes & Fees</span>
+                                        <span className="text-gray-600">VAT</span>
                                         <span className="font-medium">Included</span>
                                     </div>
                                     <div className="border-t border-gray-200 pt-2 mt-2">
@@ -268,6 +292,15 @@ export default function CarBookingConfirmation() {
                             >
                                 <Download className="w-5 h-5 mr-2" />
                                 Download Receipt
+                            </button>
+                            
+                            <button
+                                onClick={handleSendToEmail}
+                                disabled={isEmailSending}
+                                className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <Mail className="w-5 h-5 mr-2" />
+                                {isEmailSending ? 'Sending...' : 'Send to Email'}
                             </button>
                             
                             <button

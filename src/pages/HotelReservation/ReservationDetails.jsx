@@ -221,7 +221,7 @@ export default function ReservationDetails({ bookingData }) {
                                 </div>
 
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600">Taxes</span>
+                                    <span className="text-gray-600">VAT</span>
                                     <span className="text-gray-900">${booking.taxes}</span>
                                 </div>
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, Calendar, MapPin, CreditCard, Download, Home, Users, Star, Clock, Phone, Mail, User, DollarSign } from 'lucide-react';
 
@@ -6,6 +6,7 @@ export default function EventBookingConfirmation() {
     const navigate = useNavigate();
     const location = useLocation();
     const { bookingDetails } = location.state || {};
+    const [isEmailSending, setIsEmailSending] = useState(false);
 
     const handleDownloadReceipt = () => {
         // In a real app, this would generate and download a PDF receipt
@@ -15,6 +16,29 @@ export default function EventBookingConfirmation() {
 
     const handleBackToHome = () => {
         navigate('/');
+    };
+
+    // Handle send to email functionality
+    const handleSendToEmail = async () => {
+        setIsEmailSending(true);
+        
+        try {
+            // Simulate API call to send email
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // In a real application, you would make an API call here
+            // const response = await fetch('/api/send-confirmation-email', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ bookingDetails, guestDetails })
+            // });
+            
+            alert('Event booking confirmation has been sent to your email!');
+        } catch (error) {
+            alert('Failed to send email. Please try again.');
+        } finally {
+            setIsEmailSending(false);
+        }
     };
 
 
@@ -81,29 +105,6 @@ export default function EventBookingConfirmation() {
                                         </p>
                                     </div>
                                 </div>
-
-                                {/* Event Features */}
-                                {/* <div className="mb-6">
-                                    <h4 className="font-medium text-gray-900 mb-3">Event Features</h4>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                                            <span>High-speed elevators</span>
-                                        </div>
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                                            <span>360° panoramic views</span>
-                                        </div>
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                                            <span>Interactive displays</span>
-                                        </div>
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                                            <span>Professional photography</span>
-                                        </div>
-                                    </div>
-                                </div> */}
                             </div>
                         </div>
 
@@ -284,8 +285,16 @@ export default function EventBookingConfirmation() {
                                 Download Receipt
                             </button>
 
-                            <div className="w-full">
+                            <button
+                                onClick={handleSendToEmail}
+                                disabled={isEmailSending}
+                                className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <Mail className="w-5 h-5 mr-2" />
+                                {isEmailSending ? 'Sending...' : 'Send to Email'}
+                            </button>
 
+                            <div className="w-full">
                                 <button
                                     onClick={handleBackToHome}
                                     className="w-full bg-gray-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center justify-center"

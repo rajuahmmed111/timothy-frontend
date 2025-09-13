@@ -1,16 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MapPin, Star, Shield, Clock, Users, CheckCircle } from 'lucide-react';
+import { MapPin, Star, Shield, Clock, Users, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import SecurityBookingForm from './SecurityBookingForm';
 
 export default function SecurityServiceDetails() {
     const location = useLocation();
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const service = location.state?.service || {
         id: 1,
         name: "Jacob Jones",
         location: "New York, USA",
-        image: "/SecurityProviders/1.png",
+        images: [
+            "/SecurityProviders/1.png",
+            "/SecurityProviders/2.png",
+            "/SecurityProviders/3.png",
+            "/SecurityProviders/4.png",
+            "/SecurityProviders/5.png",
+            "/SecurityProviders/6.png"
+        ],
         price: 500,
         rating: 5,
         description: "Professional security service with 10+ years of experience in personal and corporate security.",
@@ -25,6 +33,18 @@ export default function SecurityServiceDetails() {
         languages: ["English", "Spanish"],
         availability: "24/7",
         certification: "Licensed & Certified"
+    };
+
+    const nextImage = () => {
+        setCurrentImageIndex((prev) => (prev + 1) % service.images.length);
+    };
+
+    const prevImage = () => {
+        setCurrentImageIndex((prev) => (prev - 1 + service.images.length) % service.images.length);
+    };
+
+    const goToImage = (index) => {
+        setCurrentImageIndex(index);
     };
 
     return (
@@ -45,13 +65,59 @@ export default function SecurityServiceDetails() {
                                     </div>
                                 </div>
 
-                                {/* Service Image */}
-                                <div className="mb-8 rounded-lg overflow-hidden">
-                                    <img
-                                        src={service.image}
-                                        alt={service.name}
-                                        className="w-full h-96 object-cover rounded-lg"
-                                    />
+                                {/* Image Gallery */}
+                                <div className="mb-8">
+                                    {/* Main Image Display */}
+                                    <div className="relative mb-4 rounded-lg overflow-hidden">
+                                        <img
+                                            src={service.images[currentImageIndex]}
+                                            alt={`${service.name} - Image ${currentImageIndex + 1}`}
+                                            className="w-full h-96 object-cover rounded-lg"
+                                        />
+                                        
+                                        {/* Navigation Arrows */}
+                                        <button
+                                            onClick={prevImage}
+                                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                                        >
+                                            <ChevronLeft className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={nextImage}
+                                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                                        >
+                                            <ChevronRight className="w-5 h-5" />
+                                        </button>
+                                        
+                                        {/* Image Counter */}
+                                        <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                                            {currentImageIndex + 1} / {service.images.length}
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Thumbnail Gallery */}
+                                    <div className="grid grid-cols-6 gap-2">
+                                        {service.images.map((image, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => goToImage(index)}
+                                                className={`relative rounded-lg overflow-hidden aspect-square ${
+                                                    currentImageIndex === index 
+                                                        ? 'ring-2 ring-sky-500' 
+                                                        : 'hover:opacity-80'
+                                                }`}
+                                            >
+                                                <img
+                                                    src={image}
+                                                    alt={`${service.name} thumbnail ${index + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                {currentImageIndex === index && (
+                                                    <div className="absolute inset-0 bg-sky-500 bg-opacity-20"></div>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
 
                                 <div className="mb-6">
