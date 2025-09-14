@@ -89,56 +89,6 @@ fasify-web/
 └── README.md
 ```
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js (version 16 or higher)
-- npm or yarn package manager
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd fasify-web
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open your browser**
-   Navigate to `http://localhost:5173` to view the application
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-## 🌐 Deployment
-
-This project is configured for deployment on Vercel with the following settings:
-
-- **Build Command:** `npm run build`
-- **Output Directory:** `dist`
-- **Framework:** Vite
-- **Install Command:** `npm install --include=optional`
-
-### Deploy to Vercel
-
-1. Connect your repository to Vercel
-2. The deployment will automatically use the `vercel.json` configuration
-3. Your app will be live at your Vercel domain
-
 ## 🎯 Key Pages & Features
 
 ### Home Page
@@ -179,34 +129,10 @@ This project is configured for deployment on Vercel with the following settings:
 - **Icons:** Lucide React icon set
 - **Responsive:** Mobile-first approach
 
-## 🔧 Configuration Files
-
-- **ESLint:** `eslint.config.js` - Code linting rules
-- **Vite:** `vite.config.js` - Build configuration with Tailwind CSS
-- **Vercel:** `vercel.json` - Deployment configuration
-
-## 📱 Responsive Design
-
-The application is fully responsive and optimized for:
-- Desktop (1024px+)
-- Tablet (768px - 1023px)
-- Mobile (320px - 767px)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ## 📄 License
 
 This project is private and proprietary.
-
-## 📞 Support
-
-For support and questions, please contact the development team.
 
 ---
 

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 import { Select, Space, Slider, Input } from 'antd';
 import { UserOutlined, TeamOutlined, HomeOutlined, FilterOutlined, SearchOutlined } from '@ant-design/icons';

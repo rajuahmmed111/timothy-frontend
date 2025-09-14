@@ -6,6 +6,7 @@ import ExploreAllServices from './ExploreAllServices/ExploreAllServices';
 import RecommendedAttractions from './RecommendedAttractions/RecommendedAttractions';
 import WhyChooseFASIFY from './WhyChooseFASIFY/WhyChooseFASIFY';
 import Testimonials from './Testimonials/Testimonials';
+import FAQ from './FAQ/FAQ';
 import Showcase from './Showcase/Showcase';
 export default function Home() {
     return <div>
@@ -16,6 +17,7 @@ export default function Home() {
         <RecommendedAttractions />
         <WhyChooseFASIFY />
         <Testimonials />
+        <FAQ />
         <Showcase />
     </div>;
 }
