@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-import { Select, Space, Slider, Input } from 'antd';
-import { UserOutlined, TeamOutlined, HomeOutlined, FilterOutlined, SearchOutlined } from '@ant-design/icons';
+import { Select, Space, Slider, Input, Checkbox, Radio, Rate } from 'antd';
+import { UserOutlined, TeamOutlined, HomeOutlined, FilterOutlined, SearchOutlined, WifiOutlined, CarOutlined, ShopOutlined, StarOutlined } from '@ant-design/icons';
 import { DatePicker, Button } from "antd";
 import { useBooking } from '../../context/BookingContext';
 
@@ -15,9 +15,31 @@ import HotelCard from '../../components/HotelCard/HotelCard';
 export default function HotelReservation() {
     const { bookingData, updateBookingData, updateGuests } = useBooking();
     const [filters, setFilters] = useState({
-        priceRange: [0, 600],
-        nameSearch: '',
-        selectedCity: ''
+        priceRange: '',
+        accommodationType: '',
+        amenities: {
+            breakfast: false,
+            kitchen: false,
+            wifi: false,
+            parking: false,
+            restaurant: false,
+            gym: false,
+            pool: false,
+            spa: false,
+            frontDesk24: false,
+            airportShuttle: false
+        },
+        preferences: {
+            smoking: '',
+            pets: ''
+        },
+        location: {
+            waterView: false,
+            island: false
+        },
+        reviews: {
+            minRating: 0
+        }
     });
     const [mainSearch, setMainSearch] = useState('');
     const [filteredHotels, setFilteredHotels] = useState([]);
@@ -68,6 +90,27 @@ export default function HotelReservation() {
             image: ing1,
             price: "$580",
             rating: 5,
+            type: "hotel",
+            amenities: {
+                breakfast: true,
+                kitchen: false,
+                wifi: true,
+                parking: true,
+                restaurant: true,
+                gym: true,
+                pool: false,
+                spa: true,
+                frontDesk24: true,
+                airportShuttle: true
+            },
+            preferences: {
+                smoking: "non-smoking",
+                pets: "not-allowed"
+            },
+            location_features: {
+                waterView: false,
+                island: false
+            }
         },
         {
             name: "Budget Inn",
@@ -75,6 +118,27 @@ export default function HotelReservation() {
             image: ing2,
             price: "$89",
             rating: 3,
+            type: "hotel",
+            amenities: {
+                breakfast: false,
+                kitchen: false,
+                wifi: true,
+                parking: true,
+                restaurant: false,
+                gym: false,
+                pool: false,
+                spa: false,
+                frontDesk24: false,
+                airportShuttle: false
+            },
+            preferences: {
+                smoking: "smoking",
+                pets: "allowed"
+            },
+            location_features: {
+                waterView: false,
+                island: false
+            }
         },
         {
             name: "Majestic Serenity Palace",
@@ -82,6 +146,27 @@ export default function HotelReservation() {
             image: ing3,
             price: "$425",
             rating: 5,
+            type: "hotel",
+            amenities: {
+                breakfast: true,
+                kitchen: false,
+                wifi: true,
+                parking: true,
+                restaurant: true,
+                gym: true,
+                pool: true,
+                spa: true,
+                frontDesk24: true,
+                airportShuttle: true
+            },
+            preferences: {
+                smoking: "non-smoking",
+                pets: "not-allowed"
+            },
+            location_features: {
+                waterView: true,
+                island: false
+            }
         },
         {
             name: "Grand Central Hotel",
@@ -89,6 +174,27 @@ export default function HotelReservation() {
             image: ing4,
             price: "$320",
             rating: 4,
+            type: "hotel",
+            amenities: {
+                breakfast: true,
+                kitchen: false,
+                wifi: true,
+                parking: false,
+                restaurant: true,
+                gym: true,
+                pool: false,
+                spa: false,
+                frontDesk24: true,
+                airportShuttle: false
+            },
+            preferences: {
+                smoking: "non-smoking",
+                pets: "allowed"
+            },
+            location_features: {
+                waterView: false,
+                island: false
+            }
         },
         {
             name: "Ocean View Resort",
@@ -96,6 +202,27 @@ export default function HotelReservation() {
             image: ing1,
             price: "$275",
             rating: 4,
+            type: "hotel",
+            amenities: {
+                breakfast: true,
+                kitchen: false,
+                wifi: true,
+                parking: true,
+                restaurant: true,
+                gym: false,
+                pool: true,
+                spa: false,
+                frontDesk24: true,
+                airportShuttle: false
+            },
+            preferences: {
+                smoking: "non-smoking",
+                pets: "allowed"
+            },
+            location_features: {
+                waterView: true,
+                island: false
+            }
         },
         {
             name: "City Center Lodge",
@@ -103,6 +230,27 @@ export default function HotelReservation() {
             image: ing2,
             price: "$150",
             rating: 3,
+            type: "hotel",
+            amenities: {
+                breakfast: false,
+                kitchen: false,
+                wifi: true,
+                parking: false,
+                restaurant: false,
+                gym: false,
+                pool: false,
+                spa: false,
+                frontDesk24: false,
+                airportShuttle: false
+            },
+            preferences: {
+                smoking: "smoking",
+                pets: "allowed"
+            },
+            location_features: {
+                waterView: false,
+                island: false
+            }
         },
         {
             name: "Royal Paradise Hotel",
@@ -110,6 +258,27 @@ export default function HotelReservation() {
             image: ing3,
             price: "$199",
             rating: 4,
+            type: "hotel",
+            amenities: {
+                breakfast: false,
+                kitchen: false,
+                wifi: true,
+                parking: true,
+                restaurant: true,
+                gym: true,
+                pool: true,
+                spa: true,
+                frontDesk24: true,
+                airportShuttle: true
+            },
+            preferences: {
+                smoking: "smoking",
+                pets: "not-allowed"
+            },
+            location_features: {
+                waterView: false,
+                island: false
+            }
         },
         {
             name: "Sunset Boulevard Inn",
@@ -117,6 +286,27 @@ export default function HotelReservation() {
             image: ing4,
             price: "$245",
             rating: 4,
+            type: "hotel",
+            amenities: {
+                breakfast: true,
+                kitchen: false,
+                wifi: true,
+                parking: true,
+                restaurant: false,
+                gym: false,
+                pool: false,
+                spa: false,
+                frontDesk24: false,
+                airportShuttle: false
+            },
+            preferences: {
+                smoking: "non-smoking",
+                pets: "allowed"
+            },
+            location_features: {
+                waterView: false,
+                island: false
+            }
         },
         {
             name: "Metropolitan Luxury Suites",
@@ -124,6 +314,27 @@ export default function HotelReservation() {
             image: ing1,
             price: "$495",
             rating: 5,
+            type: "apartment",
+            amenities: {
+                breakfast: false,
+                kitchen: true,
+                wifi: true,
+                parking: true,
+                restaurant: false,
+                gym: true,
+                pool: false,
+                spa: false,
+                frontDesk24: true,
+                airportShuttle: true
+            },
+            preferences: {
+                smoking: "non-smoking",
+                pets: "allowed"
+            },
+            location_features: {
+                waterView: false,
+                island: false
+            }
         },
         {
             name: "Desert Oasis Hotel",
@@ -131,6 +342,27 @@ export default function HotelReservation() {
             image: ing2,
             price: "$135",
             rating: 3,
+            type: "hotel",
+            amenities: {
+                breakfast: false,
+                kitchen: false,
+                wifi: true,
+                parking: true,
+                restaurant: false,
+                gym: false,
+                pool: true,
+                spa: false,
+                frontDesk24: false,
+                airportShuttle: false
+            },
+            preferences: {
+                smoking: "smoking",
+                pets: "allowed"
+            },
+            location_features: {
+                waterView: false,
+                island: false
+            }
         },
         {
             name: "Beachfront Paradise",
@@ -138,6 +370,27 @@ export default function HotelReservation() {
             image: ing3,
             price: "$380",
             rating: 5,
+            type: "hotel",
+            amenities: {
+                breakfast: true,
+                kitchen: false,
+                wifi: true,
+                parking: true,
+                restaurant: true,
+                gym: true,
+                pool: true,
+                spa: true,
+                frontDesk24: true,
+                airportShuttle: false
+            },
+            preferences: {
+                smoking: "non-smoking",
+                pets: "not-allowed"
+            },
+            location_features: {
+                waterView: true,
+                island: true
+            }
         },
         {
             name: "Downtown Business Hotel",
@@ -145,6 +398,27 @@ export default function HotelReservation() {
             image: ing4,
             price: "$210",
             rating: 4,
+            type: "hotel",
+            amenities: {
+                breakfast: true,
+                kitchen: false,
+                wifi: true,
+                parking: false,
+                restaurant: true,
+                gym: true,
+                pool: false,
+                spa: false,
+                frontDesk24: true,
+                airportShuttle: true
+            },
+            preferences: {
+                smoking: "non-smoking",
+                pets: "not-allowed"
+            },
+            location_features: {
+                waterView: false,
+                island: false
+            }
         }
     ];
 
@@ -152,16 +426,42 @@ export default function HotelReservation() {
     React.useEffect(() => {
         let filtered = hotels.filter(hotel => {
             const price = parseInt(hotel.price.replace('$', ''));
-            const priceInRange = price >= filters.priceRange[0] && price <= filters.priceRange[1];
-            const nameMatch = hotel.name.toLowerCase().includes(filters.nameSearch.toLowerCase());
-            const cityMatch = filters.selectedCity === '' || hotel.location.includes(filters.selectedCity);
+            
+            // Price range filter
+            let priceInRange = true;
+            if (filters.priceRange) {
+                const [min, max] = filters.priceRange.split('-').map(Number);
+                priceInRange = price >= min && price <= max;
+            }
             
             // Main search functionality - searches both name and location
             const mainSearchMatch = mainSearch === '' || 
                 hotel.name.toLowerCase().includes(mainSearch.toLowerCase()) ||
                 hotel.location.toLowerCase().includes(mainSearch.toLowerCase());
             
-            return priceInRange && nameMatch && cityMatch && mainSearchMatch;
+            // Accommodation type filter
+            const accommodationMatch = filters.accommodationType === '' || 
+                hotel.type === filters.accommodationType;
+            
+            // Rating filter
+            const ratingMatch = filters.reviews.minRating === 0 || hotel.rating >= filters.reviews.minRating;
+            
+            // Amenities filter
+            const amenitiesMatch = Object.keys(filters.amenities).every(amenity => 
+                !filters.amenities[amenity] || hotel.amenities[amenity]
+            );
+            
+            // Preferences filter
+            const preferencesMatch = 
+                (filters.preferences.smoking === '' || hotel.preferences.smoking === filters.preferences.smoking) &&
+                (filters.preferences.pets === '' || hotel.preferences.pets === filters.preferences.pets);
+            
+            // Location features filter
+            const locationMatch = Object.keys(filters.location).every(feature => 
+                !filters.location[feature] || hotel.location_features[feature]
+            );
+            
+            return priceInRange && mainSearchMatch && accommodationMatch && ratingMatch && amenitiesMatch && preferencesMatch && locationMatch;
         });
         setFilteredHotels(filtered);
     }, [filters, mainSearch, hotels]);
@@ -324,58 +624,202 @@ export default function HotelReservation() {
                     </div>
 
                     <div className={`${showFilters ? 'block' : 'hidden'} lg:block space-y-6`}>
-                        {/* Name Search Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Hotel Name</label>
-                            <Input
-                                placeholder="Search by hotel name"
-                                prefix={<SearchOutlined className="text-gray-400" />}
-                                value={filters.nameSearch}
-                                onChange={(e) => handleFilterChange('nameSearch', e.target.value)}
-                                className="w-full"
-                            />
-                        </div>
-
-                        {/* City Filter */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                            <Select
-                                placeholder="Select city"
-                                value={filters.selectedCity}
-                                onChange={(value) => handleFilterChange('selectedCity', value)}
-                                className="w-full"
-                                allowClear
-                            >
-                                {uniqueCities.map(city => (
-                                    <Option key={city} value={city}>{city}</Option>
-                                ))}
-                            </Select>
-                        </div>
 
                         {/* Price Range Filter */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}
-                            </label>
-                            <Slider
-                                range
-                                min={0}
-                                max={600}
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+                            <Select
+                                placeholder="Select price range"
                                 value={filters.priceRange}
                                 onChange={(value) => handleFilterChange('priceRange', value)}
                                 className="w-full"
-                                trackStyle={[{ backgroundColor: '#0064D2' }]}
-                                handleStyle={[{ borderColor: '#0064D2' }, { borderColor: '#0064D2' }]}
+                                allowClear
+                            >
+                                <Option value="0-100">$0 - $100</Option>
+                                <Option value="100-200">$100 - $200</Option>
+                                <Option value="200-300">$200 - $300</Option>
+                                <Option value="300-400">$300 - $400</Option>
+                                <Option value="400-500">$400 - $500</Option>
+                                <Option value="500-600">$500 - $600</Option>
+                            </Select>
+                        </div>
+
+                        {/* Accommodation Type */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Accommodation Type</label>
+                            <Radio.Group
+                                value={filters.accommodationType}
+                                onChange={(e) => handleFilterChange('accommodationType', e.target.value)}
+                                className="w-full"
+                            >
+                                <div className="space-y-2">
+                                    <Radio value="">All</Radio>
+                                    <Radio value="hotel">Hotels</Radio>
+                                    <Radio value="apartment">Apartments</Radio>
+                                </div>
+                            </Radio.Group>
+                        </div>
+
+                        {/* Amenities */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-3">Amenities</label>
+                            <div className="space-y-2">
+                                <Checkbox
+                                    checked={filters.amenities.breakfast}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, breakfast: e.target.checked })}
+                                >
+                                    Breakfast included
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.amenities.kitchen}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, kitchen: e.target.checked })}
+                                >
+                                    Kitchen
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.amenities.wifi}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, wifi: e.target.checked })}
+                                >
+                                    <WifiOutlined className="mr-1" /> Free WiFi
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.amenities.parking}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, parking: e.target.checked })}
+                                >
+                                    <CarOutlined className="mr-1" /> Parking
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.amenities.restaurant}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, restaurant: e.target.checked })}
+                                >
+                                    <ShopOutlined className="mr-1" /> Restaurant
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.amenities.gym}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, gym: e.target.checked })}
+                                >
+                                    Gym
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.amenities.pool}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, pool: e.target.checked })}
+                                >
+                                    Swimming pool
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.amenities.spa}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, spa: e.target.checked })}
+                                >
+                                    Spa
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.amenities.frontDesk24}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, frontDesk24: e.target.checked })}
+                                >
+                                    24-hour front desk
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.amenities.airportShuttle}
+                                    onChange={(e) => handleFilterChange('amenities', { ...filters.amenities, airportShuttle: e.target.checked })}
+                                >
+                                    Airport shuttle
+                                </Checkbox>
+                            </div>
+                        </div>
+
+                        {/* Preferences */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Smoking</label>
+                            <Radio.Group
+                                value={filters.preferences.smoking}
+                                onChange={(e) => handleFilterChange('preferences', { ...filters.preferences, smoking: e.target.value })}
+                                className="w-full"
+                            >
+                                <div className="space-y-2">
+                                    <Radio value="">No preference</Radio>
+                                    <Radio value="non-smoking">Non-smoking</Radio>
+                                    <Radio value="smoking">Smoking allowed</Radio>
+                                </div>
+                            </Radio.Group>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Pets</label>
+                            <Radio.Group
+                                value={filters.preferences.pets}
+                                onChange={(e) => handleFilterChange('preferences', { ...filters.preferences, pets: e.target.value })}
+                                className="w-full"
+                            >
+                                <div className="space-y-2">
+                                    <Radio value="">No preference</Radio>
+                                    <Radio value="allowed">Pets allowed</Radio>
+                                    <Radio value="not-allowed">Pets not allowed</Radio>
+                                </div>
+                            </Radio.Group>
+                        </div>
+
+                        {/* Location Features */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-3">Location Features</label>
+                            <div className="space-y-2">
+                                <Checkbox
+                                    checked={filters.location.waterView}
+                                    onChange={(e) => handleFilterChange('location', { ...filters.location, waterView: e.target.checked })}
+                                >
+                                    Water view
+                                </Checkbox>
+                                <Checkbox
+                                    checked={filters.location.island}
+                                    onChange={(e) => handleFilterChange('location', { ...filters.location, island: e.target.checked })}
+                                >
+                                    Island
+                                </Checkbox>
+                            </div>
+                        </div>
+
+                        {/* Reviews */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Rating</label>
+                            <Rate
+                                value={filters.reviews.minRating}
+                                onChange={(value) => handleFilterChange('reviews', { ...filters.reviews, minRating: value })}
+                                allowClear
+                                className="text-yellow-400"
                             />
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>$0</span>
-                                <span>$600</span>
+                            <div className="text-xs text-gray-500 mt-1">
+                                {filters.reviews.minRating > 0 ? `${filters.reviews.minRating} stars and above` : 'Any rating'}
                             </div>
                         </div>
 
                         {/* Clear Filters Button */}
                         <Button
-                            onClick={() => setFilters({ priceRange: [0, 600], nameSearch: '', selectedCity: '' })}
+                            onClick={() => setFilters({
+                                priceRange: '',
+                                accommodationType: '',
+                                amenities: {
+                                    breakfast: false,
+                                    kitchen: false,
+                                    wifi: false,
+                                    parking: false,
+                                    restaurant: false,
+                                    gym: false,
+                                    pool: false,
+                                    spa: false,
+                                    frontDesk24: false,
+                                    airportShuttle: false
+                                },
+                                preferences: {
+                                    smoking: '',
+                                    pets: ''
+                                },
+                                location: {
+                                    waterView: false,
+                                    island: false
+                                },
+                                reviews: {
+                                    minRating: 0
+                                }
+                            })}
                             className="w-full"
                             type="default"
                         >
