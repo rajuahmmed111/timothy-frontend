@@ -1,41 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Select, Space, Button } from "antd";
 import { UserOutlined, TeamOutlined, HomeOutlined } from "@ant-design/icons";
 import { DatePicker } from "antd";
+import { useBooking } from "../../context/BookingContext";
 
 export default function BookingForm() {
   const navigate = useNavigate();
+  const { bookingData, updateBookingData, updateGuests } = useBooking();
   const [selectedRoom, setSelectedRoom] = useState("deluxe");
   const [isBooking, setIsBooking] = useState(false);
-  const [guests, setGuests] = useState({
-    adults: 1,
-    children: 0,
-    rooms: 1,
-  });
   const { Option } = Select;
-  const [dateRange, setDateRange] = useState(null);
 
   const { RangePicker } = DatePicker;
 
   const handleGuestsChange = (type, value) => {
-    setGuests((prev) => ({
-      ...prev,
-      [type]: value,
-    }));
+    updateGuests({
+      [type]: value
+    });
+  };
+
+  const handleDateChange = (dates) => {
+    updateBookingData({
+      dateRange: dates
+    });
   };
 
   const validateForm = () => {
-    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+    if (!bookingData.dateRange || !bookingData.dateRange[0] || !bookingData.dateRange[1]) {
       alert("Please select check-in and check-out dates");
       return false;
     }
-    if (guests.adults === 0) {
+    if (bookingData.guests.adults === 0) {
       alert("Please select at least 1 adult");
       return false;
     }
-    if (guests.rooms === 0) {
+    if (bookingData.guests.rooms === 0) {
       alert("Please select at least 1 room");
       return false;
     }
@@ -71,9 +72,9 @@ export default function BookingForm() {
 
   // Calculate nights from dateRange
   const nights =
-    dateRange && dateRange[0] && dateRange[1]
+    bookingData.dateRange && bookingData.dateRange[0] && bookingData.dateRange[1]
       ? Math.ceil(
-          (dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) /
+          (bookingData.dateRange[1].toDate().getTime() - bookingData.dateRange[0].toDate().getTime()) /
             (1000 * 3600 * 24)
         )
       : 1;
@@ -93,9 +94,9 @@ export default function BookingForm() {
     navigate("/hotel/checkout", {
       state: {
         bookingData: {
-          checkIn: dateRange[0].format("YYYY-MM-DD"),
-          checkOut: dateRange[1].format("YYYY-MM-DD"),
-          guests,
+          checkIn: bookingData.dateRange[0].format("YYYY-MM-DD"),
+          checkOut: bookingData.dateRange[1].format("YYYY-MM-DD"),
+          guests: bookingData.guests,
           roomType:
             rooms.find((room) => room.id === selectedRoom)?.name ||
             "Deluxe Room",
@@ -136,8 +137,8 @@ export default function BookingForm() {
           </label>
           <RangePicker
             placeholder={["Check-in", "Check-out"]}
-            value={dateRange}
-            onChange={setDateRange}
+            value={bookingData.dateRange}
+            onChange={handleDateChange}
             style={{ width: "100%", height: "48px" }}
             className="border-gray-300 rounded-lg focus:border-[#0064D2] focus:ring-1 focus:ring-[#0064D2]"
             disabledDate={(current) =>
@@ -152,17 +153,11 @@ export default function BookingForm() {
             Guests and Rooms
           </label>
           <Select
-            value={
-              guests.adults === 0 && guests.children === 0 && guests.rooms === 0
-                ? null
-                : `${guests.adults} ${
-                    guests.adults !== 1 ? "adults" : "adult"
-                  } · ${guests.children} ${
-                    guests.children !== 1 ? "children" : "child"
-                  } · ${guests.rooms} ${guests.rooms !== 1 ? "rooms" : "room"}`
-            }
+            value={bookingData.guests.adults > 0 || bookingData.guests.children > 0 || bookingData.guests.rooms > 0 ? 
+                `${bookingData.guests.adults} ${bookingData.guests.adults !== 1 ? 'adults' : 'adult'} · ${bookingData.guests.children} ${bookingData.guests.children !== 1 ? 'children' : 'child'} · ${bookingData.guests.rooms} ${bookingData.guests.rooms !== 1 ? 'rooms' : 'room'}` : 
+                undefined}
             placeholder="0 adults · 0 children · 0 rooms"
-            className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3"
+            className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3 [&_.ant-select-selection-placeholder]:text-gray-400 focus:outline-none focus:border-[#0064D2]"
             style={{ height: "100%" }}
             dropdownMatchSelectWidth={false}
             dropdownRender={() => (
@@ -178,20 +173,20 @@ export default function BookingForm() {
                       onClick={() =>
                         handleGuestsChange(
                           "adults",
-                          Math.max(1, guests.adults - 1)
+                          Math.max(0, bookingData.guests.adults - 1)
                         )
                       }
-                      disabled={guests.adults <= 1}
+                      disabled={bookingData.guests.adults <= 0}
                       className="flex items-center justify-center w-8 h-8"
                     >
                       -
                     </Button>
-                    <span className="w-8 text-center">{guests.adults}</span>
+                    <span className="w-8 text-center">{bookingData.guests.adults}</span>
                     <Button
                       onClick={() =>
-                        handleGuestsChange("adults", guests.adults + 1)
+                        handleGuestsChange("adults", bookingData.guests.adults + 1)
                       }
-                      disabled={guests.adults >= 8}
+                      disabled={bookingData.guests.adults >= 8}
                       className="flex items-center justify-center w-8 h-8"
                     >
                       +
@@ -210,20 +205,20 @@ export default function BookingForm() {
                       onClick={() =>
                         handleGuestsChange(
                           "children",
-                          Math.max(0, guests.children - 1)
+                          Math.max(0, bookingData.guests.children - 1)
                         )
                       }
-                      disabled={guests.children <= 0}
+                      disabled={bookingData.guests.children <= 0}
                       className="flex items-center justify-center w-8 h-8"
                     >
                       -
                     </Button>
-                    <span className="w-8 text-center">{guests.children}</span>
+                    <span className="w-8 text-center">{bookingData.guests.children}</span>
                     <Button
                       onClick={() =>
-                        handleGuestsChange("children", guests.children + 1)
+                        handleGuestsChange("children", bookingData.guests.children + 1)
                       }
-                      disabled={guests.children >= 4}
+                      disabled={bookingData.guests.children >= 4}
                       className="flex items-center justify-center w-8 h-8"
                     >
                       +
@@ -242,20 +237,20 @@ export default function BookingForm() {
                       onClick={() =>
                         handleGuestsChange(
                           "rooms",
-                          Math.max(1, guests.rooms - 1)
+                          Math.max(0, bookingData.guests.rooms - 1)
                         )
                       }
-                      disabled={guests.rooms <= 1}
+                      disabled={bookingData.guests.rooms <= 0}
                       className="flex items-center justify-center w-8 h-8"
                     >
                       -
                     </Button>
-                    <span className="w-8 text-center">{guests.rooms}</span>
+                    <span className="w-8 text-center">{bookingData.guests.rooms}</span>
                     <Button
                       onClick={() =>
-                        handleGuestsChange("rooms", guests.rooms + 1)
+                        handleGuestsChange("rooms", bookingData.guests.rooms + 1)
                       }
-                      disabled={guests.rooms >= 5}
+                      disabled={bookingData.guests.rooms >= 5}
                       className="flex items-center justify-center w-8 h-8"
                     >
                       +
@@ -266,11 +261,11 @@ export default function BookingForm() {
             )}
           >
             <Option value="guests">
-              {`${guests.adults} ${
-                guests.adults !== 1 ? "adults" : "adult"
-              } · ${guests.children} ${
-                guests.children !== 1 ? "children" : "child"
-              } · ${guests.rooms} ${guests.rooms !== 1 ? "rooms" : "room"}`}
+              {`${bookingData.guests.adults} ${
+                bookingData.guests.adults !== 1 ? "adults" : "adult"
+              } · ${bookingData.guests.children} ${
+                bookingData.guests.children !== 1 ? "children" : "child"
+              } · ${bookingData.guests.rooms} ${bookingData.guests.rooms !== 1 ? "rooms" : "room"}`}
             </Option>
           </Select>
         </div>
