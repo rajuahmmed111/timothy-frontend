@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { CheckCircle, MapPin, Calendar, Users, Clock, CreditCard, Phone, Mail, Wifi, Car, Coffee, Utensils, Waves } from 'lucide-react';
 import { Link, useLocation, } from 'react-router-dom';
+import { Modal } from 'antd';
 
 export default function BookingConfirmation() {
     const location = useLocation();
     // const navigate = useNavigate();
     const [isEmailSending, setIsEmailSending] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     
     // Get booking data from location state or use default values
     const bookingData = location.state || {
@@ -80,7 +82,7 @@ export default function BookingConfirmation() {
             //     body: JSON.stringify({ bookingData, guestDetails })
             // });
             
-            alert('Booking confirmation has been sent to your email!');
+            setShowSuccessModal(true);
         } catch (error) {
             alert('Failed to send email. Please try again.');
         } finally {
@@ -263,6 +265,31 @@ export default function BookingConfirmation() {
                     </div>
                 </div>
             </div>
+
+            {/* Success Modal */}
+            <Modal
+                title={null}
+                open={showSuccessModal}
+                onCancel={() => setShowSuccessModal(false)}
+                footer={null}
+                centered
+                width={400}
+                className="success-modal"
+            >
+                <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                        <CheckCircle className="w-8 h-8 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Email Sent Successfully!</h3>
+                    <p className="text-gray-600 mb-6">Your booking confirmation has been sent to your email.</p>
+                    <button
+                        onClick={() => setShowSuccessModal(false)}
+                        className="w-full bg-[#0064D2] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0052A3] transition-colors"
+                    >
+                        OK
+                    </button>
+                </div>
+            </Modal>
         </div>
     );
 }
