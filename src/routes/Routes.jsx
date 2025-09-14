@@ -10,6 +10,7 @@ import CancelReservation from '../pages/Help/CancelReservation';
 import RefundPolicies from '../pages/Help/RefundPolicies';
 import DisputeResolution from '../pages/Help/DisputeResolution';
 import ContactUs from '../pages/Contact/ContactUs';
+import Newsroom from '../pages/Newsroom/Newsroom';
 import HotelReservation from '../pages/HotelReservation/HotelReservation';
 import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
@@ -97,6 +98,10 @@ export const routes = createBrowserRouter([
             {
                 path: '/contact-us',
                 element: <ContactUs />,
+            },
+            {
+                path: '/newsroom',
+                element: <Newsroom />,
             },
             {
                 path: '/hotel',

@@ -32,6 +32,31 @@ export default function Footer() {
                                     List Your Property
                                 </Link>
                             </li>
+                            <li>
+                                <Link to="/newsroom" className="text-[#090909] font-semibold">
+                                    Newsroom
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/fasify-rewards" className="text-[#090909] font-semibold">
+                                    Fasify Rewards
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/investor-relations" className="text-[#090909] font-semibold">
+                                    Investor Relations
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/advertising" className="text-[#090909] font-semibold">
+                                    Advertising
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/sitemap" className="text-[#090909] font-semibold">
+                                    Sitemap
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
