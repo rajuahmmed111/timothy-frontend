@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Select, Space, Button } from "antd";
+import { Select, Space, Button, Input } from "antd";
 import { UserOutlined, TeamOutlined, HomeOutlined } from "@ant-design/icons";
 import { DatePicker } from "antd";
 import { useBooking } from "../../context/BookingContext";
@@ -11,6 +11,7 @@ export default function BookingForm() {
   const { bookingData, updateBookingData, updateGuests } = useBooking();
   const [selectedRoom, setSelectedRoom] = useState("deluxe");
   const [isBooking, setIsBooking] = useState(false);
+  const [specialRequest, setSpecialRequest] = useState("");
   const { Option } = Select;
 
   const { RangePicker } = DatePicker;
@@ -106,6 +107,7 @@ export default function BookingForm() {
           total: Math.round(selectedRoomData.price * 1.22 * nights),
           hotelName: "Luxury Beach Resort & Spa",
           location: "Maldives",
+          specialRequest: specialRequest,
         },
       },
     });
@@ -316,6 +318,23 @@ export default function BookingForm() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Special Request */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Special Request
+          </label>
+          <Input.TextArea
+            placeholder="Any special requests or preferences..."
+            value={specialRequest}
+            onChange={(e) => setSpecialRequest(e.target.value)}
+            rows={3}
+            className="w-full"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Cannot be guaranteed but the property will do its best to meet your needs.
+          </p>
         </div>
 
         {/* Price Breakdown */}
