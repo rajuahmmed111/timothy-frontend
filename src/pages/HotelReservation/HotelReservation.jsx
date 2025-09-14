@@ -16,7 +16,7 @@ import HotelCard from '../../components/HotelCard/HotelCard';
 export default function HotelReservation() {
     const [dateRange, setDateRange] = useState(null);
     const [guests, setGuests] = useState({
-        adults: 2,
+        adults: 0,
         children: 0,
         rooms: 0
     });
@@ -211,8 +211,8 @@ export default function HotelReservation() {
                                         </Space>
                                         <div className="flex items-center gap-2">
                                             <Button
-                                                onClick={() => handleGuestsChange('adults', Math.max(2, guests.adults - 1))}
-                                                disabled={guests.adults <= 2}
+                                                onClick={() => handleGuestsChange('adults', Math.max(0, guests.adults - 1))}
+                                                disabled={guests.adults <= 0}
                                                 className="flex items-center justify-center w-8 h-8"
                                             >
                                                 -
@@ -261,8 +261,8 @@ export default function HotelReservation() {
                                         </Space>
                                         <div className="flex items-center gap-2">
                                             <Button
-                                                onClick={() => handleGuestsChange('rooms', Math.max(1, guests.rooms - 1))}
-                                                disabled={guests.rooms <= 1}
+                                                onClick={() => handleGuestsChange('rooms', Math.max(0, guests.rooms - 1))}
+                                                disabled={guests.rooms <= 0}
                                                 className="flex items-center justify-center w-8 h-8"
                                             >
                                                 -
@@ -293,7 +293,7 @@ export default function HotelReservation() {
                         onClick={handleSearch}
                         className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold hover:bg-[#0052A3] transition-colors"
                     >
-                        Search Hotels
+                        Search
                     </button>
                 </div>
             </div>
