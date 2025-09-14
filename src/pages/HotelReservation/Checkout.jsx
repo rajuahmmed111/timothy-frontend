@@ -14,6 +14,7 @@ export default function Checkout() {
     phone: "",
     countryCode: "+1",
     country: "",
+    dateOfBirth: "",
     street: "",
     city: "",
     postcode: "",
@@ -94,6 +95,23 @@ export default function Checkout() {
   const handleCountryChange = (country) => {
     handleGuestInfoChange("country", country);
     setIsCountrySelectOpen(false);
+  };
+
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return 0;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const isAgeValid = () => {
+    const age = calculateAge(guestInfo.dateOfBirth);
+    return age >= 18;
   };
 
   const selectedCountry = countryCodes.find(c => c.code === guestInfo.countryCode);
@@ -242,6 +260,35 @@ export default function Checkout() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date of Birth *
+                  </label>
+                  <input
+                    type="date"
+                    value={guestInfo.dateOfBirth}
+                    onChange={(e) =>
+                      handleGuestInfoChange("dateOfBirth", e.target.value)
+                    }
+                    required
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                    className={`w-full px-3 md:px-4 py-2.5 md:py-3 border rounded-lg transition-colors text-sm md:text-base ${
+                      guestInfo.dateOfBirth && !isAgeValid() 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:ring-sky-500 focus:border-sky-500'
+                    }`}
+                    placeholder="Select your date of birth"
+                  />
+                  {guestInfo.dateOfBirth && !isAgeValid() && (
+                    <p className="text-red-500 text-xs mt-1">
+                      You must be at least 18 years old to make a reservation.
+                    </p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">
+                    Minimum age requirement: 18 years
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number *
                   </label>
                   <div className="flex flex-col sm:flex-row">
@@ -356,8 +403,12 @@ export default function Checkout() {
                 <button
                   type="submit"
                   // onClick={handleSubmit}
-                  disabled={isProcessing}
-                  className="w-full mt-4 md:mt-6 bg-[#0064D2] text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-semibold text-sm md:text-base hover:bg-[#0052A3] transition-colors"
+                  disabled={isProcessing || (guestInfo.dateOfBirth && !isAgeValid())}
+                  className={`w-full mt-4 md:mt-6 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-semibold text-sm md:text-base transition-colors ${
+                    isProcessing || (guestInfo.dateOfBirth && !isAgeValid())
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : 'bg-[#0064D2] text-white hover:bg-[#0052A3]'
+                  }`}
                 >
                   {isProcessing ? "Processing..." : "Continue to Payment"}
                 </button>
