@@ -1,16 +1,14 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Select, Space } from 'antd';
 import { UserOutlined, TeamOutlined, HomeOutlined } from '@ant-design/icons';
 import { DatePicker, Button } from "antd";
+import { useBooking } from "../../../context/BookingContext";
 
 export default function Hero() {
-    const [dateRange, setDateRange] = useState(null);
-    const [guests, setGuests] = useState({
-        adults: 2,
-        children: 0,
-        rooms: 0
-    });
+    const { bookingData, updateBookingData, updateGuests } = useBooking();
+    const [location, setLocation] = useState('');
+    const navigate = useNavigate();
 
     const { RangePicker } = DatePicker;
 
@@ -18,10 +16,33 @@ export default function Hero() {
 
 
     const handleGuestsChange = (type, value) => {
-        setGuests(prev => ({
-            ...prev,
+        updateGuests({
             [type]: value
-        }));
+        });
+    };
+
+    const handleDateChange = (dates) => {
+        updateBookingData({
+            dateRange: dates
+        });
+    };
+
+    const handleLocationChange = (e) => {
+        const value = e.target.value;
+        setLocation(value);
+        updateBookingData({
+            location: value,
+            searchQuery: value
+        });
+    };
+
+    const handleSearch = () => {
+        // Update booking data before navigation
+        updateBookingData({
+            location: location,
+            searchQuery: location
+        });
+        navigate('/hotel');
     };
     return (
         <section
@@ -41,6 +62,8 @@ export default function Hero() {
                                 <input
                                     type="text"
                                     placeholder="Search For Your Stays"
+                                    value={location}
+                                    onChange={handleLocationChange}
                                     className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
                                 />
                             </div>
@@ -48,16 +71,16 @@ export default function Hero() {
                             {/* Check-in & Check-out */}
                             <RangePicker
                                 placeholder={['Check-in', 'Check-out']}
-                                value={dateRange}
-                                onChange={setDateRange}
+                                value={bookingData.dateRange}
+                                onChange={handleDateChange}
                                 style={{ width: '100%' }}
                             />
 
                             {/* Guests and Rooms */}
                             <div className="space-y-2 h-full flex flex-col">
                                 <Select
-                                    value={`${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
-                                    placeholder="2 adults · 0 children · 0 room"
+                                    value={`${bookingData.guests.adults} ${bookingData.guests.adults !== 1 ? 'adults' : 'adult'} · ${bookingData.guests.children} ${bookingData.guests.children !== 1 ? 'children' : 'child'} · ${bookingData.guests.rooms} ${bookingData.guests.rooms !== 1 ? 'rooms' : 'room'}`}
+                                    placeholder="2 adults · 0 children · 1 room"
                                     className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3"
                                     style={{ height: '100%' }}
                                     dropdownMatchSelectWidth={false}
@@ -71,16 +94,16 @@ export default function Hero() {
                                                 </Space>
                                                 <div className="flex items-center gap-2">
                                                     <Button
-                                                        onClick={() => handleGuestsChange('adults', Math.max(2, guests.adults - 1))}
-                                                        disabled={guests.adults <= 2}
+                                                        onClick={() => handleGuestsChange('adults', Math.max(1, bookingData.guests.adults - 1))}
+                                                        disabled={bookingData.guests.adults <= 1}
                                                         className="flex items-center justify-center w-8 h-8"
                                                     >
                                                         -
                                                     </Button>
-                                                    <span className="w-8 text-center">{guests.adults}</span>
+                                                    <span className="w-8 text-center">{bookingData.guests.adults}</span>
                                                     <Button
-                                                        onClick={() => handleGuestsChange('adults', guests.adults + 1)}
-                                                        disabled={guests.adults >= 8}
+                                                        onClick={() => handleGuestsChange('adults', bookingData.guests.adults + 1)}
+                                                        disabled={bookingData.guests.adults >= 8}
                                                         className="flex items-center justify-center w-8 h-8"
                                                     >
                                                         +
@@ -96,16 +119,16 @@ export default function Hero() {
                                                 </Space>
                                                 <div className="flex items-center gap-2">
                                                     <Button
-                                                        onClick={() => handleGuestsChange('children', Math.max(0, guests.children - 1))}
-                                                        disabled={guests.children <= 0}
+                                                        onClick={() => handleGuestsChange('children', Math.max(0, bookingData.guests.children - 1))}
+                                                        disabled={bookingData.guests.children <= 0}
                                                         className="flex items-center justify-center w-8 h-8"
                                                     >
                                                         -
                                                     </Button>
-                                                    <span className="w-8 text-center">{guests.children}</span>
+                                                    <span className="w-8 text-center">{bookingData.guests.children}</span>
                                                     <Button
-                                                        onClick={() => handleGuestsChange('children', guests.children + 1)}
-                                                        disabled={guests.children >= 4}
+                                                        onClick={() => handleGuestsChange('children', bookingData.guests.children + 1)}
+                                                        disabled={bookingData.guests.children >= 4}
                                                         className="flex items-center justify-center w-8 h-8"
                                                     >
                                                         +
@@ -121,16 +144,16 @@ export default function Hero() {
                                                 </Space>
                                                 <div className="flex items-center gap-2">
                                                     <Button
-                                                        onClick={() => handleGuestsChange('rooms', Math.max(0, guests.rooms - 1))}
-                                                        disabled={guests.rooms <= 0}
+                                                        onClick={() => handleGuestsChange('rooms', Math.max(1, bookingData.guests.rooms - 1))}
+                                                        disabled={bookingData.guests.rooms <= 1}
                                                         className="flex items-center justify-center w-8 h-8"
                                                     >
                                                         -
                                                     </Button>
-                                                    <span className="w-8 text-center">{guests.rooms}</span>
+                                                    <span className="w-8 text-center">{bookingData.guests.rooms}</span>
                                                     <Button
-                                                        onClick={() => handleGuestsChange('rooms', guests.rooms + 1)}
-                                                        disabled={guests.rooms >= 5}
+                                                        onClick={() => handleGuestsChange('rooms', bookingData.guests.rooms + 1)}
+                                                        disabled={bookingData.guests.rooms >= 5}
                                                         className="flex items-center justify-center w-8 h-8"
                                                     >
                                                         +
@@ -141,7 +164,7 @@ export default function Hero() {
                                     )}
                                 >
                                     <Option value="guests">
-                                        {`${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
+                                        {`${bookingData.guests.adults} ${bookingData.guests.adults !== 1 ? 'adults' : 'adult'} · ${bookingData.guests.children} ${bookingData.guests.children !== 1 ? 'children' : 'child'} · ${bookingData.guests.rooms} ${bookingData.guests.rooms !== 1 ? 'rooms' : 'room'}`}
                                     </Option>
                                 </Select>
                             </div>
@@ -149,11 +172,12 @@ export default function Hero() {
                         </div>
                         {/* Search Button */}
                         <div className="">
-                            <Link to="/hotel" className="w-full">
-                                <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
-                                    Search
-                                </button>
-                            </Link>
+                            <button 
+                                onClick={handleSearch}
+                                className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold hover:bg-[#0052A3] transition-colors"
+                            >
+                                Search
+                            </button>
                         </div>
                     </div>
                 </div>

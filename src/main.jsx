@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { RouterProvider } from "react-router-dom";
 import { routes } from "./routes/Routes";
+import { BookingProvider } from "./context/BookingContext";
 // import { Toaster } from "react-hot-toast";
 // import { persistor, store } from "./redux/store.js";
 // import { PersistGate } from "redux-persist/integration/react";
@@ -13,7 +14,9 @@ root.render(
     {/* <Provider store={store}> */}
     {/* <PersistGate loading={null} persistor={persistor}> */}
     {/* <Toaster position="top-center" toastOptions={{ duration: 1500 }} /> */}
-    <RouterProvider router={routes} />
+    <BookingProvider>
+      <RouterProvider router={routes} />
+    </BookingProvider>
     {/* </PersistGate> */}
     {/* </Provider> */}
   </StrictMode>

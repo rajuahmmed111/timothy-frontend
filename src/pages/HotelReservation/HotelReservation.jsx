@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Select, Space, Slider, Input } from 'antd';
 import { UserOutlined, TeamOutlined, HomeOutlined, FilterOutlined, SearchOutlined } from '@ant-design/icons';
 import { DatePicker, Button } from "antd";
-
+import { useBooking } from '../../context/BookingContext';
 
 import ing1 from "/hotel/1.png"
 import ing2 from "/hotel/2.png"
@@ -13,12 +13,7 @@ import HotelCard from '../../components/HotelCard/HotelCard';
 
 
 export default function HotelReservation() {
-    const [dateRange, setDateRange] = useState(null);
-    const [guests, setGuests] = useState({
-        adults: 0,
-        children: 0,
-        rooms: 0
-    });
+    const { bookingData, updateBookingData, updateGuests } = useBooking();
     const [filters, setFilters] = useState({
         priceRange: [0, 600],
         nameSearch: '',
@@ -32,11 +27,23 @@ export default function HotelReservation() {
 
 
     const handleGuestsChange = (type, value) => {
-        setGuests(prev => ({
-            ...prev,
+        updateGuests({
             [type]: value
-        }));
+        });
     };
+
+    const handleDateChange = (dates) => {
+        updateBookingData({
+            dateRange: dates
+        });
+    };
+
+    // Initialize search with data from Hero component
+    useEffect(() => {
+        if (bookingData.searchQuery) {
+            setMainSearch(bookingData.searchQuery);
+        }
+    }, [bookingData.searchQuery]);
 
     // Filter functions
     const handleFilterChange = (filterType, value) => {
@@ -179,7 +186,10 @@ export default function HotelReservation() {
                             type="text"
                             placeholder="Search For Your Stays"
                             value={mainSearch}
-                            onChange={(e) => setMainSearch(e.target.value)}
+                            onChange={(e) => {
+                                setMainSearch(e.target.value);
+                                updateBookingData({ searchQuery: e.target.value });
+                            }}
                             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
                         />
                     </div>
@@ -187,15 +197,15 @@ export default function HotelReservation() {
                     {/* Check-in & Check-out */}
                     <RangePicker
                         placeholder={['Check-in', 'Check-out']}
-                        value={dateRange}
-                        onChange={setDateRange}
+                        value={bookingData.dateRange}
+                        onChange={handleDateChange}
                         style={{ width: '100%' }}
                     />
 
                     {/* Guests and Rooms */}
                     <div className="space-y-2 h-full flex flex-col">
                         <Select
-                            value={`${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
+                            value={`${bookingData.guests.adults} ${bookingData.guests.adults !== 1 ? 'adults' : 'adult'} · ${bookingData.guests.children} ${bookingData.guests.children !== 1 ? 'children' : 'child'} · ${bookingData.guests.rooms} ${bookingData.guests.rooms !== 1 ? 'rooms' : 'room'}`}
                             placeholder="2 adults · 0 children · 1 room"
                             className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3"
                             style={{ height: '100%' }}
@@ -210,16 +220,16 @@ export default function HotelReservation() {
                                         </Space>
                                         <div className="flex items-center gap-2">
                                             <Button
-                                                onClick={() => handleGuestsChange('adults', Math.max(0, guests.adults - 1))}
-                                                disabled={guests.adults <= 0}
+                                                onClick={() => handleGuestsChange('adults', Math.max(1, bookingData.guests.adults - 1))}
+                                                disabled={bookingData.guests.adults <= 1}
                                                 className="flex items-center justify-center w-8 h-8"
                                             >
                                                 -
                                             </Button>
-                                            <span className="w-8 text-center">{guests.adults}</span>
+                                            <span className="w-8 text-center">{bookingData.guests.adults}</span>
                                             <Button
-                                                onClick={() => handleGuestsChange('adults', guests.adults + 1)}
-                                                disabled={guests.adults >= 8}
+                                                onClick={() => handleGuestsChange('adults', bookingData.guests.adults + 1)}
+                                                disabled={bookingData.guests.adults >= 8}
                                                 className="flex items-center justify-center w-8 h-8"
                                             >
                                                 +
@@ -235,16 +245,16 @@ export default function HotelReservation() {
                                         </Space>
                                         <div className="flex items-center gap-2">
                                             <Button
-                                                onClick={() => handleGuestsChange('children', Math.max(0, guests.children - 1))}
-                                                disabled={guests.children <= 0}
+                                                onClick={() => handleGuestsChange('children', Math.max(0, bookingData.guests.children - 1))}
+                                                disabled={bookingData.guests.children <= 0}
                                                 className="flex items-center justify-center w-8 h-8"
                                             >
                                                 -
                                             </Button>
-                                            <span className="w-8 text-center">{guests.children}</span>
+                                            <span className="w-8 text-center">{bookingData.guests.children}</span>
                                             <Button
-                                                onClick={() => handleGuestsChange('children', guests.children + 1)}
-                                                disabled={guests.children >= 4}
+                                                onClick={() => handleGuestsChange('children', bookingData.guests.children + 1)}
+                                                disabled={bookingData.guests.children >= 4}
                                                 className="flex items-center justify-center w-8 h-8"
                                             >
                                                 +
@@ -260,16 +270,16 @@ export default function HotelReservation() {
                                         </Space>
                                         <div className="flex items-center gap-2">
                                             <Button
-                                                onClick={() => handleGuestsChange('rooms', Math.max(0, guests.rooms - 1))}
-                                                disabled={guests.rooms <= 0}
+                                                onClick={() => handleGuestsChange('rooms', Math.max(1, bookingData.guests.rooms - 1))}
+                                                disabled={bookingData.guests.rooms <= 1}
                                                 className="flex items-center justify-center w-8 h-8"
                                             >
                                                 -
                                             </Button>
-                                            <span className="w-8 text-center">{guests.rooms}</span>
+                                            <span className="w-8 text-center">{bookingData.guests.rooms}</span>
                                             <Button
-                                                onClick={() => handleGuestsChange('rooms', guests.rooms + 1)}
-                                                disabled={guests.rooms >= 5}
+                                                onClick={() => handleGuestsChange('rooms', bookingData.guests.rooms + 1)}
+                                                disabled={bookingData.guests.rooms >= 5}
                                                 className="flex items-center justify-center w-8 h-8"
                                             >
                                                 +
@@ -280,7 +290,7 @@ export default function HotelReservation() {
                             )}
                         >
                             <Option value="guests">
-                                {`${guests.adults} ${guests.adults !== 1 ? 'adults' : 'adult'} · ${guests.children} ${guests.children !== 1 ? 'children' : 'child'} · ${guests.rooms} ${guests.rooms !== 1 ? 'rooms' : 'room'}`}
+                                {`${bookingData.guests.adults} ${bookingData.guests.adults !== 1 ? 'adults' : 'adult'} · ${bookingData.guests.children} ${bookingData.guests.children !== 1 ? 'children' : 'child'} · ${bookingData.guests.rooms} ${bookingData.guests.rooms !== 1 ? 'rooms' : 'room'}`}
                             </Option>
                         </Select>
                     </div>
