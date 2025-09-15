@@ -42,75 +42,66 @@ export default function HotelHeader() {
                         </div>
                     </div>
 
-                    {/* Mini Map Component */}
+                    {/* Interactive Map Component */}
                     <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden w-80 h-48">
-                        {/* Map Container */}
-                        <div className="relative h-40 bg-gradient-to-br from-blue-100 via-green-50 to-green-100">
-                            {/* Coastline representation */}
-                            <div className="absolute left-0 top-0 w-16 h-full bg-gradient-to-r from-blue-200 to-blue-100 opacity-60"></div>
+                        {/* Real Map Container */}
+                        <div className="relative h-40">
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15830.234567890123!2d98.3952!3d7.8731!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zN8KwNTInMjMuMiJOIDk4wrAyMycwNi43IkU!5e0!3m2!1sen!2sth!4v1234567890123!5m2!1sen!2sth"
+                                width="100%"
+                                height="100%"
+                                style={{ border: 0 }}
+                                allowFullScreen=""
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                title="Hotel Location Map"
+                            ></iframe>
                             
-                            {/* Road/Path */}
-                            <div className="absolute top-8 left-12 w-32 h-1 bg-gray-300 transform rotate-12"></div>
-                            <div className="absolute top-16 left-20 w-24 h-1 bg-gray-300 transform -rotate-6"></div>
-                            
-                            {/* Hotel Map Pins */}
-                            {hotels.map((hotel) => (
-                                <div
-                                    key={hotel.id}
-                                    className="absolute cursor-pointer transition-all duration-300 hover:scale-110"
-                                    style={{ 
-                                        top: `${hotel.position.top}%`, 
-                                        left: `${hotel.position.left}%` 
-                                    }}
-                                    onMouseEnter={() => setHoveredMarker(hotel.id)}
-                                    onMouseLeave={() => setHoveredMarker(null)}
-                                    title={`${hotel.name} - $${hotel.price}/night`}
-                                >
-                                    <MapPin 
-                                        className={`w-${hotel.isMain ? '6' : '4'} h-${hotel.isMain ? '6' : '4'} 
-                                            ${hotel.isMain ? 'text-red-500' : 'text-blue-600'} 
-                                            fill-current drop-shadow-md
-                                            ${hoveredMarker === hotel.id ? 'scale-125' : ''}`}
-                                    />
+                            {/* Map Overlay with Hotel Info */}
+                            <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-md p-2 max-w-xs">
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-red-500" />
+                                    <div>
+                                        <h5 className="font-semibold text-xs text-gray-900">Azure Oasis Hotel</h5>
+                                        <div className="flex items-center gap-1">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star 
+                                                    key={star} 
+                                                    className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" 
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
-                            ))}
+                            </div>
 
-                            {/* Hover Info Card */}
-                            {hoveredMarker && (
-                                <div className="absolute top-2 left-2 bg-white rounded-lg shadow-lg p-3 max-w-xs z-20 border border-gray-200">
-                                    {(() => {
-                                        const hotel = hotels.find(h => h.id === hoveredMarker);
-                                        return (
-                                            <div>
-                                                <h5 className="font-semibold text-sm text-gray-900">{hotel.name}</h5>
-                                                <div className="flex items-center gap-1 mt-1">
-                                                    {[1, 2, 3, 4, 5].map((star) => (
-                                                        <Star 
-                                                            key={star} 
-                                                            className={`w-3 h-3 ${star <= hotel.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
-                                                        />
-                                                    ))}
-                                                </div>
-                                                <p className="text-xs text-gray-600 mt-1">${hotel.price}/night</p>
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-                            )}
-                            
-                            {/* Green areas (parks/nature) */}
-                            <div className="absolute bottom-4 right-8 w-20 h-12 bg-green-200 rounded-full opacity-70"></div>
-                            <div className="absolute top-4 right-12 w-16 h-8 bg-green-200 rounded-full opacity-70"></div>
+                            {/* Map Controls */}
+                            <div className="absolute bottom-2 right-2 flex flex-col gap-1">
+                                <button 
+                                    onClick={() => {
+                                        const iframe = document.querySelector('iframe');
+                                        if (iframe) {
+                                            iframe.src = iframe.src; // Refresh map
+                                        }
+                                    }}
+                                    className="bg-white/90 backdrop-blur-sm rounded p-1.5 shadow-sm hover:bg-white transition-colors"
+                                    title="Refresh Map"
+                                >
+                                    <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         
-                        {/* View in map link */}
-                        <div className="p-3 bg-white border-t border-gray-100">
+                        {/* View in full map link */}
+                        <div className="bg-white border-t border-gray-100">
                             <button 
                                 onClick={openFullMap}
                                 className="flex items-center justify-center w-full text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
                             >
                                 <ExternalLink className="w-4 h-4 mr-1" />
-                                View in a map
+                                View in full map
                             </button>
                         </div>
                     </div>
