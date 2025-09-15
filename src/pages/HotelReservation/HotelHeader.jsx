@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MapPin, Star, ExternalLink } from 'lucide-react';
 export default function HotelHeader() {
-    const [showFullMap, setShowFullMap] = useState(false);
+    const [hoveredMarker, setHoveredMarker] = useState(null);
 
     const openFullMap = () => {
         // Open Google Maps with hotel location
@@ -10,6 +10,15 @@ export default function HotelHeader() {
         const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=Azure+Oasis+Hotel`;
         window.open(url, '_blank');
     };
+
+    const hotels = [
+        { id: 1, name: 'Beachfront Resort', position: { top: 12, left: 16 }, rating: 4, price: 180 },
+        { id: 2, name: 'City Center Hotel', position: { top: 20, left: 24 }, rating: 3, price: 120 },
+        { id: 3, name: 'Mountain Lodge', position: { top: 28, left: 32 }, rating: 5, price: 250 },
+        { id: 4, name: 'Spa Resort', position: { top: 16, left: 40 }, rating: 4, price: 200 },
+        { id: 5, name: 'Budget Inn', position: { top: 24, left: 48 }, rating: 3, price: 80 },
+        { id: 6, name: 'Azure Oasis', position: { top: 20, left: 36 }, rating: 5, price: 300, isMain: true }
+    ];
 
     return (
         <header className="bg-white shadow-sm border-b border-gray-100">
@@ -44,15 +53,50 @@ export default function HotelHeader() {
                             <div className="absolute top-8 left-12 w-32 h-1 bg-gray-300 transform rotate-12"></div>
                             <div className="absolute top-16 left-20 w-24 h-1 bg-gray-300 transform -rotate-6"></div>
                             
-                            {/* Hotel Markers */}
-                            <div className="absolute top-12 left-16 w-3 h-3 bg-blue-600 rounded-sm transform rotate-45 shadow-sm"></div>
-                            <div className="absolute top-20 left-24 w-3 h-3 bg-blue-600 rounded-sm transform rotate-45 shadow-sm"></div>
-                            <div className="absolute top-28 left-32 w-3 h-3 bg-blue-600 rounded-sm transform rotate-45 shadow-sm"></div>
-                            <div className="absolute top-16 left-40 w-3 h-3 bg-blue-600 rounded-sm transform rotate-45 shadow-sm"></div>
-                            <div className="absolute top-24 left-48 w-3 h-3 bg-blue-600 rounded-sm transform rotate-45 shadow-sm"></div>
-                            
-                            {/* Main Hotel Marker (Azure Oasis) */}
-                            <div className="absolute top-20 left-36 w-4 h-4 bg-orange-500 rounded-sm transform rotate-45 shadow-md border-2 border-white"></div>
+                            {/* Hotel Map Pins */}
+                            {hotels.map((hotel) => (
+                                <div
+                                    key={hotel.id}
+                                    className="absolute cursor-pointer transition-all duration-300 hover:scale-110"
+                                    style={{ 
+                                        top: `${hotel.position.top}%`, 
+                                        left: `${hotel.position.left}%` 
+                                    }}
+                                    onMouseEnter={() => setHoveredMarker(hotel.id)}
+                                    onMouseLeave={() => setHoveredMarker(null)}
+                                    title={`${hotel.name} - $${hotel.price}/night`}
+                                >
+                                    <MapPin 
+                                        className={`w-${hotel.isMain ? '6' : '4'} h-${hotel.isMain ? '6' : '4'} 
+                                            ${hotel.isMain ? 'text-red-500' : 'text-blue-600'} 
+                                            fill-current drop-shadow-md
+                                            ${hoveredMarker === hotel.id ? 'scale-125' : ''}`}
+                                    />
+                                </div>
+                            ))}
+
+                            {/* Hover Info Card */}
+                            {hoveredMarker && (
+                                <div className="absolute top-2 left-2 bg-white rounded-lg shadow-lg p-3 max-w-xs z-20 border border-gray-200">
+                                    {(() => {
+                                        const hotel = hotels.find(h => h.id === hoveredMarker);
+                                        return (
+                                            <div>
+                                                <h5 className="font-semibold text-sm text-gray-900">{hotel.name}</h5>
+                                                <div className="flex items-center gap-1 mt-1">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <Star 
+                                                            key={star} 
+                                                            className={`w-3 h-3 ${star <= hotel.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <p className="text-xs text-gray-600 mt-1">${hotel.price}/night</p>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
                             
                             {/* Green areas (parks/nature) */}
                             <div className="absolute bottom-4 right-8 w-20 h-12 bg-green-200 rounded-full opacity-70"></div>
