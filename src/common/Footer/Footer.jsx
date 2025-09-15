@@ -121,6 +121,11 @@ export default function Footer() {
                                     Refund Timeline, Policies & Process
                                 </Link>
                             </li>
+                            <li>
+                                <Link to="/fasify-coupon-usage" className="text-[#090909] font-semibold">
+                                    Use of Fasify Coupon
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
