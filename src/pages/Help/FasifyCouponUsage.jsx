@@ -79,7 +79,7 @@ export default function FasifyCouponUsage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-10">
       {/* Header */}
       <div className="">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -103,8 +103,6 @@ export default function FasifyCouponUsage() {
       <div className="container mx-auto px-5 md:px-0">
         {/* Available Coupons */}
         <div className="mb-12">
-     
-
           {/* Coupon Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredCoupons.map((coupon) => (
@@ -194,22 +192,6 @@ export default function FasifyCouponUsage() {
                 </li>
               </ul>
             </div>
-          </div>
-        </div>
-
-        {/* Contact Support */}
-        <div className="mt-12 text-center">
-          <div className="bg-[#0064D2] rounded-xl p-8 text-white">
-            <h3 className="text-2xl font-bold mb-4">
-              Need Help with Your Coupon?
-            </h3>
-            <p className="text-lg mb-6 opacity-90">
-              Our support team is here to help you with any coupon-related
-              questions.
-            </p>
-            <button className="bg-white text-[#0064D2] px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-              Contact Support
-            </button>
           </div>
         </div>
       </div>

@@ -53,6 +53,7 @@ import CarManagement from '../pages/Dashboard/CarManagement/CarManagement';
 import AttractionManagement from '../pages/Dashboard/AttractionManagement/AttractionManagement';
 import ReviewBusiness from '../pages/Dashboard/Profile/HotelManagement/ReviewBusiness';
 import MyBookings from '../pages/Dashboard/Mybookings/MyBookings';
+import HumanRightsStatement from '../pages/Legal/HumanRightsStatement';
 
 
 export const routes = createBrowserRouter([
@@ -107,6 +108,10 @@ export const routes = createBrowserRouter([
             {
                 path: '/fasify-coupon-usage',
                 element: <FasifyCouponUsage />,
+            },
+            {
+                path: '/human-rights-statement',
+                element: <HumanRightsStatement />,
             },
             {
                 path: '/hotel',
