@@ -66,8 +66,8 @@ export default function FAQ() {
                     </p>
                 </div>
 
-                <div className="max-w-4xl mx-auto">
-                    <div className="space-y-4">
+                <div className="container mx-auto">
+                    <div className="w-full space-y-4 grid grid-cols-1 md:grid-cols-2 gap-10">
                         {faqData.map((item, index) => (
                             <div
                                 key={index}

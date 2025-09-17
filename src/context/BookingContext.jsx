@@ -14,9 +14,9 @@ export const BookingProvider = ({ children }) => {
   const [bookingData, setBookingData] = useState({
     dateRange: null,
     guests: {
-      adults: 0,
+      adults: 1,
       children: 0,
-      rooms: 0
+      rooms: 1
     },
     location: '',
     searchQuery: ''
@@ -43,9 +43,9 @@ export const BookingProvider = ({ children }) => {
     setBookingData({
       dateRange: null,
       guests: {
-        adults: 0,
+        adults: 1,
         children: 0,
-        rooms: 0
+        rooms: 1
       },
       location: '',
       searchQuery: ''
