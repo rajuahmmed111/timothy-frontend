@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import ing1 from "/SecurityProviders/1.png"
 import ing2 from "/SecurityProviders/2.png"
@@ -8,149 +8,154 @@ import ing6 from "/SecurityProviders/6.png"
 
 import SecurityCard from './SecurityCard';
 import { DatePicker } from "antd";
-import { Link } from "react-router-dom"
-
-
+import { useSearchParams, useNavigate } from "react-router-dom"
+import dayjs from 'dayjs';
 
 export default function SecurityDetails() {
-    const [selectedType, setSelectedType] = useState("All");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
     const { RangePicker } = DatePicker;
+
+    const [location, setLocation] = useState("");
+    const [selectedType, setSelectedType] = useState("All");
     const [dateRange, setDateRange] = useState(null);
+
+    // Initialize state from URL params on mount
+    useEffect(() => {
+        const loc = searchParams.get('location') || "";
+        const type = searchParams.get('type') || "All";
+        const start = searchParams.get('start');
+        const end = searchParams.get('end');
+
+        setLocation(loc);
+        setSelectedType(type);
+        if (start && end) {
+            const startDay = dayjs(start);
+            const endDay = dayjs(end);
+            if (startDay.isValid() && endDay.isValid()) {
+                setDateRange([startDay, endDay]);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const securityProviders = [
         {
-            name: "Jacob Jones",
-            location: "New York, USA",
+            name: "Ava Martinez",
+            location: "Los Angeles, USA",
             image: ing1,
-            price: "$500",
+            price: "$520",
             rating: 5,
             type: "Personal Bodyguard",
         },
         {
-            name: "Ralph Edwards",
-            location: "New York, USA",
+            name: "Noah Williams",
+            location: "Chicago, USA",
             image: ing2,
-            price: "$75",
+            price: "$95",
             rating: 4,
             type: "Security Guard",
         },
         {
-            name: "Leslie Alexander",
-            location: "New York, USA",
+            name: "Mia Chen",
+            location: "San Francisco, USA",
             image: ing5,
-            price: "$425",
+            price: "$460",
             rating: 5,
             type: "Executive Protections",
         },
         {
-            name: "Savannah Nguyen",
-            location: "New York, USA",
+            name: "Liam Johnson",
+            location: "Austin, USA",
             image: ing6,
-            price: "$450",
+            price: "$480",
             rating: 5,
             type: "Event Security",
         },
         {
-            name: "Jacob Jones",
-            location: "New York, USA",
-            image: ing1,
-            price: "$500",
-            rating: 5,
-            type: "Personal Bodyguard",
-        },
-        {
-            name: "Ralph Edwards",
-            location: "New York, USA",
-            image: ing2,
-            price: "$75",
-            rating: 4,
-            type: "Security Guard",
-        },
-        {
-            name: "Leslie Alexander",
-            location: "New York, USA",
-            image: ing6,
-            price: "$425",
-            rating: 5,
-            type: "Executive Protections",
-        },
-        {
-            name: "Savannah Nguyen",
-            location: "New York, USA",
+            name: "Olivia Garcia",
+            location: "Miami, USA",
             image: ing4,
-            price: "$450",
-            rating: 5,
-            type: "Event Security",
-        },
-        {
-            name: "Jacob Jones",
-            location: "New York, USA",
-            image: ing1,
-            price: "$500",
-            rating: 5,
+            price: "$510",
+            rating: 4,
             type: "Personal Bodyguard",
         },
         {
-            name: "Ralph Edwards",
-            location: "New York, USA",
+            name: "Ethan Brown",
+            location: "Seattle, USA",
             image: ing2,
-            price: "$75",
+            price: "$110",
             rating: 4,
             type: "Security Guard",
         },
         {
-            name: "Leslie Alexander",
-            location: "New York, USA",
+            name: "Sophia Kim",
+            location: "Vancouver, Canada",
             image: ing5,
-            price: "$425",
+            price: "$430",
             rating: 5,
             type: "Executive Protections",
         },
         {
-            name: "Savannah Nguyen",
-            location: "New York, USA",
+            name: "James Anderson",
+            location: "London, UK",
             image: ing6,
-            price: "$450",
+            price: "$455",
             rating: 5,
             type: "Event Security",
         },
         {
-            name: "Jacob Jones",
-            location: "New York, USA",
+            name: "Isabella Rossi",
+            location: "Rome, Italy",
             image: ing1,
-            price: "$500",
+            price: "$540",
             rating: 5,
             type: "Personal Bodyguard",
         },
         {
-            name: "Ralph Edwards",
-            location: "New York, USA",
+            name: "Lucas Silva",
+            location: "Lisbon, Portugal",
             image: ing2,
-            price: "$75",
-            rating: 4,
+            price: "$105",
+            rating: 3,
             type: "Security Guard",
         },
         {
-            name: "Leslie Alexander",
-            location: "New York, USA",
+            name: "Amelia Thompson",
+            location: "Dublin, Ireland",
             image: ing5,
-            price: "$425",
-            rating: 5,
+            price: "$445",
+            rating: 4,
             type: "Executive Protections",
         },
         {
-            name: "Savannah Nguyen",
-            location: "New York, USA",
-            image: ing6,
-            price: "$450",
+            name: "Benjamin Lee",
+            location: "Sydney, Australia",
+            image: ing4,
+            price: "$470",
             rating: 5,
             type: "Event Security",
         },
     ]
 
     // Filter security providers based on selected type
-    const filteredProviders = selectedType === "All"
-        ? securityProviders
-        : securityProviders.filter(provider => provider.type === selectedType);
+    const filteredProviders = useMemo(() => {
+        return selectedType === "All"
+            ? securityProviders
+            : securityProviders.filter(provider => provider.type === selectedType);
+    }, [selectedType]);
+
+    const onSearch = () => {
+        const params = new URLSearchParams();
+        if (location) params.set('location', location);
+        if (selectedType && selectedType !== 'All') params.set('type', selectedType);
+        if (dateRange && dateRange[0] && dateRange[1]) {
+            params.set('start', dateRange[0].format('YYYY-MM-DD'));
+            params.set('end', dateRange[1].format('YYYY-MM-DD'));
+        }
+        const qs = params.toString();
+        navigate(`/security-details${qs ? `?${qs}` : ''}`);
+    };
 
     return (
         <div className='py-16 container mx-auto'>
@@ -162,6 +167,8 @@ export default function SecurityDetails() {
                             type="text"
                             placeholder="Find Location"
                             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
                         />
                     </div>
                     {/* Start Date & End Date */}
@@ -174,25 +181,28 @@ export default function SecurityDetails() {
                     {/* Security Type */}
                     <div className="space-y-2">
 
-                        <select className="w-full p-3 border border-gray-200 rounded-lg text-gray-500 placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]">
-                            <option value="" disabled selected className="text-slate-50">Select Security Type</option>
-                            <option>Personal Bodyguard</option>
-                            <option>Security Guard</option>
-                            <option>Executive Protections</option>
-                            <option>Event Security</option>
+                        <select
+                            className="w-full p-3 border border-gray-200 rounded-lg text-gray-500 placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
+                            value={selectedType === 'All' ? '' : selectedType}
+                            onChange={(e) => setSelectedType(e.target.value || 'All')}
+                        >
+                            <option value="" className="text-slate-50">Select Security Type</option>
+                            <option value="Personal Bodyguard">Personal Bodyguard</option>
+                            <option value="Security Guard">Security Guard</option>
+                            <option value="Executive Protections">Executive Protections</option>
+                            <option value="Event Security">Event Security</option>
                         </select>
                     </div>
 
                 </div>
                 {/* Search Button */}
                 <div className="">
-                    <Link to="/security-details" className="w-full">
-                        <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
-                            Search
-                        </button>
-                    </Link>
+                    <button onClick={onSearch} className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
+                        Search
+                    </button>
                 </div>
             </div>
+
             {/* Services Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto py-10">
                 {filteredProviders.map((securityProvider, index) => (
