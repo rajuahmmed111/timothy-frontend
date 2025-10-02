@@ -323,7 +323,7 @@ export default function BookingForm() {
         {/* Special Request */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Special Request
+            Special Request(optional)
           </label>
           <Input.TextArea
             placeholder="Any special requests or preferences..."

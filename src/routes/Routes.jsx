@@ -12,6 +12,10 @@ import DisputeResolution from '../pages/Help/DisputeResolution';
 import ContactUs from '../pages/Contact/ContactUs';
 import Newsroom from '../pages/Newsroom/Newsroom';
 import FasifyCouponUsage from '../pages/Help/FasifyCouponUsage';
+import FasifyRewards from '../pages/FasifyRewards/FasifyRewards';
+import Advertising from '../pages/Advertising/Advertising';
+import Sitemap from '../pages/Sitemap/Sitemap';
+import InvestorRelations from '../pages/InvestorRelations/InvestorRelations';
 import HotelReservation from '../pages/HotelReservation/HotelReservation';
 import HotelDetails from '../pages/HotelReservation/HotelDetails';
 import ReservationDetails from '../pages/HotelReservation/ReservationDetails';
@@ -104,6 +108,22 @@ export const routes = createBrowserRouter([
             {
                 path: '/newsroom',
                 element: <Newsroom />,
+            },
+            {
+                path: '/advertising',
+                element: <Advertising />,
+            },
+            {
+                path: '/investor-relations',
+                element: <InvestorRelations />,
+            },
+            {
+                path: '/fasify-rewards',
+                element: <FasifyRewards />,
+            },
+            {
+                path: '/sitemap',
+                element: <Sitemap />,
             },
             {
                 path: '/fasify-coupon-usage',
