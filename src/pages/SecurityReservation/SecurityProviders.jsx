@@ -1,37 +1,46 @@
 import React from "react";
 import SecurityCard from "./SecurityCard";
+import { useGetSecurityProtocolsQuery } from "../../redux/api/security/getAllSecurityApi";
 
 export default function SecurityProviders() {
-  const hotels = [
-    {
-      name: "Jacob Jones",
-      location: "New York, USA",
-      image: "/SecurityProviders/1.png",
-      price: "$500",
-      rating: 5,
-    },
-    {
-      name: "Ralph Edwards",
-      location: "New York, USA",
-      image: "/SecurityProviders/2.png",
-      price: "$75",
-      rating: 4,
-    },
-    {
-      name: "Leslie Alexander",
-      location: "New York, USA",
-      image: "/SecurityProviders/3.png",
-      price: "$425",
-      rating: 5,
-    },
-    {
-      name: "Savannah Nguyen",
-      location: "New York, USA",
-      image: "/SecurityProviders/4.png",
-      price: "$450",
-      rating: 5,
-    },
-  ];
+  const { data: response, isLoading, isError } = useGetSecurityProtocolsQuery({ limit: 4, page: 1 });
+  
+  // Extract data based on the transformed response structure
+  // The transformResponse in the API slice already formats the data
+  const securityProviders = response?.data || [];
+  
+  // Debug logs
+  console.log('API Response:', response);
+  console.log('Security Providers:', securityProviders);
+  
+  // Check if we have any data at all
+  console.log('Has data:', !!securityProviders.length);
+
+  if (isLoading) {
+    return (
+      <section className="py-10 bg-white">
+        <div className="container mx-auto px-5 md:px-0">
+          <div className="text-center py-10">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
+            <p className="mt-2 text-gray-600">Loading security providers...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (isError) {
+    return (
+      <section className="py-10 bg-white">
+        <div className="container mx-auto px-5 md:px-0">
+          <div className="text-center py-10">
+            <div className="text-red-500 mb-2">Error loading security providers</div>
+            <p className="text-gray-600">Please try again later.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-10 bg-white">
@@ -50,12 +59,20 @@ export default function SecurityProviders() {
           </p>
         </div>
 
-        {/* Hotels Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {hotels.map((securityProvider, index) => (
-            <SecurityCard key={index} securityProvider={securityProvider} />
-          ))}
-        </div>
+        {securityProviders.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {securityProviders.map((securityProvider) => (
+              <SecurityCard 
+                key={securityProvider.id} 
+                securityProvider={securityProvider} 
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-10">
+            <p className="text-gray-600">No security providers found.</p>
+          </div>
+        )}
       </div>
     </section>
   );

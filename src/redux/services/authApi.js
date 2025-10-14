@@ -12,6 +12,7 @@ export const authApi = createApi({
       return headers;
     },
   }),
+  
   endpoints: (builder) => ({
     registerUser: builder.mutation({
       query: (body) => ({

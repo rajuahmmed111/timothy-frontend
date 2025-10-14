@@ -1,39 +1,31 @@
 import React from "react";
 import CarCard from "./CarCard";
 import { useNavigate } from "react-router-dom";
+import { useGetAllCarsQuery } from "../../redux/api/car/getAllCarsApi";
 
 export default function PopularCar() {
   const navigate = useNavigate();
-  const cars = [
-    {
-      name: "Mazda MX5",
-      location: "New York, USA",
-      image: "/car/1.png",
-      price: "$500",
-      rating: 5,
-    },
-    {
-      name: "Mercedes E 300 ",
-      location: "New York, USA",
-      image: "/car/2.png",
-      price: "$75",
-      rating: 4,
-    },
-    {
-      name: "Toyota Corolla",
-      location: "New York, USA",
-      image: "/car/3.png",
-      price: "$425",
-      rating: 5,
-    },
-    {
-      name: "BMW X7",
-      location: "New York, USA",
-      image: "/car/4.png",
-      price: "$450",
-      rating: 5,
-    },
-  ];
+  const { data: carsData, isLoading, isError } = useGetAllCarsQuery();
+
+  // Transform API data to match the expected car card props
+  const cars =
+    carsData?.data?.data?.map((car) => ({
+      id: car.id,
+      name: car.car_Rental?.carName || car.carModel,
+      location: `${car.carCity}, ${car.carCountry}`,
+      image: car.carImages?.[0] || "/car/default-car.png",
+      price: `$${car.carPriceDay}`,
+      rating: parseFloat(car.carRating) || 4.5,
+      type: car.carType,
+      seats: car.carSeats,
+      transmission: car.carTransmission,
+      fuelType: car.fuelType,
+      discount: car.discount,
+      isAvailable: car.isBooked === "AVAILABLE",
+    })) || [];
+
+  if (isLoading) return <div>Loading cars...</div>;
+  if (isError) return <div>Error loading cars</div>;
 
   return (
     <section className="py-10 bg-white">
