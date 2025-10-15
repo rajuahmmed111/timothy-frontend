@@ -5,17 +5,17 @@ import Swal from 'sweetalert2';
 
 export default function AddHotelBusiness() {
 const [formData, setFormData] = useState({
-    hotelBusinessName: '',
-    hotelName: '',
+    hotelBusinessName: 'asdf',
+    hotelName: 'asdf',
     hotelBusinessType: 'Private Limited',
-    hotelRegNum: '',
-    hotelRegDate: '',
-    hotelPhone: '',
-    hotelEmail: '',
-    businessTagline: '',
-    businessDescription: '',
-    hotelBookingCondition: '',
-    hotelCancelationPolicy: '',
+    hotelRegNum: 'asdf',
+     hotelRegDate: '2025-10-22',
+    hotelPhone: 'asdf',
+    hotelEmail: 'asdf@asdf.com',
+    businessTagline: 'asdf',
+    businessDescription: 'asdf',
+    hotelBookingCondition: 'asdf',
+    hotelCancelationPolicy: 'asdf',
     hotelLate: '',
     hotelLong: '',
     hotelAccommodationType: '5-Star Luxury',
@@ -115,22 +115,7 @@ const handleSubmit = async (e) => {
     try {
         const formDataToSend = new FormData();
         
-        // Append all form data
-        Object.entries(formData).forEach(([key, value]) => {
-            if (value === null || value === '') return;
-            
-            if (key === 'hotelDocs') {
-                value.forEach(file => {
-                    formDataToSend.append('hotelDocs', file);
-                });
-            } else if (value instanceof File) {
-                formDataToSend.append(key, value);
-            } else {
-                formDataToSend.append(key, value);
-            }
-        });
-
-        // Ensure all boolean fields are included
+        // List of all boolean fields
         const booleanFields = [
             'hotelAC', 'hotelParking', 'hoitelWifi', 'hotelBreakfast',
             'hotelPool', 'hotelSmoking', 'hotelTv', 'hotelWashing',
@@ -140,12 +125,36 @@ const handleSubmit = async (e) => {
             'hotelPetsNotAllowed', 'hotelLocationFeatureWaterView',
             'hotelLocationFeatureIsland', 'hotelCoffeeBar'
         ];
-
-        booleanFields.forEach(field => {
-            if (!formDataToSend.has(field)) {
-                formDataToSend.append(field, 'false');
+        
+        // Append all form data with proper type handling
+        Object.entries(formData).forEach(([key, value]) => {
+            if (value === null || value === '') return;
+            
+            if (key === 'hotelDocs') {
+                value.forEach(file => {
+                    formDataToSend.append('hotelDocs', file);
+                });
+            } else if (value instanceof File) {
+                formDataToSend.append(key, value);
+            } else if (booleanFields.includes(key)) {
+                // Ensure boolean fields are sent as actual booleans
+                formDataToSend.append(key, Boolean(value));
+            } else {
+                formDataToSend.append(key, value);
             }
         });
+
+        // Ensure all boolean fields are included with proper boolean values
+        booleanFields.forEach(field => {
+            if (!formDataToSend.has(field)) {
+                formDataToSend.set(field, false);
+            } else {
+                // Ensure the value is a boolean
+                formDataToSend.set(field, formDataToSend.get(field) === 'true' || formDataToSend.get(field) === true);
+            }
+        });
+
+        console.log(formDataToSend , "formDataToSend");
 
         const response = await addHotelBusiness(formDataToSend).unwrap();
         
@@ -163,17 +172,17 @@ const handleSubmit = async (e) => {
 
             // Reset form
             const resetForm = {
-                hotelBusinessName: '',
-                hotelName: '',
+                hotelBusinessName: 'asdf',
+                hotelName: 'asdf',
                 hotelBusinessType: 'Private Limited',
-                hotelRegNum: '',
-                hotelRegDate: '',
-                hotelPhone: '',
-                hotelEmail: '',
-                businessTagline: '',
-                businessDescription: '',
-                hotelBookingCondition: '',
-                hotelCancelationPolicy: '',
+                hotelRegNum: 'asdf',
+                hotelRegDate: '2025-10-22',
+                hotelPhone: 'asdf',
+                hotelEmail: 'asdf@asdf.com',
+                businessTagline: 'asdf',
+                businessDescription: 'asdf',
+                hotelBookingCondition: 'asdf',
+                hotelCancelationPolicy: 'asdf',
                 hotelLate: '',
                 hotelLong: '',
                 hotelAccommodationType: '5-Star Luxury',
@@ -229,23 +238,26 @@ const handleSubmit = async (e) => {
     }
 };
 
-    const renderFilePreview = (file, index) => (
-        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-            <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-gray-500" />
-                <span className="text-sm text-gray-700 truncate max-w-xs">
-                    {file.name}
-                </span>
-            </div>
-            <button
-                type="button"
-                onClick={() => removeFile('hotelDocs', index)}
-                className="text-red-500 hover:text-red-700"
-            >
-                <X className="h-4 w-4" />
-            </button>
-        </div>
-    );
+    // const renderFilePreview = (file, index) => (
+    //     <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+    //         <div className="flex items-center gap-2">
+    //             <FileText className="h-5 w-5 text-gray-500" />
+    //             <span className="text-sm text-gray-700 truncate max-w-xs">
+    //                 {file.name}
+    //             </span>
+    //         </div>
+    //         <button
+    //             type="button"
+    //             onClick={() => removeFile('hotelDocs', index)}
+    //             className="text-red-500 hover:text-red-700"
+    //         >
+    //             <X className="h-4 w-4" />
+    //         </button>
+    //     </div>
+    // );
+
+
+
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -327,6 +339,7 @@ const handleSubmit = async (e) => {
                                         <input
                                             type="date"
                                             value={formData.hotelRegDate}
+
                                             onChange={(e) => handleInputChange('hotelRegDate', e.target.value)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
@@ -536,48 +549,45 @@ const handleSubmit = async (e) => {
                             <div className="space-y-4">
                                 <h3 className="text-lg font-medium text-gray-900">Amenities</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                                        <span className="text-sm font-medium text-gray-700">Air Conditioning</span>
-                                        <div className="flex gap-2">
-                                            <label className="inline-flex items-center">
+                                    {[
+                                        { id: 'hotelAC', label: 'Air Conditioning' },
+                                        { id: 'hotelParking', label: 'Parking' },
+                                        { id: 'hoitelWifi', label: 'WiFi' },
+                                        { id: 'hotelBreakfast', label: 'Free Breakfast' },
+                                        { id: 'hotelPool', label: 'Swimming Pool' },
+                                        { id: 'hotelSmoking', label: 'Smoking Allowed' },
+                                        { id: 'hotelTv', label: 'TV' },
+                                        { id: 'hotelWashing', label: 'Laundry Service' },
+                                        { id: 'hotelKitchen', label: 'Kitchen' },
+                                        { id: 'hotelRestaurant', label: 'Restaurant' },
+                                        { id: 'hotelGym', label: 'Gym' },
+                                        { id: 'hotelSpa', label: 'Spa' },
+                                        { id: 'hotel24HourFrontDesk', label: '24-Hour Front Desk' },
+                                        { id: 'hotelAirportShuttle', label: 'Airport Shuttle' },
+                                        { id: 'hotelNoSmokingPreference', label: 'Non-Smoking Rooms' },
+                                        { id: 'hotelNoNSmoking', label: 'No Smoking' },
+                                        { id: 'hotelPetsAllowed', label: 'Pets Allowed' },
+                                        { id: 'hotelNoPetsPreferences', label: 'No Pets' },
+                                        { id: 'hotelPetsNotAllowed', label: 'Pets Not Allowed' },
+                                        { id: 'hotelLocationFeatureWaterView', label: 'Water View' },
+                                        { id: 'hotelLocationFeatureIsland', label: 'Island View' },
+                                        { id: 'hotelCoffeeBar', label: 'Coffee Bar' }
+                                    ].map(({ id, label }) => (
+                                        <div key={id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                                            <span className="text-sm font-medium text-gray-700">{label}</span>
+                                            <label className="relative inline-flex items-center cursor-pointer">
                                                 <input
                                                     type="checkbox"
-                                                    checked={formData.hotelAC === true}
-                                                    onChange={(e) => handleInputChange('hotelAC', e.target.checked)}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                    checked={Boolean(formData[id])}
+                                                    onChange={(e) => handleInputChange(id, e.target.checked)}
+                                                    className="sr-only peer"
                                                 />
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                                             </label>
                                         </div>
-                                    </div>
-                                    {/* Add more amenities in the same pattern */}
-                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                                        <span className="text-sm font-medium text-gray-700">Parking</span>
-                                        <div className="flex gap-2">
-                                            <label className="inline-flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.hotelParking === true}
-                                                    onChange={(e) => handleInputChange('hotelParking', e.target.checked)}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                />
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                                        <span className="text-sm font-medium text-gray-700">WiFi</span>
-                                        <div className="flex gap-2">
-                                            <label className="inline-flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.hoitelWifi === true}
-                                                    onChange={(e) => handleInputChange('hoitelWifi', e.target.checked)}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                />
-                                            </label>
-                                        </div>
-                                    </div>
-                                    {/* Add more amenities as needed */}
+                                    ))}
                                 </div>
+                                <p className="text-sm text-gray-500">Select all amenities that apply to your hotel</p>
                             </div>
                         </div>
 
