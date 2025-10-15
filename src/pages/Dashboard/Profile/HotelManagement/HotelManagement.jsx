@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Dashboard from "./Dashboard";
 import Bookings from "./Bookings";
 import Listings from "./Listings";
-import AddBusiness from "./AddBusiness";
+import AddHotelBusiness from "./AddHotelBusiness";
 import ReviewBusiness from "./ReviewBusiness";
 import AvailableListing from "./AvailableListing";
 
@@ -49,7 +49,7 @@ export default function HotelManagement() {
           <Listings />
         )}
         {activeTab === "addBusiness" && (
-          <AddBusiness />
+          <AddHotelBusiness />
         )}
         {activeTab === "reviewBusiness" && (
           <ReviewBusiness />

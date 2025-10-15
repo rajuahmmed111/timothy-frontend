@@ -1,6 +1,6 @@
-import { authApi } from "../../services/authApi";
+import { baseApi } from "../baseUrl";
 
-export const securityApiExtended = authApi.injectEndpoints({
+export const securityApiExtended = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getSecurityProtocols: builder.query({
       query: ({ page = 1, limit = 10 }) => {

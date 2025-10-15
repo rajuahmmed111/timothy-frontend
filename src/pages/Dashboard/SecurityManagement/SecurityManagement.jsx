@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Dashboard from "../Profile/HotelManagement/Dashboard";
 import Bookings from "../Profile/HotelManagement/Bookings";
 import Listings from "../Profile/HotelManagement/Listings";
-import AddBusiness from "../Profile/HotelManagement/AddBusiness";
+import AddBusiness from "./AddSecurityBusiness";
 import ReviewBusiness from "../Profile/HotelManagement/ReviewBusiness";
 import AvailableListing from "../Profile/HotelManagement/AvailableListing";
 
@@ -17,7 +17,6 @@ export default function SecurityManagement() {
         { id: "addBusiness", label: "Add Business" },
         { id: "reviewBusiness", label: "Review Business" },
         { id: "availableListing", label: "Available Listing" },
-
     ];
 
     return (

@@ -1,7 +1,7 @@
-import { authApi } from "../../services/authApi";
+import { baseApi } from "../baseUrl";
 
 // {{hostUrl}}/hotels/popular?limit=4
-export const hotelsApiExtended = authApi.injectEndpoints({
+export const hotelsApiExtended = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getPopularHotels: builder.query({
       query: (limit = 4) => ({
