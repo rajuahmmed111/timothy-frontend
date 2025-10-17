@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { Table, ConfigProvider, Modal, Button } from "antd";
 import { Eye, Trash } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 
 
-export default function Listings() {
+export default function ListingsForHotel() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState(null);
+  const navigate = useNavigate();
 
   const hotels = [
     {
@@ -224,12 +226,19 @@ export default function Listings() {
   return (
     <div className="p-5">
       <div className="mb-5 flex justify-end items-center ">
-        <div className="space-y-2 w-[400px]">
+        <div className="space-y-2 w-[400px] flex gap-2">
           <input
             type="text"
             placeholder="Search bookings"
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
           />
+          <Button
+            type="primary"
+            onClick={() => navigate("/dashboard/add-listing")}
+            className="bg-blue-600 text-white !py-6  hover:bg-blue-700 p-3"
+          >
+            Add Listing
+          </Button>
         </div>
       </div>
       <ConfigProvider

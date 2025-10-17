@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Dashboard from "../Profile/HotelManagement/Dashboard";
 import Bookings from "../Profile/HotelManagement/Bookings";
-import Listings from "../Profile/HotelManagement/Listings";
+import ListingsForHotel from "../Profile/HotelManagement/ListingsForHotel";
 import AddBusiness from "./AddSecurityBusiness";
 import ReviewBusiness from "../Profile/HotelManagement/ReviewBusiness";
 import AvailableListing from "../Profile/HotelManagement/AvailableListing";
@@ -46,7 +46,7 @@ export default function SecurityManagement() {
                     <Bookings />
                 )}
                 {activeTab === "listings" && (
-                    <Listings />
+                    <ListingsForHotel />
                 )}
                 {activeTab === "addBusiness" && (
                     <AddBusiness />
