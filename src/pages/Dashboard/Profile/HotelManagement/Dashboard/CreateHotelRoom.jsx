@@ -144,7 +144,7 @@ const onSubmit = async (data) => {
               <input
                 type="text"
                 {...register('hotelRoomType', { required: 'Room type is required' })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
               {errors.hotelRoomType && (
                 <p className="mt-1 text-sm text-red-600">{errors.hotelRoomType.message}</p>
@@ -160,7 +160,7 @@ const onSubmit = async (data) => {
                   required: 'Price is required',
                   min: { value: 0, message: 'Price cannot be negative' }
                 })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
               {errors.hotelRoomPriceNight && (
                 <p className="mt-1 text-sm text-red-600">{errors.hotelRoomPriceNight.message}</p>
@@ -175,7 +175,7 @@ const onSubmit = async (data) => {
                   required: 'Number of rooms is required',
                   min: { value: 1, message: 'At least one room is required' }
                 })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
               {errors.hotelNumberOfRooms && (
                 <p className="mt-1 text-sm text-red-600">{errors.hotelNumberOfRooms.message}</p>
@@ -186,7 +186,7 @@ const onSubmit = async (data) => {
               <label className="block text-sm font-medium text-gray-700">Room Capacity</label>
               <select
                 {...register('hotelRoomCapacity')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               >
                 <option value="1 Adult">1 Adult</option>
                 <option value="2 Adults">2 Adults</option>
@@ -202,7 +202,7 @@ const onSubmit = async (data) => {
                 type="number"
                 min="1"
                 {...register('hotelNumAdults', { required: 'Number of adults is required' })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
             </div>
 
@@ -212,7 +212,7 @@ const onSubmit = async (data) => {
                 type="number"
                 min="0"
                 {...register('hotelNumChildren')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
             </div>
 
@@ -220,7 +220,7 @@ const onSubmit = async (data) => {
               <label className="block text-sm font-medium text-gray-700">Accommodation Type</label>
               <select
                 {...register('hotelAccommodationType')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               >
                 <option value="Suite">Suite</option>
                 <option value="Standard">Standard</option>
@@ -235,7 +235,7 @@ const onSubmit = async (data) => {
             <textarea
               {...register('hotelRoomDescription', { required: 'Description is required' })}
               rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
             />
             {errors.hotelRoomDescription && (
               <p className="mt-1 text-sm text-red-600">{errors.hotelRoomDescription.message}</p>
@@ -332,7 +332,7 @@ const onSubmit = async (data) => {
               <input
                 type="text"
                 {...register('hotelAddress', { required: 'Address is required' })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
               {errors.hotelAddress && (
                 <p className="mt-1 text-sm text-red-600">{errors.hotelAddress.message}</p>
@@ -343,7 +343,7 @@ const onSubmit = async (data) => {
               <input
                 type="text"
                 {...register('hotelCity', { required: 'City is required' })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
               {errors.hotelCity && (
                 <p className="mt-1 text-sm text-red-600">{errors.hotelCity.message}</p>
@@ -354,7 +354,7 @@ const onSubmit = async (data) => {
               <input
                 type="text"
                 {...register('hotelPostalCode', { required: 'Postal code is required' })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
               {errors.hotelPostalCode && (
                 <p className="mt-1 text-sm text-red-600">{errors.hotelPostalCode.message}</p>
@@ -365,7 +365,7 @@ const onSubmit = async (data) => {
               <input
                 type="text"
                 {...register('hotelCountry', { required: 'Country is required' })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
               {errors.hotelCountry && (
                 <p className="mt-1 text-sm text-red-600">{errors.hotelCountry.message}</p>
@@ -376,7 +376,7 @@ const onSubmit = async (data) => {
               <input
                 type="text"
                 {...register('hotelDistrict')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
             </div>
           </div>
@@ -424,7 +424,7 @@ const onSubmit = async (data) => {
               <label className="block text-sm font-medium text-gray-700">Category</label>
               <select
                 {...register('category')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               >
                 <option value="Budget">Budget</option>
                 <option value="Standard">Standard</option>
@@ -441,14 +441,14 @@ const onSubmit = async (data) => {
                 min="0"
                 max="100"
                 {...register('discount')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Rating</label>
               <select
                 {...register('hotelRating')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               >
                 {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((rating) => (
                   <option key={rating} value={rating.toString()}>
@@ -463,7 +463,7 @@ const onSubmit = async (data) => {
                 type="number"
                 min="0"
                 {...register('hotelReviewCount')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2"
               />
             </div>
           </div>

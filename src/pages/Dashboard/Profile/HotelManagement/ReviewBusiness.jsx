@@ -1,107 +1,249 @@
-import React from 'react';
-import { Card, Descriptions, Tag, Rate, Button, Row, Col, Avatar, List } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Card, Tag, Button, Row, Col, Avatar, message, Skeleton, Pagination, Descriptions, Divider, Space, Typography } from 'antd';
 import {
     EnvironmentOutlined,
     PhoneOutlined,
     MailOutlined,
     GlobalOutlined,
-    EditOutlined
+    EditOutlined,
+    StarFilled,
+    CheckCircleOutlined,
+    CloseCircleOutlined
 } from '@ant-design/icons';
+import { useGetHotelBusinessPartnerMutation } from '../../../../redux/api/hotel/getHotelBusinessPartner';
+import HotelBusinessEdit from './HotelBusinessEdit';
+
+const { Title, Text, Paragraph } = Typography;
 
 export default function ReviewBusiness() {
-    const business = {
-        name: 'Luxury Hotel & Spa',
-        type: '5-Star Hotel',
-        rating: 4.8,
-        reviews: 124,
-        location: '123 Luxury Street, New York, NY 10001',
-        description: 'Experience unparalleled luxury at our 5-star hotel located in the heart of the city. Our hotel offers world-class amenities and exceptional service.',
-        amenities: [
-            'Free WiFi', 'Swimming Pool', 'Spa', 'Restaurant', 'Fitness Center', 'Room Service'
-        ],
-        contact: {
-            phone: '+1 (555) 123-4567',
-            email: 'info@luxuryhotel.com',
-            website: 'www.luxuryhotel.com'
+    const [hotels, setHotels] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [editingHotel, setEditingHotel] = useState(null);
+    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 10,
+        total: 0
+    });
+    const [getHotelBusinessPartner] = useGetHotelBusinessPartnerMutation();
+
+    useEffect(() => {
+        fetchHotels();
+    }, [pagination.current]);
+
+    const fetchHotels = async () => {
+        try {
+            const response = await getHotelBusinessPartner({ 
+                limit: pagination.pageSize, 
+                page: pagination.current 
+            }).unwrap();
+            
+            if (response.success) {
+                setHotels(response.data.data || []);
+                setPagination(prev => ({
+                    ...prev,
+                    total: response.data.meta?.total || 0
+                }));
+            }
+        } catch (error) {
+            message.error('Failed to fetch hotels');
+            console.error('Error fetching hotels:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    return (
-        <Card
-            title={business.name}
-            extra={
-                <Button type="primary" icon={<EditOutlined />}>
-                    Edit Business
-                </Button>
-            }
-        >
-            <div className="mb-6">
-                <div className="flex items-center mb-4">
-                    <Rate
-                        allowHalf
-                        disabled
-                        defaultValue={business.rating}
-                        className="text-yellow-500 mr-4"
-                    />
-                    <span className="text-gray-600">{business.rating} ({business.reviews} reviews)</span>
-                </div>
+    const handlePageChange = (page, pageSize) => {
+        setPagination(prev => ({
+            ...prev,
+            current: page,
+            pageSize
+        }));
+    };
 
-                <div className="mb-6">
-                    <p className="text-gray-700">{business.description}</p>
-                </div>
-
-                <Descriptions title="Business Information" bordered className="mb-6">
-                    <Descriptions.Item label="Type" span={3}>{business.type}</Descriptions.Item>
-                    <Descriptions.Item label="Location" span={3}>
+    const renderAmenities = (hotel) => (
+        <div className="mt-4">
+            <Title level={5} className="mb-2">Facilities & Services</Title>
+            <Row gutter={[16, 16]}>
+                {[
+                    { key: 'AC', value: hotel.hotelAC, label: 'Air Conditioning' },
+                    { key: 'Parking', value: hotel.hotelParking, label: 'Parking' },
+                    { key: 'WiFi', value: hotel.hoitelWifi, label: 'Free WiFi' },
+                    { key: 'Breakfast', value: hotel.hotelBreakfast, label: 'Breakfast' },
+                    { key: 'Pool', value: hotel.hotelPool, label: 'Swimming Pool' },
+                    { key: 'Spa', value: hotel.hotelSpa, label: 'Spa' },
+                    { key: 'Gym', value: hotel.hotelGym, label: 'Gym' },
+                    { key: 'Kitchen', value: hotel.hotelKitchen, label: 'Kitchen' },
+                    { key: 'Restaurant', value: hotel.hotelRestaurant, label: 'Restaurant' },
+                    { key: '24/7 Front Desk', value: hotel.hotel24HourFrontDesk, label: '24/7 Front Desk' },
+                    { key: 'Airport Shuttle', value: hotel.hotelAirportShuttle, label: 'Airport Shuttle' },
+                    { key: 'Coffee Bar', value: hotel.hotelCoffeeBar, label: 'Coffee Bar' }
+                ].map(amenity => (
+                    <Col xs={12} sm={8} md={6} key={amenity.key}>
                         <div className="flex items-center">
-                            <EnvironmentOutlined className="mr-2" />
-                            {business.location}
+                            {amenity.value ? 
+                                <CheckCircleOutlined className="text-green-500 mr-2" /> : 
+                                <CloseCircleOutlined className="text-gray-300 mr-2" />
+                            }
+                            <span className={amenity.value ? "text-gray-800" : "text-gray-400"}>{amenity.label}</span>
                         </div>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Contact" span={3}>
-                        <div className="space-y-2">
-                            <div className="flex items-center">
-                                <PhoneOutlined className="mr-2" />
-                                {business.contact.phone}
-                            </div>
-                            <div className="flex items-center">
-                                <MailOutlined className="mr-2" />
-                                {business.contact.email}
-                            </div>
-                            <div className="flex items-center">
-                                <GlobalOutlined className="mr-2" />
-                                <a href={`https://${business.contact.website}`} target="_blank" rel="noopener noreferrer">
-                                    {business.contact.website}
-                                </a>
-                            </div>
-                        </div>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Amenities" span={3}>
-                        <div className="flex flex-wrap gap-2">
-                            {business.amenities.map((amenity, index) => (
-                                <Tag color="blue" key={index}>{amenity}</Tag>
-                            ))}
-                        </div>
-                    </Descriptions.Item>
-                </Descriptions>
-
-                <div className="mt-8">
-                    <h3 className="text-lg font-medium mb-4">Gallery</h3>
-                    <Row gutter={[16, 16]}>
-                        {[1, 2, 3, 4].map((item) => (
-                            <Col xs={12} sm={8} md={6} key={item}>
-                                <div className="aspect-w-16 aspect-h-9 bg-gray-200 rounded overflow-hidden">
-                                    <img
-                                        src={`https://source.unsplash.com/random/300x200?hotel,${item}`}
-                                        alt={`Gallery ${item}`}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                            </Col>
-                        ))}
-                    </Row>
-                </div>
-            </div>
-        </Card>
+                    </Col>
+                ))}
+            </Row>
+        </div>
     );
-};
+
+    if (loading && pagination.current === 1) {
+        return <Skeleton active />;
+    }
+
+    return (
+        <div className="space-y-6">
+            {hotels.length === 0 ? (
+                <div className="text-center py-12">
+                    <div className="text-6xl mb-4">🏨</div>
+                    <Title level={3} className="mb-2">No Hotels Found</Title>
+                    <Text type="secondary" className="mb-6 block">You haven't added any hotel businesses yet.</Text>
+                    <Button 
+                        type="primary" 
+                        onClick={() => window.location.href = '/'}
+                    >
+                        Go to Home
+                    </Button>
+                </div>
+            ) : (
+                <>
+                    <div className="!space-y-5 gap-2">
+                        {hotels.map((hotel) => (
+                            <Card
+                                key={hotel.id}
+                                title={
+                                    <div className="flex justify-between items-center !mt-2">
+                                        <Title level={4} className="mb-0">{hotel.hotelBusinessName}</Title>
+                                        <span className="text-sm text-gray-500">
+                                            {hotel.hotelBusinessType}
+                                        </span>
+                                    </div>
+                                }
+                                extra={
+                                    <Button 
+                                        type="primary" 
+                                        icon={<EditOutlined />}
+                                        onClick={() => {
+                                            setEditingHotel(hotel);
+                                            setIsEditModalVisible(true);
+                                        }}
+                                        style={{ marginLeft: '10px' }}
+                                    >
+                                        Manage Hotel
+                                    </Button>
+                                }
+                                className="mb-6"
+                                style={{ marginLeft: '-1rem' }}
+                            >
+                                <div className="flex flex-col md:flex-row gap-6">
+                                    <div className="w-full md:w-1/3">
+                                        <img
+                                            src={hotel.businessLogo || 'https://via.placeholder.com/400x250?text=No+Image'}
+                                            alt={hotel.hotelName}
+                                            className="w-full h-64 object-cover rounded-lg"
+                                        />
+                                        <div className="mt-4">
+                                            <div className="flex items-center bg-blue-50 p-3 rounded-lg">
+                                                <div className="text-center w-full">
+                                                    <Title level={3} className="mb-0">{hotel.totalRooms}</Title>
+                                                    <Text type="secondary">Total Rooms</Text>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="mb-4">
+                                            <Title level={5} className="mb-2">About</Title>
+                                            <Paragraph>{hotel.businessDescription}</Paragraph>
+                                        </div>
+
+                                        <Divider />
+
+                                        <Title level={5} className="mb-3">Contact Information</Title>
+                                        <Row gutter={[16, 16]}>
+                                            <Col xs={24} md={12}>
+                                                <div className="flex items-center mb-2">
+                                                    <PhoneOutlined className="mr-2 text-blue-500" />
+                                                    <Text>{hotel.hotelPhone}</Text>
+                                                </div>
+                                                <div className="flex items-center mb-2">
+                                                    <MailOutlined className="mr-2 text-blue-500" />
+                                                    <Text>{hotel.hotelEmail}</Text>
+                                                </div>
+                                            </Col>
+                                            <Col xs={24} md={12}>
+                                                <div className="flex items-center mb-2">
+                                                    <EnvironmentOutlined className="mr-2 text-blue-500" />
+                                                    <Text>Registration: {hotel.hotelRegNum}</Text>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <Text type="secondary">Established: {new Date(hotel.hotelRegDate).toLocaleDateString()}</Text>
+                                                </div>
+                                            </Col>
+                                        </Row>
+
+                                        <Divider />
+
+                                        {renderAmenities(hotel)}
+
+                                        <Divider />
+
+                                        <Row gutter={[16, 16]}>
+                                            <Col span={24} md={12}>
+                                                <Title level={5} className="mb-2">Booking Conditions</Title>
+                                                <Text>{hotel.hotelBookingCondition}</Text>
+                                            </Col>
+                                            <Col span={24} md={12}>
+                                                <Title level={5} className="mb-2">Cancellation Policy</Title>
+                                                <Text>{hotel.hotelCancelationPolicy}</Text>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+
+                    <div className="flex justify-center mt-6">
+                        <Pagination
+                            current={pagination.current}
+                            pageSize={pagination.pageSize}
+                            total={pagination.total}
+                            onChange={handlePageChange}
+                            showSizeChanger
+                            showQuickJumper
+                            showTotal={(total) => `Total ${total} hotels`}
+                        />
+                    </div>
+                </>
+            )}
+            
+            {editingHotel && (
+                <HotelBusinessEdit
+                    hotel={editingHotel}
+                    visible={isEditModalVisible}
+                    onClose={() => {
+                        setIsEditModalVisible(false);
+                        setEditingHotel(null);
+                    }}
+                    onSuccess={(updatedHotel) => {
+                        // Update the specific hotel in the hotels array
+                        setHotels(prevHotels => 
+                            prevHotels.map(hotel => 
+                                hotel.id === updatedHotel.id ? updatedHotel : hotel
+                            )
+                        );
+                        setIsEditModalVisible(false);
+                        setEditingHotel(null);
+                    }}
+                />
+            )}
+        </div>
+    );
+}

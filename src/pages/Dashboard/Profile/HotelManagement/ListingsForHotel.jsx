@@ -1,154 +1,30 @@
 import React, { useState } from "react";
-import { Table, ConfigProvider, Modal, Button } from "antd";
+import { Table, ConfigProvider, Modal, Button, Spin, message } from "antd";
 import { Eye, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-
+import { useGetHotelRoomsQuery } from '../../../../redux/api/hotel/getHoterRoomsApi';
 
 export default function ListingsForHotel() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState(null);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const navigate = useNavigate();
 
-  const hotels = [
-    {
-      id: 1,
-      name: "Azure Oasis",
-      location: "Thailand",
-      price: 580,
-      rating: 4.9,
-      image:
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 2,
-      name: "Mountain Escape",
-      location: "Switzerland",
-      price: 720,
-      rating: 4.7,
-      image:
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 3,
-      name: "Desert Pearl",
-      location: "Dubai, UAE",
-      price: 650,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 4,
-      name: "Ocean Breeze Resort",
-      location: "Maldives",
-      price: 950,
-      rating: 5.0,
-      image:
-        "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 5,
-      name: "Forest Retreat",
-      location: "Canada",
-      price: 430,
-      rating: 4.6,
-      image:
-        "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 1,
-      name: "Azure Oasis",
-      location: "Thailand",
-      price: 580,
-      rating: 4.9,
-      image:
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 2,
-      name: "Mountain Escape",
-      location: "Switzerland",
-      price: 720,
-      rating: 4.7,
-      image:
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 3,
-      name: "Desert Pearl",
-      location: "Dubai, UAE",
-      price: 650,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 4,
-      name: "Ocean Breeze Resort",
-      location: "Maldives",
-      price: 950,
-      rating: 5.0,
-      image:
-        "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 5,
-      name: "Forest Retreat",
-      location: "Canada",
-      price: 430,
-      rating: 4.6,
-      image:
-        "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 1,
-      name: "Azure Oasis",
-      location: "Thailand",
-      price: 580,
-      rating: 4.9,
-      image:
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 2,
-      name: "Mountain Escape",
-      location: "Switzerland",
-      price: 720,
-      rating: 4.7,
-      image:
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 3,
-      name: "Desert Pearl",
-      location: "Dubai, UAE",
-      price: 650,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 4,
-      name: "Ocean Breeze Resort",
-      location: "Maldives",
-      price: 950,
-      rating: 5.0,
-      image:
-        "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 5,
-      name: "Forest Retreat",
-      location: "Canada",
-      price: 430,
-      rating: 4.6,
-      image:
-        "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
-    },
-  ];
+  const { data: roomsData, isLoading, error } = useGetHotelRoomsQuery({ 
+    limit: pagination.pageSize, 
+    page: pagination.current 
+  });
 
+  const rooms = roomsData?.data?.data || [];
+  const totalRooms = roomsData?.data?.meta?.total || 0;
+
+  const handleTableChange = (pagination) => {
+    setPagination({
+      current: pagination.current,
+      pageSize: pagination.pageSize,
+    });
+  };
 
   // Open view modal
   const showViewModal = (hotel) => {
@@ -165,6 +41,7 @@ export default function ListingsForHotel() {
   // Confirm delete
   const handleDelete = () => {
     console.log("Deleted:", selectedHotel);
+    message.success('Room deleted successfully');
     setIsDeleteModalOpen(false);
     setSelectedHotel(null);
   };
@@ -173,37 +50,51 @@ export default function ListingsForHotel() {
     {
       title: "No",
       key: "no",
-      render: (_, __, index) => index + 1,
+      render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: "Image",
-      dataIndex: "image",
       key: "image",
-      render: (image) => (
-        <img src={image} alt="Hotel" className="w-20 h-12 object-cover rounded-md" />
+      render: (_, record) => (
+        <img 
+          src={record.hotel?.businessLogo || 'https://via.placeholder.com/80x60'} 
+          alt="Hotel" 
+          className="w-20 h-12 object-cover rounded-md" 
+        />
       ),
     },
     {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
+      title: "Room Type",
+      dataIndex: ["hotelRoomType"],
+      key: "roomType",
     },
     {
       title: "Location",
-      dataIndex: "location",
       key: "location",
+      render: (_, record) => `${record.hotelCity}, ${record.hotelCountry}`,
     },
     {
       title: "Price",
-      dataIndex: "price",
       key: "price",
-      render: (price) => `$${price}/night`,
+      render: (_, record) => `$${record.hotelRoomPriceNight}/night`,
     },
     {
       title: "Rating",
-      dataIndex: "rating",
       key: "rating",
-      render: (rating) => `⭐ ${rating}`,
+      render: (_, record) => `⭐ ${record.hotelRating || 'N/A'}`,
+    },
+    {
+      title: "Status",
+      key: "status",
+      render: (_, record) => (
+        <span className={`px-2 py-1 rounded-full text-xs ${
+          record.isBooked === 'AVAILABLE' 
+            ? 'bg-green-100 text-green-800' 
+            : 'bg-red-100 text-red-800'
+        }`}>
+          {record.isBooked}
+        </span>
+      ),
     },
     {
       title: "Action",
@@ -223,24 +114,30 @@ export default function ListingsForHotel() {
     },
   ];
 
+  if (error) {
+    return <div className="p-5 text-red-500">Error loading rooms: {error.message}</div>;
+  }
+
   return (
     <div className="p-5">
-      <div className="mb-5 flex justify-end items-center ">
+      <div className="mb-5 flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Hotel Listings</h2>
         <div className="space-y-2 w-[400px] flex gap-2">
           <input
             type="text"
-            placeholder="Search bookings"
+            placeholder="Search rooms..."
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
           />
           <Button
             type="primary"
             onClick={() => navigate("/dashboard/add-listing")}
-            className="bg-blue-600 text-white !py-6  hover:bg-blue-700 p-3"
+            className="bg-blue-600 text-white !py-6 hover:bg-blue-700 p-3"
           >
             Add Listing
           </Button>
         </div>
       </div>
+      
       <ConfigProvider
         theme={{
           components: {
@@ -255,60 +152,85 @@ export default function ListingsForHotel() {
           },
         }}
       >
-        <Table
-          rowKey="id"
-          dataSource={hotels}
-          columns={columns}
-          pagination={{ pageSize: 10 }}
-
-        />
+        <Spin spinning={isLoading}>
+          <Table
+            rowKey="id"
+            dataSource={rooms}
+            columns={columns}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: totalRooms,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `Total ${total} rooms`,
+            }}
+            onChange={handleTableChange}
+            loading={isLoading}
+          />
+        </Spin>
       </ConfigProvider>
 
       {/* View Modal */}
       <Modal
-        title="Hotel Details"
+        title="Room Details"
         open={isViewModalOpen}
         onCancel={() => setIsViewModalOpen(false)}
         footer={[
           <Button key="close" onClick={() => setIsViewModalOpen(false)}>
             Close
-          </Button>,
+          </Button>
         ]}
       >
         {selectedHotel && (
-          <div className="space-y-3">
-            <img
-              src={selectedHotel.image}
-              alt={selectedHotel.name}
-              className="w-full h-48 object-cover rounded-lg"
-            />
-            <h3 className="text-lg font-bold">{selectedHotel.name}</h3>
-            <p>📍 {selectedHotel.location}</p>
-            <p>⭐ {selectedHotel.rating}</p>
-            <p className="font-semibold">${selectedHotel.price}/night</p>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <img 
+                src={selectedHotel.hotel?.businessLogo || 'https://via.placeholder.com/80x60'} 
+                alt={selectedHotel.hotelRoomType} 
+                className="w-24 h-16 object-cover rounded"
+              />
+              <div>
+                <h3 className="text-lg font-semibold">{selectedHotel.hotelRoomType}</h3>
+                <p className="text-gray-600">{selectedHotel.hotel?.hotelName}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-500">Location</p>
+                <p>{selectedHotel.hotelCity}, {selectedHotel.hotelCountry}</p>
+              </div>
+              <div>
+                <p className="text-gray-500">Price per night</p>
+                <p>${selectedHotel.hotelRoomPriceNight}</p>
+              </div>
+              <div>
+                <p className="text-gray-500">Capacity</p>
+                <p>{selectedHotel.hotelRoomCapacity}</p>
+              </div>
+              <div>
+                <p className="text-gray-500">Rating</p>
+                <p>⭐ {selectedHotel.hotelRating || 'N/A'}</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-gray-500 mb-1">Description</p>
+              <p className="text-gray-700">{selectedHotel.hotelRoomDescription || 'No description available'}</p>
+            </div>
           </div>
         )}
       </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal
-        title="Confirm Delete"
+        title="Delete Room"
         open={isDeleteModalOpen}
+        onOk={handleDelete}
         onCancel={() => setIsDeleteModalOpen(false)}
-        footer={[
-          <Button key="cancel" onClick={() => setIsDeleteModalOpen(false)}>
-            Cancel
-          </Button>,
-          <Button key="delete" type="primary" danger onClick={handleDelete}>
-            Delete
-          </Button>,
-        ]}
+        okText="Delete"
+        okButtonProps={{ danger: true }}
       >
-        {selectedHotel && (
-          <p>
-            Are you sure you want to delete <b>{selectedHotel.name}</b>?
-          </p>
-        )}
+        <p>Are you sure you want to delete this room? This action cannot be undone.</p>
       </Modal>
     </div>
   );
