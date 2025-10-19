@@ -158,14 +158,6 @@ export default function SecurityServiceDetails() {
                     ))}
                   </div>
 
-                  {/* Cancellation Policy */}
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-3">Cancellation Policy</h2>
-                    <p className="text-gray-700">
-                      Flexible cancellation up to 24 hours before check-in. After that, a 20% cancellation fee applies.
-                    </p>
-                  </div>
-
                   <div className="space-y-4">
                     <h2 className="text-xl font-semibold">
                       Additional Information

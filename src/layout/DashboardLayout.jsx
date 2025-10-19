@@ -12,7 +12,7 @@ export default function DashboardLayout() {
             <Navbar />
             <div className="flex min-h-screen">
                 <Sidebar />
-                <div className="flex-1  py-20">
+                <div className="flex-1  py-24">
                     <Outlet />
                 </div>
             </div>

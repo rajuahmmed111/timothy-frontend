@@ -10,6 +10,10 @@ import {
   MapPin,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { useGetMyProfileQuery, authApi } from "../../redux/services/authApi";
+import { logout } from "../../redux/features/auth/authSlice";
+import { Skeleton, Popconfirm } from "antd";
 
 export default function Navbar() {
   const location = useLocation();
@@ -77,6 +81,16 @@ export default function Navbar() {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("EN");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  const dispatch = useDispatch();
+  const accessToken = useSelector((s) => s?.auth?.accessToken);
+  // Use accessToken as an argument to change the cache key when switching users
+  const { data: profileRes, isFetching: profileLoading } = useGetMyProfileQuery(accessToken, {
+    skip: !accessToken,
+    refetchOnMountOrArgChange: true,
+  });
+  const user = profileRes?.data || null;
 
   const languages = [
     { code: "EN", name: "English", flag: "/flags/us.svg" },
@@ -190,19 +204,90 @@ export default function Navbar() {
               <ShoppingCart className="w-5 h-5 text-gray-600" />
             </button>
 
-            {/* Auth buttons - Hidden on mobile */}
-            <button
-              onClick={() => navigate("/login")}
-              className="hidden sm:block text-gray-700 hover:text-gray-900 font-medium"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => navigate("/dashboard/profile")}
-              className="hidden sm:block bg-[#0064D2] text-white px-6 py-2 rounded-full cursor-pointer"
-            >
-              Sign Up
-            </button>
+            {/* Auth/Profile Area */}
+            {accessToken ? (
+              // Profile Section with Loading State
+              profileLoading ? (
+                <div className="hidden sm:flex gap-4 items-center">
+                  <Skeleton.Avatar active size="large" />
+                  <div className="hidden md:block">
+                    <Skeleton.Input active size="small" />
+                  </div>
+                </div>
+              ) : (
+                <div className="relative hidden sm:flex items-center">
+                  <div className="flex gap-2 items-center">
+                    <div
+                      onClick={() => setIsProfileMenuOpen((p) => !p)}
+                      className="md:w-[50px] md:h-[50px] w-[40px] h-[40px] rounded-full overflow-hidden border border-gray-200 shadow-sm cursor-pointer"
+                    >
+                      <img
+                        src={user?.profileImage || "/default-avatar.png"}
+                        alt={user?.fullName || "User"}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/default-avatar.png";
+                        }}
+                      />
+                    </div>
+                    <div className="text-brandGray font-semibold hidden md:block">
+                      <p>{user?.fullName || "User"}</p>
+                      <p>{user?.role || "USER"}</p>
+                    </div>
+                  </div>
+                  {/* Dropdown */}
+                  {isProfileMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      <button
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          navigate("/dashboard/profile");
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                      >
+                        Dashboard
+                      </button>
+                      <Popconfirm
+                        title="Sign out?"
+                        description="Are you sure you want to logout?"
+                        okText="Yes"
+                        cancelText="No"
+                        zIndex={10050}
+                        getPopupContainer={() => document.body}
+                        onConfirm={() => {
+                          setIsProfileMenuOpen(false);
+                          // Clear RTK Query cache so next user doesn't see stale data
+                          dispatch(authApi.util.resetApiState());
+                          dispatch(logout());
+                          navigate("/");
+                        }}
+                      >
+                        <button
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600"
+                        >
+                          Logout
+                        </button>
+                      </Popconfirm>
+                    </div>
+                  )}
+                </div>
+              )
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate("/logIn")}
+                  className="hidden sm:block text-gray-700 hover:text-gray-900 font-medium cursor-pointer"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => navigate("/sign-up")}
+                  className="hidden sm:block bg-[#0064D2] text-white px-6 py-2 rounded-full cursor-pointer"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
 
             {/* Mobile menu button */}
             <button
@@ -303,15 +388,37 @@ export default function Navbar() {
                   <ShoppingCart className="w-5 h-5 text-gray-600" />
                   <span>Cart</span>
                 </button>
-
-                <Link to="/profile">
-                  <button className="cursor-pointer w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                    Sign In
-                  </button>
-                </Link>
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
-                  Sign Up
-                </button>
+                {accessToken ? (
+                  <>
+                    <button onClick={() => navigate("/dashboard/profile")} className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                      Dashboard
+                    </button>
+                    <Popconfirm
+                      title="Sign out?"
+                      description="Are you sure you want to logout?"
+                      okText="Yes"
+                      cancelText="No"
+                      zIndex={10050}
+                      getPopupContainer={() => document.body}
+                      onConfirm={() => { dispatch(authApi.util.resetApiState()); dispatch(logout()); navigate("/"); }}
+                    >
+                      <button className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        Logout
+                      </button>
+                    </Popconfirm>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/logIn">
+                      <button className="cursor-pointer w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        Sign In
+                      </button>
+                    </Link>
+                    <button onClick={() => navigate("/sign-up")} className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                      Sign Up
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

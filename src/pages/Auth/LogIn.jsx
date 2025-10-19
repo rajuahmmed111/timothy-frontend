@@ -1,18 +1,61 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useLoginMutation } from "../../redux/services/authApi";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../redux/features/auth/authSlice";
 
 export default function LogIn() {
     const [showPassword, setShowPassword] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const [login, { isLoading, error } ] = useLoginMutation();
+
+    useEffect(() => {
+        // Prefill saved credentials if user opted for Remember Password previously
+        try {
+            const raw = localStorage.getItem('rememberCredentials');
+            if (raw) {
+                const saved = JSON.parse(raw);
+                if (saved?.email) setEmail(saved.email);
+                if (saved?.password) setPassword(saved.password);
+                setIsChecked(true);
+            }
+        } catch {
+            // ignore malformed storage
+        }
+    }, []);
 
     const handleCheckboxChange = (event) => {
-        if (event.target.checked) {
-            setIsChecked(true);
-        } else {
-            setIsChecked(false);
+        const checked = event.target.checked;
+        setIsChecked(checked);
+        if (!checked) {
+            // If user toggles off, clear saved credentials immediately
+            localStorage.removeItem('rememberCredentials');
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await login({ email, password }).unwrap();
+            // Expected response shape per spec
+            const { accessToken, refreshToken, user } = res?.data || {};
+            dispatch(setCredentials({ accessToken, refreshToken, user }));
+            // Save or clear remembered credentials based on checkbox
+            if (isChecked) {
+                localStorage.setItem('rememberCredentials', JSON.stringify({ email, password }));
+            } else {
+                localStorage.removeItem('rememberCredentials');
+            }
+            navigate("/");
+        } catch (err) {
+            console.error("Login failed", err);
+            // Optional: show toast here
         }
     };
 
@@ -27,7 +70,7 @@ export default function LogIn() {
                         <p className="text-[#6A6D76] text-center mb-10">
                             Please enter your email and password to continue.
                         </p>
-                        <form className="space-y-5">
+                        <form className="space-y-5" onSubmit={handleSubmit}>
                             <div className="w-full">
                                 <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
                                     Email
@@ -35,6 +78,8 @@ export default function LogIn() {
                                 <input
                                     type="email"
                                     name="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     placeholder="enter your gmail"
                                     className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-5 placeholder:text-xl"
                                     required
@@ -48,6 +93,8 @@ export default function LogIn() {
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         name="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         placeholder="**********"
                                         className="w-full border-2 border-[#6A6D76] rounded-md outline-none px-5 py-3 mt-5 placeholder:text-xl"
                                         required
@@ -130,15 +177,21 @@ export default function LogIn() {
                                     Forgot Password?
                                 </Link>
                             </div>
-                            <div className="flex justify-center items-center">
+                            <div className="flex justify-center items-center gap-4">
                                 <button
-                                    onClick={() => navigate("/")}
-                                    type="button"
-                                    className="w-1/3 bg-[#0064D2] text-white font-bold py-3 rounded-lg shadow-lg cursor-pointer mt-5"
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="w-1/3 bg-[#0064D2] text-white font-bold py-3 rounded-lg shadow-lg cursor-pointer mt-5 disabled:opacity-60"
                                 >
-                                    Log In
+                                    {isLoading ? "Logging in..." : "Log In"}
                                 </button>
+                                <Link to="/sign-up" className="w-1/3 text-center border border-[#0064D2] text-[#0064D2] font-bold py-3 rounded-lg shadow-lg cursor-pointer mt-5">
+                                    Create account
+                                </Link>
                             </div>
+                            {error ? (
+                                <p className="text-red-500 text-center mt-4 text-sm">{error?.data?.message || "Login failed"}</p>
+                            ) : null}
                         </form>
                     </div>
                 </div>

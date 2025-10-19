@@ -45,6 +45,7 @@ import DashboardLayout from '../layout/DashboardLayout';
 import Profile from '../pages/Dashboard/Profile/Profile';
 
 import HotelManagement from '../pages/Dashboard/Profile/HotelManagement/HotelManagement';
+import CreateHotelRoom from '../pages/Dashboard/Profile/HotelManagement/Dashboard/CreateHotelRoom';
 
 import MyVouchers from '../pages/Dashboard/MyVouchers/MyVouchers';
 import PaymentMethods from '../pages/Dashboard/PaymentMethods/PaymentMethods';
@@ -52,12 +53,15 @@ import LogIn from '../pages/Auth/LogIn';
 import ForgetPassword from '../pages/Auth/ForgetPassword';
 import VerificationCode from '../pages/Auth/Otp';
 import ResetPassword from '../pages/Auth/ResetPassword';
+import SignUp from '../pages/Auth/SignUp';
 import SecurityManagement from '../pages/Dashboard/SecurityManagement/SecurityManagement';
 import CarManagement from '../pages/Dashboard/CarManagement/CarManagement';
 import AttractionManagement from '../pages/Dashboard/AttractionManagement/AttractionManagement';
 import ReviewBusiness from '../pages/Dashboard/Profile/HotelManagement/ReviewBusiness';
 import MyBookings from '../pages/Dashboard/Mybookings/MyBookings';
 import HumanRightsStatement from '../pages/Legal/HumanRightsStatement';
+import PrivateRoute from './guards/PrivateRoute';
+import RoleRoute from './guards/RoleRoute';
 
 
 export const routes = createBrowserRouter([
@@ -239,6 +243,10 @@ export const routes = createBrowserRouter([
                 element: <LogIn />
             },
             {
+                path: "/sign-up",
+                element: <SignUp />
+            },
+            {
                 path: "/forget-password",
                 element: <ForgetPassword />
             },
@@ -255,7 +263,9 @@ export const routes = createBrowserRouter([
     {
         path: "/dashboard",
         element: (
-            <DashboardLayout />
+            <PrivateRoute>
+                <DashboardLayout />
+            </PrivateRoute>
         ),
         children: [
             {
@@ -264,22 +274,46 @@ export const routes = createBrowserRouter([
             },
 
 
-            //service provider routes
+            //service provider routes (BUSINESS_PARTNER only)
             {
                 path: "hotel-management",
-                element: <HotelManagement />,
+                element: (
+                    <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+                        <HotelManagement />
+                    </RoleRoute>
+                ),
+            },
+            {
+                path: "add-listing",
+                element: (
+                    <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+                        <CreateHotelRoom />
+                    </RoleRoute>
+                ),
             },
             {
                 path: "security-management",
-                element: <SecurityManagement />,
+                element: (
+                    <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+                        <SecurityManagement />
+                    </RoleRoute>
+                ),
             },
             {
                 path: "car-management",
-                element: <CarManagement />,
+                element: (
+                    <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+                        <CarManagement />
+                    </RoleRoute>
+                ),
             },
             {
                 path: "attraction-management",
-                element: <AttractionManagement />,
+                element: (
+                    <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+                        <AttractionManagement />
+                    </RoleRoute>
+                ),
             },
 
             {

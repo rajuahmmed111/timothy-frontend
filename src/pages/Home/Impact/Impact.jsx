@@ -1,7 +1,7 @@
 import React from 'react';
 export default function Impact() {
     return (
-        <section className="py-8 md:py-16 container mx-auto px-4">
+        <section className="py-8 md:pt-16 container mx-auto px-4">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-8 md:mb-12">
                     <h2 className="text-xs sm:text-sm font-medium text-gray-600 uppercase text-start">OUR IMPACT IN NUMBERS</h2>

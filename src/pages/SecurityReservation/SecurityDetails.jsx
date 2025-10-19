@@ -1,160 +1,76 @@
-import React, { useEffect, useMemo, useState } from 'react';
-
-import ing1 from "/SecurityProviders/1.png"
-import ing2 from "/SecurityProviders/2.png"
-import ing4 from "/SecurityProviders/4.png"
-import ing5 from "/SecurityProviders/5.png"
-import ing6 from "/SecurityProviders/6.png"
-
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { DatePicker, Spin } from "antd";
+import { Link } from "react-router-dom";
+import { useGetSecurityProtocolsQuery } from "../../redux/api/security/getAllSecurityApi";
 import SecurityCard from './SecurityCard';
-import { DatePicker } from "antd";
-import { useSearchParams, useNavigate } from "react-router-dom"
-import dayjs from 'dayjs';
+
+const { RangePicker } = DatePicker;
 
 export default function SecurityDetails() {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const { RangePicker } = DatePicker;
-
-    const [location, setLocation] = useState("");
+    const [page, setPage] = useState(1);
     const [selectedType, setSelectedType] = useState("All");
     const [dateRange, setDateRange] = useState(null);
+    const [providers, setProviders] = useState([]);
+    const [hasMore, setHasMore] = useState(true);
+    const loader = useRef(null);
 
-    // Initialize state from URL params on mount
+    const { data, isLoading, isFetching } = useGetSecurityProtocolsQuery(
+        { page, limit: 10 },
+        { skip: !hasMore }
+    );
+
+    // Update providers when new data is loaded
     useEffect(() => {
-        const loc = searchParams.get('location') || "";
-        const type = searchParams.get('type') || "All";
-        const start = searchParams.get('start');
-        const end = searchParams.get('end');
-
-        setLocation(loc);
-        setSelectedType(type);
-        if (start && end) {
-            const startDay = dayjs(start);
-            const endDay = dayjs(end);
-            if (startDay.isValid() && endDay.isValid()) {
-                setDateRange([startDay, endDay]);
+        if (data?.data) {
+            setProviders(prev => {
+                // If it's the first page, replace the data, otherwise append
+                if (page === 1) {
+                    return data.data;
+                }
+                return [...prev, ...data.data];
+            });
+            
+            // Check if there are more pages
+            if (data.meta && data.meta.totalPages <= page) {
+                setHasMore(false);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [data, page]);
 
-    const securityProviders = [
-        {
-            name: "Ava Martinez",
-            location: "Los Angeles, USA",
-            image: ing1,
-            price: "$520",
-            rating: 5,
-            type: "Personal Bodyguard",
-        },
-        {
-            name: "Noah Williams",
-            location: "Chicago, USA",
-            image: ing2,
-            price: "$95",
-            rating: 4,
-            type: "Security Guard",
-        },
-        {
-            name: "Mia Chen",
-            location: "San Francisco, USA",
-            image: ing5,
-            price: "$460",
-            rating: 5,
-            type: "Executive Protections",
-        },
-        {
-            name: "Liam Johnson",
-            location: "Austin, USA",
-            image: ing6,
-            price: "$480",
-            rating: 5,
-            type: "Event Security",
-        },
-        {
-            name: "Olivia Garcia",
-            location: "Miami, USA",
-            image: ing4,
-            price: "$510",
-            rating: 4,
-            type: "Personal Bodyguard",
-        },
-        {
-            name: "Ethan Brown",
-            location: "Seattle, USA",
-            image: ing2,
-            price: "$110",
-            rating: 4,
-            type: "Security Guard",
-        },
-        {
-            name: "Sophia Kim",
-            location: "Vancouver, Canada",
-            image: ing5,
-            price: "$430",
-            rating: 5,
-            type: "Executive Protections",
-        },
-        {
-            name: "James Anderson",
-            location: "London, UK",
-            image: ing6,
-            price: "$455",
-            rating: 5,
-            type: "Event Security",
-        },
-        {
-            name: "Isabella Rossi",
-            location: "Rome, Italy",
-            image: ing1,
-            price: "$540",
-            rating: 5,
-            type: "Personal Bodyguard",
-        },
-        {
-            name: "Lucas Silva",
-            location: "Lisbon, Portugal",
-            image: ing2,
-            price: "$105",
-            rating: 3,
-            type: "Security Guard",
-        },
-        {
-            name: "Amelia Thompson",
-            location: "Dublin, Ireland",
-            image: ing5,
-            price: "$445",
-            rating: 4,
-            type: "Executive Protections",
-        },
-        {
-            name: "Benjamin Lee",
-            location: "Sydney, Australia",
-            image: ing4,
-            price: "$470",
-            rating: 5,
-            type: "Event Security",
-        },
-    ]
-
-    // Filter security providers based on selected type
-    const filteredProviders = useMemo(() => {
-        return selectedType === "All"
-            ? securityProviders
-            : securityProviders.filter(provider => provider.type === selectedType);
-    }, [selectedType]);
-
-    const onSearch = () => {
-        const params = new URLSearchParams();
-        if (location) params.set('location', location);
-        if (selectedType && selectedType !== 'All') params.set('type', selectedType);
-        if (dateRange && dateRange[0] && dateRange[1]) {
-            params.set('start', dateRange[0].format('YYYY-MM-DD'));
-            params.set('end', dateRange[1].format('YYYY-MM-DD'));
+    // Handle scroll for infinite loading
+    const handleObserver = useCallback((entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && !isFetching && hasMore) {
+            setPage(prev => prev + 1);
         }
-        const qs = params.toString();
-        navigate(`/security-details${qs ? `?${qs}` : ''}`);
+    }, [isFetching, hasMore]);
+
+    // Set up intersection observer
+    useEffect(() => {
+        const option = {
+            root: null,
+            rootMargin: "20px",
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver(handleObserver, option);
+        if (loader.current) observer.observe(loader.current);
+
+        return () => {
+            if (loader.current) observer.unobserve(loader.current);
+        };
+    }, [handleObserver]);
+
+    // Filter providers based on selected type
+    const filteredProviders = selectedType === "All"
+        ? providers
+        : providers.filter(provider => provider.type === selectedType);
+
+    const handleTypeChange = (e) => {
+        setSelectedType(e.target.value);
+        setPage(1);
+        setHasMore(true);
+        setProviders([]);
     };
 
     return (
@@ -167,8 +83,6 @@ export default function SecurityDetails() {
                             type="text"
                             placeholder="Find Location"
                             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
                         />
                     </div>
                     {/* Start Date & End Date */}
@@ -180,35 +94,55 @@ export default function SecurityDetails() {
                     />
                     {/* Security Type */}
                     <div className="space-y-2">
-
-                        <select
+                        <select 
                             className="w-full p-3 border border-gray-200 rounded-lg text-gray-500 placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
-                            value={selectedType === 'All' ? '' : selectedType}
-                            onChange={(e) => setSelectedType(e.target.value || 'All')}
+                            value={selectedType}
+                            onChange={handleTypeChange}
                         >
-                            <option value="" className="text-slate-50">Select Security Type</option>
+                            <option value="All">All Security Types</option>
                             <option value="Personal Bodyguard">Personal Bodyguard</option>
                             <option value="Security Guard">Security Guard</option>
                             <option value="Executive Protections">Executive Protections</option>
                             <option value="Event Security">Event Security</option>
                         </select>
                     </div>
-
                 </div>
                 {/* Search Button */}
-                <div className="">
-                    <button onClick={onSearch} className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
-                        Search
-                    </button>
+                <div>
+                    <Link to="/security-details" className="w-full">
+                        <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
+                            Search
+                        </button>
+                    </Link>
                 </div>
             </div>
-
+            
             {/* Services Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto py-10">
                 {filteredProviders.map((securityProvider, index) => (
-                    <SecurityCard key={index} securityProvider={securityProvider} />
+                    <SecurityCard 
+                        key={`${securityProvider.id}-${index}`} 
+                        securityProvider={securityProvider} 
+                    />
                 ))}
+                
+                {/* Loading spinner */}
+                {(isLoading || isFetching) && (
+                    <div className="col-span-full flex justify-center py-8">
+                        <Spin size="large" />
+                    </div>
+                )}
+                
+                {/* Intersection observer target */}
+                <div ref={loader} style={{ height: '20px' }} />
+                
+                {/* No results message */}
+                {!isLoading && filteredProviders.length === 0 && (
+                    <div className="col-span-full text-center py-10">
+                        <p className="text-gray-500">No security providers found.</p>
+                    </div>
+                )}
             </div>
         </div>
-    )
+    );
 }

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useGetMyProfileQuery } from "../../redux/services/authApi";
 import {
     Lock,
     MessageSquare,
@@ -19,6 +21,9 @@ export default function Sidebar() {
     const location = useLocation();
     const [isMobile, setIsMobile] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const accessToken = useSelector((s) => s?.auth?.accessToken);
+    const { data: profileRes } = useGetMyProfileQuery(undefined, { skip: !accessToken });
+    const role = profileRes?.data?.role;
 
     useEffect(() => {
         const handleResize = () => {
@@ -78,72 +83,74 @@ export default function Sidebar() {
                     />
                 </Section>
 
-                {/* User Management */}
-                <Section
-                    title="User"
-                    isActive={isSectionActive(location.pathname, [
-                        "/dashboard/my-bookings",
-                        "/dashboard/my-vouchers",
-                        "/dashboard/payment-methods",
+                {/* User Management (USER) */}
+                {role === "USER" && (
+                    <Section
+                        title=""
+                        isActive={isSectionActive(location.pathname, [
+                            "/dashboard/my-bookings",
+                            "/dashboard/my-vouchers",
+                            "/dashboard/payment-methods",
+                        ])}
+                    >
+                        <SidebarButton
+                            to="/dashboard/payment-methods"
+                            icon={<Lock size={18} />}
+                            text="Payment Methods"
+                            onClick={isMobile ? toggleSidebar : undefined}
+                        />
+                        <SidebarButton
+                            to="/dashboard/my-bookings"
+                            icon={<ReceiptText size={18} />}
+                            text="My Bookings"
+                            onClick={isMobile ? toggleSidebar : undefined}
+                        />
+                        <SidebarButton
+                            to="/dashboard/my-vouchers"
+                            icon={<MessageSquare size={18} />}
+                            text="My Vouchers"
+                            onClick={isMobile ? toggleSidebar : undefined}
+                        />
+                    </Section>
+                )}
 
-                    ])}
-                >
-                    <SidebarButton
-                        to="/dashboard/payment-methods"
-                        icon={<Lock size={18} />}
-                        text="Payment Methods"
-                        onClick={isMobile ? toggleSidebar : undefined}
-                    />
-                    <SidebarButton
-                        to="/dashboard/my-bookings"
-                        icon={<ReceiptText size={18} />}
-                        text="My Bookings"
-                        onClick={isMobile ? toggleSidebar : undefined}
-                    />
-                    <SidebarButton
-                        to="/dashboard/my-vouchers"
-                        icon={<MessageSquare size={18} />}
-                        text="My Vouchers"
-                        onClick={isMobile ? toggleSidebar : undefined}
-
-                    />
-                </Section>
-
-                {/* Service Provider */}
-                <Section
-                    title="Service Provider"
-                    isActive={isSectionActive(location.pathname, [
-                        "/dashboard/hotel-management",
-                        "/dashboard/security-management",
-                        "/dashboard/Car-management",
-                        "/dashboard/Attraction-management",
-                    ])}
-                >
-                    <SidebarButton
-                        to="/dashboard/hotel-management"
-                        icon={<List size={18} />}
-                        text="Hotel Management"
-                        onClick={isMobile ? toggleSidebar : undefined}
-                    />
-                    <SidebarButton
-                        to="/dashboard/security-management"
-                        icon={<Package size={18} />}
-                        text="Security Management"
-                        onClick={isMobile ? toggleSidebar : undefined}
-                    />
-                    <SidebarButton
-                        to="/dashboard/car-management"
-                        icon={<Pin size={18} />}
-                        text="Car Management"
-                        onClick={isMobile ? toggleSidebar : undefined}
-                    />
-                    <SidebarButton
-                        to="/dashboard/attraction-management"
-                        icon={<Mail size={18} />}
-                        text="Attraction Management"
-                        onClick={isMobile ? toggleSidebar : undefined}
-                    />
-                </Section>
+                {/* Service Provider (BUSINESS_PARTNER) */}
+                {role === "BUSINESS_PARTNER" && (
+                    <Section
+                        title=""
+                        isActive={isSectionActive(location.pathname, [
+                            "/dashboard/hotel-management",
+                            "/dashboard/security-management",
+                            "/dashboard/car-management",
+                            "/dashboard/attraction-management",
+                        ])}
+                    >
+                        <SidebarButton
+                            to="/dashboard/hotel-management"
+                            icon={<List size={18} />}
+                            text="Hotel Management"
+                            onClick={isMobile ? toggleSidebar : undefined}
+                        />
+                        <SidebarButton
+                            to="/dashboard/security-management"
+                            icon={<Package size={18} />}
+                            text="Security Management"
+                            onClick={isMobile ? toggleSidebar : undefined}
+                        />
+                        <SidebarButton
+                            to="/dashboard/car-management"
+                            icon={<Pin size={18} />}
+                            text="Car Management"
+                            onClick={isMobile ? toggleSidebar : undefined}
+                        />
+                        <SidebarButton
+                            to="/dashboard/attraction-management"
+                            icon={<Mail size={18} />}
+                            text="Attraction Management"
+                            onClick={isMobile ? toggleSidebar : undefined}
+                        />
+                    </Section>
+                )}
             </div>
 
             {/* Overlay for mobile */}
