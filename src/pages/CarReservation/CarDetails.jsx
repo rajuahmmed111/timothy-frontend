@@ -1,446 +1,154 @@
-import React, { useState } from 'react';
-import img1 from "/car/1.png"
-import img2 from "/car/2.png"
-import img3 from "/car/4.png"
-import img4 from "/car/3.png"
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { DatePicker, Spin } from "antd";
 import CarCard from './CarCard';
-import { DatePicker } from "antd";
+import { useGetAllCarsQuery } from "../../redux/api/car/getAllCarsApi";
 
+const { RangePicker } = DatePicker;
 
 export default function CarDetails() {
     const [dateRange, setDateRange] = useState(null);
+    const [page, setPage] = useState(1);
+    const [cars, setCars] = useState([]);
+    const [hasMore, setHasMore] = useState(true);
+    const loader = useRef(null);
 
-    const { RangePicker } = DatePicker;
+    const { data: carsData, isLoading, isFetching } = useGetAllCarsQuery(
+        { page, limit: 8 },
+        { skip: !hasMore }
+    );
 
-    const CarProviders = [
-        {
-            name: "Jacob Jones",
-            location: "New York, USA",
-            image: img1,
-            price: "$500",
-            rating: 5,
-            availability: "Available",
-            mileage: "15,000 km",
-            transmission: "Automatic",
-            fuelType: "Petrol",
-            seats: 5,
-            year: 2022,
-        },
-        {
-            name: "Emily Smith",
-            location: "Los Angeles, USA",
-            image: img1,
-            price: "$450",
-            rating: 4.8,
-            availability: "Available",
-            mileage: "12,500 km",
-            transmission: "Manual",
-            fuelType: "Diesel",
-            seats: 4,
-            year: 2021,
-        },
-        {
-            name: "Michael Johnson",
-            location: "Chicago, USA",
-            image: img2,
-            price: "$600",
-            rating: 4.9,
-            availability: "Not Available",
-            mileage: "18,200 km",
-            transmission: "Automatic",
-            fuelType: "Hybrid",
-            seats: 5,
-            year: 2023,
-        },
-        {
-            name: "Sophia Williams",
-            location: "Houston, USA",
-            image: img3,
-            price: "$550",
-            rating: 4.7,
-            availability: "Available",
-            mileage: "20,000 km",
-            transmission: "Automatic",
-            fuelType: "Petrol",
-            seats: 7,
-            year: 2022,
-        },
-        {
-            name: "Daniel Brown",
-            location: "Miami, USA",
-            image: img4,
-            price: "$480",
-            rating: 4.6,
-            availability: "Available",
-            mileage: "10,000 km",
-            transmission: "Manual",
-            fuelType: "Electric",
-            seats: 5,
-            year: 2024,
-        },
-        {
-            name: "Olivia Martinez",
-            location: "Seattle, USA",
-            image: img1,
-            price: "$530",
-            rating: 4.9,
-            availability: "Available",
-            mileage: "13,500 km",
-            transmission: "Automatic",
-            fuelType: "Petrol",
-            seats: 5,
-            year: 2022,
-        },
-        {
-            name: "William Davis",
-            location: "Boston, USA",
-            image: img2,
-            price: "$590",
-            rating: 4.8,
-            availability: "Not Available",
-            mileage: "22,000 km",
-            transmission: "Manual",
-            fuelType: "Diesel",
-            seats: 5,
-            year: 2021,
-        },
-        {
-            name: "Ava Wilson",
-            location: "Denver, USA",
-            image: img3,
-            price: "$520",
-            rating: 4.7,
-            availability: "Available",
-            mileage: "9,800 km",
-            transmission: "Automatic",
-            fuelType: "Hybrid",
-            seats: 4,
-            year: 2023,
-        },
-        {
-            name: "James Anderson",
-            location: "Austin, USA",
-            image: img4,
-            price: "$610",
-            rating: 5,
-            availability: "Available",
-            mileage: "7,500 km",
-            transmission: "Automatic",
-            fuelType: "Electric",
-            seats: 5,
-            year: 2024,
-        },
-        {
-            name: "Isabella Thomas",
-            location: "San Diego, USA",
-            image: img1,
-            price: "$495",
-            rating: 4.6,
-            availability: "Not Available",
-            mileage: "18,800 km",
-            transmission: "Manual",
-            fuelType: "Petrol",
-            seats: 5,
-            year: 2022,
-        },
-        {
-            name: "Benjamin Taylor",
-            location: "Dallas, USA",
-            image: img2,
-            price: "$550",
-            rating: 4.7,
-            availability: "Available",
-            mileage: "14,500 km",
-            transmission: "Automatic",
-            fuelType: "Diesel",
-            seats: 7,
-            year: 2023,
-        },
-        {
-            name: "Mia Moore",
-            location: "San Francisco, USA",
-            image: img3,
-            price: "$640",
-            rating: 4.9,
-            availability: "Available",
-            mileage: "11,700 km",
-            transmission: "Automatic",
-            fuelType: "Electric",
-            seats: 5,
-            year: 2024,
-        },
-        {
-            name: "Lucas Lee",
-            location: "Orlando, USA",
-            image: img1,
-            price: "$475",
-            rating: 4.5,
-            availability: "Available",
-            mileage: "21,000 km",
-            transmission: "Manual",
-            fuelType: "Petrol",
-            seats: 5,
-            year: 2021,
-        },
-        {
-            name: "Amelia Harris",
-            location: "Las Vegas, USA",
-            image: img2,
-            price: "$510",
-            rating: 4.8,
-            availability: "Available",
-            mileage: "15,300 km",
-            transmission: "Automatic",
-            fuelType: "Hybrid",
-            seats: 4,
-            year: 2023,
-        },
-        {
-            name: "Henry Clark",
-            location: "Phoenix, USA",
-            image: img3,
-            price: "$520",
-            rating: 4.6,
-            availability: "Available",
-            mileage: "13,000 km",
-            transmission: "Automatic",
-            fuelType: "Diesel",
-            seats: 7,
-            year: 2022,
-        },
-        {
-            name: "Evelyn Lewis",
-            location: "Portland, USA",
-            image: img4,
-            price: "$600",
-            rating: 4.9,
-            availability: "Not Available",
-            mileage: "16,400 km",
-            transmission: "Automatic",
-            fuelType: "Electric",
-            seats: 5,
-            year: 2024,
-        },
-        {
-            name: "Alexander Walker",
-            location: "Atlanta, USA",
-            image: img1,
-            price: "$490",
-            rating: 4.7,
-            availability: "Available",
-            mileage: "12,900 km",
-            transmission: "Manual",
-            fuelType: "Petrol",
-            seats: 5,
-            year: 2022,
-        },
-        {
-            name: "Charlotte Hall",
-            location: "Columbus, USA",
-            image: img2,
-            price: "$560",
-            rating: 4.8,
-            availability: "Available",
-            mileage: "8,500 km",
-            transmission: "Automatic",
-            fuelType: "Hybrid",
-            seats: 5,
-            year: 2023,
-        },
-        {
-            name: "Jack Allen",
-            location: "Kansas City, USA",
-            image: img3,
-            price: "$530",
-            rating: 4.7,
-            availability: "Not Available",
-            mileage: "22,300 km",
-            transmission: "Automatic",
-            fuelType: "Diesel",
-            seats: 7,
-            year: 2021,
-        },
-        {
-            name: "Grace Young",
-            location: "Minneapolis, USA",
-            image: img4,
-            price: "$580",
-            rating: 4.9,
-            availability: "Available",
-            mileage: "19,600 km",
-            transmission: "Manual",
-            fuelType: "Electric",
-            seats: 5,
-            year: 2024,
-        },
-        {
-            name: "Ethan King",
-            location: "Detroit, USA",
-            image: img1,
-            price: "$495",
-            rating: 4.6,
-            availability: "Available",
-            mileage: "17,800 km",
-            transmission: "Automatic",
-            fuelType: "Petrol",
-            seats: 5,
-            year: 2022,
-        },
-        {
-            name: "Harper Scott",
-            location: "Tampa, USA",
-            image: img2,
-            price: "$510",
-            rating: 4.7,
-            availability: "Available",
-            mileage: "14,000 km",
-            transmission: "Manual",
-            fuelType: "Diesel",
-            seats: 5,
-            year: 2021,
-        },
-        {
-            name: "Sebastian Adams",
-            location: "Raleigh, USA",
-            image: img3,
-            price: "$545",
-            rating: 4.8,
-            availability: "Available",
-            mileage: "11,500 km",
-            transmission: "Automatic",
-            fuelType: "Hybrid",
-            seats: 5,
-            year: 2023,
-        },
-        {
-            name: "Victoria Baker",
-            location: "Nashville, USA",
-            image: img4,
-            price: "$620",
-            rating: 5,
-            availability: "Available",
-            mileage: "9,200 km",
-            transmission: "Automatic",
-            fuelType: "Electric",
-            seats: 5,
-            year: 2024,
-        },
-        {
-            name: "Matthew Perez",
-            location: "Charlotte, USA",
-            image: img1,
-            price: "$485",
-            rating: 4.5,
-            availability: "Not Available",
-            mileage: "23,000 km",
-            transmission: "Manual",
-            fuelType: "Petrol",
-            seats: 5,
-            year: 2021,
-        },
-        {
-            name: "Ella Roberts",
-            location: "Oklahoma City, USA",
-            image: img3,
-            price: "$575",
-            rating: 4.8,
-            availability: "Available",
-            mileage: "13,800 km",
-            transmission: "Automatic",
-            fuelType: "Hybrid",
-            seats: 5,
-            year: 2023,
-        },
-        {
-            name: "David Turner",
-            location: "Indianapolis, USA",
-            image: img1,
-            price: "$540",
-            rating: 4.7,
-            availability: "Available",
-            mileage: "15,200 km",
-            transmission: "Automatic",
-            fuelType: "Diesel",
-            seats: 7,
-            year: 2022,
-        },
-        {
-            name: "Scarlett Rivera",
-            location: "Memphis, USA",
-            image: img2,
-            price: "$610",
-            rating: 4.9,
-            availability: "Available",
-            mileage: "10,700 km",
-            transmission: "Automatic",
-            fuelType: "Electric",
-            seats: 5,
-            year: 2024,
-        },
-        {
-            name: "Logan Campbell",
-            location: "Louisville, USA",
-            image: img3,
-            price: "$500",
-            rating: 4.6,
-            availability: "Not Available",
-            mileage: "20,500 km",
-            transmission: "Manual",
-            fuelType: "Petrol",
-            seats: 5,
-            year: 2021,
-        },
-        {
-            name: "Zoe Mitchell",
-            location: "Baltimore, USA",
-            image: img4,
-            price: "$595",
-            rating: 4.8,
-            availability: "Available",
-            mileage: "12,600 km",
-            transmission: "Automatic",
-            fuelType: "Hybrid",
-            seats: 5,
-            year: 2023,
-        },
-    ];
+    // Transform car data to match the expected car card props
+    const transformCarData = (car) => ({
+        id: car.id,
+        name: car.car_Rental?.carName || car.carModel,
+        location: `${car.carCity}, ${car.carCountry}`,
+        image: car.carImages?.[0] || "/car/default-car.png",
+        price: `$${car.carPriceDay}`,
+        rating: parseFloat(car.carRating) || 4.5,
+        type: car.carType,
+        seats: car.carSeats,
+        transmission: car.carTransmission,
+        fuelType: car.fuelType,
+        discount: car.discount,
+        isAvailable: car.isBooked === "AVAILABLE",
+    });
 
+    // Update cars when new data is loaded
+    useEffect(() => {
+        if (carsData?.data?.data) {
+            setCars(prev => {
+                // If it's the first page, replace the data, otherwise append
+                if (page === 1) {
+                    return carsData.data.data.map(transformCarData);
+                }
+                return [...prev, ...carsData.data.data.map(transformCarData)];
+            });
+            
+            // Check if there are more pages
+            if (carsData.meta && carsData.meta.totalPages <= page) {
+                setHasMore(false);
+            }
+        }
+    }, [carsData, page]);
+
+    // Handle scroll for infinite loading
+    const handleObserver = useCallback((entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && !isFetching && hasMore) {
+            setPage(prev => prev + 1);
+        }
+    }, [isFetching, hasMore]);
+
+    // Set up intersection observer
+    useEffect(() => {
+        const option = {
+            root: null,
+            rootMargin: "20px",
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver(handleObserver, option);
+        if (loader.current) observer.observe(loader.current);
+
+        return () => {
+            if (loader.current) observer.unobserve(loader.current);
+        };
+    }, [handleObserver]);
+
+    const handleSearch = () => {
+        // Reset pagination and fetch first page when search is performed
+        setPage(1);
+        setCars([]);
+        setHasMore(true);
+    };
+       
 
 
 
     return (
-        <div className='py-16'>
-            <div className="bg-white rounded-2xl shadow-lg w-full container mx-auto p-5">
-                <div className="mb-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className='py-16 container mx-auto'>
+            <div className="bg-white p-5 rounded-2xl shadow-lg w-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
                     {/* Location Input */}
                     <div className="space-y-2">
                         <input
                             type="text"
                             placeholder="Find Location"
-                            className="w-full p-3 border border-gray-200 rounded-lg"
+                            className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
                         />
                     </div>
-                    {/* Check-in & Check-out */}
+                    {/* Start Date & End Date */}
                     <RangePicker
                         placeholder={['Start Date', 'End Date']}
                         value={dateRange}
                         onChange={setDateRange}
                         style={{ width: '100%' }}
                     />
+                    {/* Car Type */}
+                    <div className="space-y-2">
+                        <select className="w-full p-3 border border-gray-200 rounded-lg text-gray-500 placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]">
+                            <option value="">Select Car Type</option>
+                            <option value="Sedan">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Luxury">Luxury</option>
+                            <option value="Sports">Sports</option>
+                        </select>
+                    </div>
                 </div>
                 {/* Search Button */}
-                <div className="">
-                    <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
+                <div>
+                    <button 
+                        className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold"
+                        onClick={handleSearch}
+                    >
                         Search
                     </button>
                 </div>
             </div>
-            {/* Services Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto pt-10">
-                {CarProviders.map((car, index) => (
-                    <CarCard key={index} car={car} />
+
+            {/* Cars Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto py-10">
+                {cars.map((car, index) => (
+                    <CarCard key={`${car.id}-${index}`} car={car} />
                 ))}
             </div>
+
+            {/* Loading spinner */}
+            {(isLoading || isFetching) && (
+                <div className="col-span-full flex justify-center py-8">
+                    <Spin size="large" />
+                </div>
+            )}
+            
+            {/* Intersection observer target */}
+            <div ref={loader} style={{ height: '20px' }} />
+            
+            {/* No results message */}
+            {!isLoading && cars.length === 0 && (
+                <div className="col-span-full text-center py-10">
+                    <p className="text-gray-500">No cars found.</p>
+                </div>
+            )}
         </div>
-    )
+    );
 }

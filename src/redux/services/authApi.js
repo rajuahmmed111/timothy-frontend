@@ -3,15 +3,16 @@ import { API_BASE_URL } from '../../config/env';
 
 export const authApi = createApi({
   reducerPath: 'authApi',
+  tagTypes: ['Profile'],
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
     prepareHeaders: (headers, { getState }) => {
       const token = getState()?.auth?.accessToken;
       if (token) headers.set('Authorization', `${token}`);
-      headers.set('content-type', 'application/json');
       return headers;
     },
   }),
+  
   endpoints: (builder) => ({
     registerUser: builder.mutation({
       query: (body) => ({
@@ -32,6 +33,7 @@ export const authApi = createApi({
         url: '/users/my-profile',
         method: 'GET',
       }),
+      providesTags: ['Profile'],
     }),
   }),
 });

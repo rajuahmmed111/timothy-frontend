@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Dashboard from "../Profile/HotelManagement/Dashboard";
-import AddBusiness from "../Profile/HotelManagement/AddBusiness";
+import AddCarBusiness from "./AddCarBusiness";
 import ReviewBusiness from "../Profile/HotelManagement/ReviewBusiness";
 import CarBookings from "./CarBookings";
 import CarListings from "./CarListings";
@@ -50,7 +50,7 @@ export default function CarManagement() {
                     <CarListings />
                 )}
                 {activeTab === "addBusiness" && (
-                    <AddBusiness />
+                    <AddCarBusiness />
                 )}
                 {activeTab === "reviewBusiness" && (
                     <ReviewBusiness />

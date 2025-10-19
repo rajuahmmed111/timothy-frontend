@@ -1,8 +1,29 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { forgotPassword } from "../../redux/features/auth/authSlice";
+import Swal from "sweetalert2";
 
 export default function ForgetPassword() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const onSubmit = async (e) => {
+        e.preventDefault();
+        const form = new FormData(e.currentTarget);
+        const email = form.get("email");
+        if (!email) {
+            Swal.fire({ icon: "warning", title: "Missing email", text: "Please enter your email" });
+            return;
+        }
+        try {
+            await dispatch(forgotPassword(email)).unwrap();
+            await Swal.fire({ icon: "success", title: "Code sent", text: "Check your email for the verification code" });
+            navigate("/verification-code");
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Failed", text: typeof err === 'string' ? err : (err?.message || "Failed to send code") });
+        }
+    };
 
     return (
         <div className="bg-white min-h-screen flex items-center justify-center p-5">
@@ -12,7 +33,7 @@ export default function ForgetPassword() {
                         <h2 className="text-[#0D0D0D] text-2xl  font-bold text-center mb-5">
                             Forgot password ?
                         </h2>
-                        <form className="space-y-5">
+                        <form className="space-y-5" onSubmit={onSubmit}>
                             <div>
                                 <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
                                     Email
@@ -28,8 +49,7 @@ export default function ForgetPassword() {
 
                             <div className="flex justify-center items-center">
                                 <button
-                                    onClick={() => navigate("/verification-code")}
-                                    type="button"
+                                    type="submit"
                                     className="w-1/3 bg-[#0064D2] text-white font-bold py-3 rounded-lg shadow-lg cursor-pointer mt-5"
                                 >
                                     Send Code

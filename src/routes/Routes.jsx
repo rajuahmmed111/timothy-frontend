@@ -45,6 +45,7 @@ import DashboardLayout from '../layout/DashboardLayout';
 import Profile from '../pages/Dashboard/Profile/Profile';
 
 import HotelManagement from '../pages/Dashboard/Profile/HotelManagement/HotelManagement';
+import CreateHotelRoom from '../pages/Dashboard/Profile/HotelManagement/Dashboard/CreateHotelRoom';
 
 import MyVouchers from '../pages/Dashboard/MyVouchers/MyVouchers';
 import PaymentMethods from '../pages/Dashboard/PaymentMethods/PaymentMethods';
@@ -279,6 +280,14 @@ export const routes = createBrowserRouter([
                 element: (
                     <RoleRoute allowed={["BUSINESS_PARTNER"]}>
                         <HotelManagement />
+                    </RoleRoute>
+                ),
+            },
+            {
+                path: "add-listing",
+                element: (
+                    <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+                        <CreateHotelRoom />
                     </RoleRoute>
                 ),
             },
