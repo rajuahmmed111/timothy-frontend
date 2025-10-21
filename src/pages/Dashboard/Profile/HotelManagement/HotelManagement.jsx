@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import Dashboard from "./Dashboard";
-import Bookings from "./Bookings";
-import ListingsForHotel from "./ListingsForHotel";
-import AddHotelBusiness from "./AddHotelBusiness";
+import AddHotelBusiness from "../../../../components/Hotel/AddHotelBusiness";
 import ReviewBusiness from "./ReviewBusiness";
 import AvailableListing from "./AvailableListing";
+import HotelRooms from "../../../../components/Hotel/HotelRooms";
+import HotelBookings from "../../../../components/Hotel/HotelBookings";
 
 export default function HotelManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -16,7 +16,6 @@ export default function HotelManagement() {
     { id: "addBusiness", label: "Add Business" },
     { id: "reviewBusiness", label: "Review Business" },
     { id: "availableListing", label: "Available Listing" },
-
   ];
 
   return (
@@ -27,10 +26,11 @@ export default function HotelManagement() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === tab.id
-              ? "bg-white text-blue-600 shadow"
-              : "text-white hover:bg-blue-500"
-              }`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              activeTab === tab.id
+                ? "bg-white text-blue-600 shadow"
+                : "text-white hover:bg-blue-500"
+            }`}
           >
             {tab.label}
           </button>
@@ -39,24 +39,12 @@ export default function HotelManagement() {
 
       {/* Content */}
       <div className="mt-6">
-        {activeTab === "dashboard" && (
-          <Dashboard />
-        )}
-        {activeTab === "booking" && (
-          <Bookings />
-        )}
-        {activeTab === "listings" && (
-          <ListingsForHotel />
-        )}
-        {activeTab === "addBusiness" && (
-          <AddHotelBusiness />
-        )}
-        {activeTab === "reviewBusiness" && (
-          <ReviewBusiness />
-        )}
-        {activeTab === "availableListing" && (
-          <AvailableListing />
-        )}
+        {activeTab === "dashboard" && <Dashboard />}
+        {activeTab === "booking" && <HotelBookings />}
+        {activeTab === "listings" && <HotelRooms />}
+        {activeTab === "addBusiness" && <AddHotelBusiness />}
+        {activeTab === "reviewBusiness" && <ReviewBusiness />}
+        {activeTab === "availableListing" && <AvailableListing />}
       </div>
     </div>
   );

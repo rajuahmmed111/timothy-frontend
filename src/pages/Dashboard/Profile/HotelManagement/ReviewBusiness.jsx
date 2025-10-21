@@ -216,7 +216,6 @@ export default function ReviewBusiness() {
                             pageSize={pagination.pageSize}
                             total={pagination.total}
                             onChange={handlePageChange}
-                            showSizeChanger
                             showQuickJumper
                             showTotal={(total) => `Total ${total} hotels`}
                         />

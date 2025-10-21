@@ -2,16 +2,14 @@ import React, { useState } from "react";
 import { Table, ConfigProvider, Modal, Button, message } from "antd";
 import { Eye, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-// import RoomDetailsModal from "./RoomDetailsModal";
-
-import Loader from "../../../../shared/Loader/Loader";
+import Loader from "../../shared/Loader/Loader";
+import RoomDetailsModal from "./RoomDetailsModal";
 import {
   useDeleteHotelRoomMutation,
-  useGetHotelAvailableRoomsQuery,
-} from "../../../../redux/api/hotel/hotelApi";
-import RoomDetailsModal from "../../../../components/Hotel/RoomDetailsModal";
+  useGetHotelRoomsQuery,
+} from "../../redux/api/hotel/hotelApi";
 
-export default function AvailableHotelRooms() {
+export default function HotelRooms() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState(null);
@@ -19,19 +17,21 @@ export default function AvailableHotelRooms() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  const { data, isLoading } = useGetHotelAvailableRoomsQuery({
+  const { data, isLoading } = useGetHotelRoomsQuery({
     page,
     limit,
-    isBooked: "AVAILABLE",
   });
+
+  console.log("data", data);
   const [deleteHotelRoom, { isLoading: isDeleting }] =
     useDeleteHotelRoomMutation();
   const rooms = data?.data?.data || [];
+  console.log("rooms", rooms);
   const total = data?.data?.meta?.total || 0;
 
-  const roomsData = rooms.map((room) => ({
+  const roomsData = rooms?.map((room) => ({
     ...room,
-    key: room.id,
+    key: room?.id,
     image: room?.hotelRoomImages?.[0],
     roomType: room?.hotelRoomType,
     location: `${room?.hotel?.hotelCity}, ${room?.hotel?.hotelCountry}`,
@@ -127,7 +127,7 @@ export default function AvailableHotelRooms() {
   return (
     <div className="p-5">
       <div className="mb-5 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Available Hotel Listings</h2>
+        <h2 className="text-xl font-semibold">Hotel Listings</h2>
         <div className="space-y-2 w-[400px] flex gap-2">
           <input
             type="text"

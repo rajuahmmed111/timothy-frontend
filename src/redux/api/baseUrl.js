@@ -1,15 +1,16 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { API_BASE_URL } from '../../config/env';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_BASE_URL } from "../../config/env";
 
 export const baseApi = createApi({
-  reducerPath: 'baseApi',
+  reducerPath: "baseApi",
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
     prepareHeaders: (headers, { getState }) => {
       const token = getState()?.auth?.accessToken;
-      if (token) headers.set('Authorization', `${token}`);
+      if (token) headers.set("Authorization", `${token}`);
       return headers;
     },
   }),
-  endpoints: () => ({}), // Initialize with empty endpoints
+  endpoints: () => ({}),
+  tagTypes: ["Security", "SecurityBooking", "hotel", "HotelRoom"],
 });

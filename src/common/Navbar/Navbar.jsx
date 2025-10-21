@@ -164,12 +164,12 @@ export default function Navbar() {
                 <img
                   src={getCurrentFlag()}
                   alt="flag"
-                  className="w-5 h-4 rounded-full"
+                  className="w-8 h-8 rounded-full"
                 />
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-xl font-medium text-gray-700">
                   {selectedLanguage}
                 </span>
-                <ChevronDown className="w-4 h-4 text-gray-600" />
+                <ChevronDown className="w-6 h-6 text-gray-600" />
               </button>
 
               {isLanguageOpen && (
@@ -190,9 +190,11 @@ export default function Navbar() {
                       <img
                         src={language.flag}
                         alt={`${language.name} flag`}
-                        className="w-5 h-4 rounded-full"
+                        className="w-8 h-8 rounded-full"
                       />
-                      <span>{language.name}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {language.name}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -201,7 +203,7 @@ export default function Navbar() {
 
             {/* Cart - Hidden on mobile */}
             <button className="hidden sm:block p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <ShoppingCart className="w-5 h-5 text-gray-600" />
+              <ShoppingCart className="w-8 h-8 text-gray-600" />
             </button>
 
             {/* Auth/Profile Area */}
