@@ -3,8 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Upload, X } from "lucide-react";
 import Swal from "sweetalert2";
-import { useGetHotelBusinessPartnerMutation } from "../../redux/api/hotel/getHotelBusinessPartner";
-import { useAddHotelRoomMutation } from "../../redux/api/hotel/hotelApi";
+import { useAddHotelRoomMutation, useGetHotelBusinessPartnerMutation } from "../../redux/api/hotel/hotelApi";
 
 export default function CreateHotelRoom() {
   const [loading, setLoading] = useState(false);
@@ -63,6 +62,7 @@ export default function CreateHotelRoom() {
   });
   const [getPartner, { data: hotelData, isLoading: isPartnerLoading }] =
     useGetHotelBusinessPartnerMutation();
+
   useEffect(() => {
     getPartner({ limit: 1000, page: 1 });
   }, [getPartner]);

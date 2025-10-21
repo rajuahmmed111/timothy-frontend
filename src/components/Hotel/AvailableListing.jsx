@@ -19,15 +19,15 @@ export default function AvailableHotelRooms() {
   const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch all available rooms once; we'll do client-side search & pagination
-  const { data, isLoading } = useGetHotelAvailableRoomsQuery();
+  // Fetch available rooms with server-side pagination
+  const { data, isLoading } = useGetHotelAvailableRoomsQuery({ page, limit });
 
   const [deleteHotelRoom, { isLoading: isDeleting }] =
     useDeleteHotelRoomMutation();
   const rooms = data?.data || [];
 
-  // Client-side search by type and location
-  const filtered = rooms.filter((room) => {
+  // Client-side search by type and location (on current page data)
+  const filtered = rooms?.data?.filter((room) => {
     const haystack = [
       room?.hotelRoomType,
       room?.hotel?.hotelCity,
@@ -37,13 +37,12 @@ export default function AvailableHotelRooms() {
       .join(" ")
       .toLowerCase();
     return haystack.includes(searchTerm.toLowerCase());
-  });
+  }) || [];
 
-  // Client-side pagination
+  // Use server-provided total; index rows by overall position
   const start = (page - 1) * limit;
-  const end = start + limit;
-  const paged = filtered.slice(start, end);
-  const total = filtered.length;
+  const paged = filtered; // already current page data
+  const total = rooms?.meta?.total || 0;
 
   const roomsData = paged.map((room) => ({
     ...room,
@@ -60,7 +59,7 @@ export default function AvailableHotelRooms() {
     {
       title: "No",
       key: "no",
-      render: (_, __, index) => (page - 1) * limit + index + 1,
+      render: (_, __, index) => start + index + 1,
     },
     {
       title: "Image",
@@ -197,10 +196,12 @@ export default function AvailableHotelRooms() {
             total: total,
             showSizeChanger: false,
             showQuickJumper: false,
+            simple: false,
+            hideOnSinglePage: false,
+            showLessItems: false,
           }}
           onChange={(pager) => {
             setPage(pager.current || 1);
-            setLimit(pager.pageSize || 10);
           }}
           loading={isLoading}
         />

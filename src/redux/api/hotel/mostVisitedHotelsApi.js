@@ -8,7 +8,6 @@ export const hotelsApiExtended = baseApi.injectEndpoints({
         url: `/hotels/popular?limit=${limit}`,
         method: "GET",
       }),
-      // If you later add tags for hotels, you can provide them here
     }),
   }),
   overrideExisting: false,

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Table, ConfigProvider, Modal, Button, message } from "antd";
-import { Eye, Trash } from "lucide-react";
+import { Table, ConfigProvider, Modal, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../shared/Loader/Loader";
 import RoomDetailsModal from "./RoomDetailsModal";
@@ -25,21 +24,20 @@ export default function RecentHotelRooms() {
   const [deleteHotelRoom, { isLoading: isDeleting }] =
     useDeleteHotelRoomMutation();
   const rooms = data?.data?.data || [];
-  const total = data?.data?.meta?.total || 0;
 
   const roomsData = (rooms ? [...rooms] : [])
     .sort((a, b) => new Date(b?.createdAt) - new Date(a?.createdAt))
     .slice(0, 5)
     .map((room) => ({
-    ...room,
-    key: room?.id,
-    image: room?.hotelRoomImages?.[0],
-    roomType: room?.hotelRoomType,
-    location: `${room?.hotel?.hotelCity}, ${room?.hotel?.hotelCountry}`,
-    price: `$${room?.hotelRoomPriceNight}/night`,
-    rating: `⭐ ${room?.hotelRating || "N/A"}`,
-    status: room?.isBooked,
-  }));
+      ...room,
+      key: room?.id,
+      image: room?.hotelRoomImages?.[0],
+      roomType: room?.hotelRoomType,
+      location: `${room?.hotel?.hotelCity}, ${room?.hotel?.hotelCountry}`,
+      price: `$${room?.hotelRoomPriceNight}/night`,
+      rating: `⭐ ${room?.hotelRating || "N/A"}`,
+      status: room?.isBooked,
+    }));
 
   const columns = [
     {
@@ -82,43 +80,6 @@ export default function RecentHotelRooms() {
       dataIndex: "rating",
       key: "rating",
     },
-    {
-      title: "Status",
-      key: "status",
-      render: (_, record) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs ${
-            (record.status || record.isBooked) === "AVAILABLE"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {record.status || record.isBooked}
-        </span>
-      ),
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <div className="flex gap-3">
-          <Eye
-            className="text-[#3b82f6] w-6 h-6 cursor-pointer"
-            onClick={() => {
-              setSelectedHotel(record);
-              setIsViewModalOpen(true);
-            }}
-          />
-          <Trash
-            className="text-red-500 w-6 h-6 cursor-pointer"
-            onClick={() => {
-              setSelectedHotel(record);
-              setIsDeleteModalOpen(true);
-            }}
-          />
-        </div>
-      ),
-    },
   ];
 
   if (isLoading) {
@@ -129,20 +90,6 @@ export default function RecentHotelRooms() {
     <div className="p-5">
       <div className="mb-5 flex justify-between items-center">
         <h2 className="text-xl font-semibold">Recent Hotel Rooms</h2>
-        <div className="space-y-2 w-[400px] flex gap-2">
-          <input
-            type="text"
-            placeholder="Search rooms..."
-            className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
-          />
-          <Button
-            type="primary"
-            onClick={() => navigate("/dashboard/add-listing")}
-            className="bg-blue-600 text-white !py-6 hover:bg-blue-700 p-3"
-          >
-            Add Listing
-          </Button>
-        </div>
       </div>
       <ConfigProvider
         theme={{

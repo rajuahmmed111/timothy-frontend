@@ -44,7 +44,7 @@ import EventBookingConfirmation from "../pages/AttractionReservation/EventBookin
 import DashboardLayout from "../layout/DashboardLayout";
 import Profile from "../pages/Dashboard/Profile/Profile";
 
-import HotelManagement from "../pages/Dashboard/Profile/HotelManagement/HotelManagement";
+import HotelManagement from "../pages/Dashboard/HotelManagement/HotelManagement";
 import CreateHotelRoom from "../components/Hotel/CreateHotelRoom";
 
 import MyVouchers from "../pages/Dashboard/MyVouchers/MyVouchers";

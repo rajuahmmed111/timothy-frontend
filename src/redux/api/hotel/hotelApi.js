@@ -3,10 +3,13 @@ import { baseApi } from "../baseUrl";
 export const hotelApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getHotelRooms: builder.query({
-      query: (params) => ({
+      query: ({ page, limit }) => ({
         url: `/hotels/room-active-listing`,
         method: "GET",
-        params,
+        params: {
+          page,
+          limit,
+        },
       }),
       providesTags: ["hotel"],
     }),
@@ -23,6 +26,13 @@ export const hotelApi = baseApi.injectEndpoints({
         url: `/hotel-booking`,
         method: "GET",
         params,
+      }),
+      providesTags: ["hotel"],
+    }),
+    getTotalSales: builder.query({
+      query: () => ({
+        url: `/statistics/partner-total-earnings-hotel`,
+        method: "GET",
       }),
       providesTags: ["hotel"],
     }),
@@ -49,6 +59,29 @@ export const hotelApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["hotel"],
     }),
+    getHotelBusinessPartner: builder.mutation({
+      query: ({ limit, page }) => ({
+        url: `/hotels/partner-hotels?limit=${limit}&page=${page}`,
+        method: "GET",
+        prepareHeaders: (headers) => {
+          headers.set("Accept", "application/json");
+          return headers;
+        },
+      }),
+      invalidatesTags: ["HotelBusinessPartner"],
+    }),
+    updateHotelBusiness: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/hotels/${id}`,
+        method: "PATCH",
+        body: data,
+        prepareHeaders: (headers) => {
+          headers.set("Accept", "application/json");
+          return headers;
+        },
+      }),
+      invalidatesTags: ["HotelBusinessPartner"],
+    }),
   }),
 });
 
@@ -56,7 +89,10 @@ export const {
   useGetHotelRoomsQuery,
   useGetHotelAvailableRoomsQuery,
   useGetHotelBookingsQuery,
+  useGetTotalSalesQuery,
   useDeleteHotelRoomMutation,
   useAddHotelRoomMutation,
   useAddHotelBusinessMutation,
+  useGetHotelBusinessPartnerMutation,
+  useUpdateHotelBusinessMutation,
 } = hotelApi;

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import Dashboard from "../../../../components/Hotel/Dashboard";
-import HotelBookings from "../../../../components/Hotel/HotelBookings";
-import HotelRooms from "../../../../components/Hotel/HotelRooms";
-import AddHotelBusiness from "../../../../components/Hotel/AddHotelBusiness";
-import ReviewBusiness from "../../../../components/Hotel/ReviewBusiness";
-import AvailableHotelRooms from "../../../../components/Hotel/AvailableListing";
+import Dashboard from "../../../components/Hotel/Dashboard";
+import HotelBookings from "../../../components/Hotel/HotelBookings";
+import HotelRooms from "../../../components/Hotel/HotelRooms";
+import AddHotelBusiness from "../../../components/Hotel/AddHotelBusiness";
+import ReviewBusiness from "../../../components/Hotel/ReviewBusiness";
+import AvailableHotelRooms from "../../../components/Hotel/AvailableListing";
 
 export default function HotelManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");

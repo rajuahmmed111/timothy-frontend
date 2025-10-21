@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import dayjs from "dayjs";
+import React from "react";
 import {
   BarChart,
   Bar,
@@ -8,72 +7,101 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ChevronDown } from "lucide-react";
 import RecentHotelRooms from "./RecentHotelRooms";
+import { useGetTotalSalesQuery } from "../../redux/api/hotel/hotelApi";
 
-const salesData = [
-  { month: "Jan", sales: 1200 },
-  { month: "Feb", sales: 2100 },
-  { month: "Mar", sales: 2800 },
-  { month: "Apr", sales: 2500 },
-  { month: "May", sales: 3200 },
-  { month: "Jun", sales: 3000 },
-  { month: "Jul", sales: 3400 },
-  { month: "Aug", sales: 3600 },
-  { month: "Sep", sales: 3300 },
-  { month: "Oct", sales: 3700 },
-  { month: "Nov", sales: 3900 },
-  { month: "Dec", sales: 4000 },
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 export default function Dashboard() {
-  const currentYear = dayjs().year();
-  const startYear = 1900;
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [isOpen, setIsOpen] = useState(false);
+  const { data: totalSalesRes } = useGetTotalSalesQuery();
 
-  const years = Array.from(
-    { length: currentYear - startYear + 1 },
-    (_, index) => startYear + index
-  );
+  const normalizeMonthly = (res) => {
+    const out = {};
+    const payload = res?.data ?? res;
+    if (!payload) return out;
 
-  const handleSelect = (year) => {
-    setSelectedYear(year);
-    setIsOpen(false);
+    const abbr = (name) => {
+      if (!name || typeof name !== "string") return undefined;
+      const n = name.toLowerCase();
+      if (n.startsWith("jan")) return "Jan";
+      if (n.startsWith("feb")) return "Feb";
+      if (n.startsWith("mar")) return "Mar";
+      if (n.startsWith("apr")) return "Apr";
+      if (n.startsWith("may")) return "May";
+      if (n.startsWith("jun")) return "Jun";
+      if (n.startsWith("jul")) return "Jul";
+      if (n.startsWith("aug")) return "Aug";
+      if (n.startsWith("sep")) return "Sep";
+      if (n.startsWith("oct")) return "Oct";
+      if (n.startsWith("nov")) return "Nov";
+      if (n.startsWith("dec")) return "Dec";
+      return undefined;
+    };
+
+    if (Array.isArray(payload)) {
+      payload.forEach((item) => {
+        const m = item?.month;
+        const v =
+          item?.total ?? item?.sales ?? item?.amount ?? item?.value ?? 0;
+        if (m) out[m] = Number(v) || 0;
+      });
+      return out;
+    }
+
+    if (Array.isArray(payload?.monthlyEarnings)) {
+      payload.monthlyEarnings.forEach((item) => {
+        const m = item?.month;
+        const v =
+          item?.total ?? item?.sales ?? item?.amount ?? item?.value ?? 0;
+        if (m) out[m] = Number(v) || 0;
+      });
+      return out;
+    }
+
+    if (Array.isArray(payload?.paymentMonthsData)) {
+      payload.paymentMonthsData.forEach((item) => {
+        const m = abbr(item?.month);
+        const v = item?.serviceEarnings ?? 0;
+        if (m) out[m] = Number(v) || 0;
+      });
+      return out;
+    }
+
+    if (payload?.monthly && typeof payload.monthly === "object") {
+      Object.entries(payload.monthly).forEach(([m, v]) => {
+        out[m] = Number(v) || 0;
+      });
+      return out;
+    }
+
+    return out;
   };
+
+  const monthlyMap = normalizeMonthly(totalSalesRes);
+  const salesData = MONTHS.map((m) => ({
+    month: m,
+    sales: monthlyMap[m] || 0,
+  }));
   return (
     <div className="p-6 space-y-8">
       {/* Sales Bar Chart */}
       <div className="bg-gray-100 rounded-2xl shadow p-5">
         <div className="flex justify-between items-center py-5">
           <h2 className="text-xl font-bold mb-4">Total Sales</h2>
-          <div className="relative w-full md:w-32">
-            {/* Selected Year Display */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md flex justify-between items-center bg-white transition"
-            >
-              <span className="text-[#0064D2]">{selectedYear}</span>
-              <ChevronDown className="text-[#0064D2] w-5 h-5 ml-5" />
-            </button>
-
-            {/* Dropdown List */}
-            {isOpen && (
-              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
-                {years.map((year) => (
-                  <div
-                    key={year}
-                    onClick={() => handleSelect(year)}
-                    className={`p-2 cursor-pointer hover:bg-gray-100 transition ${
-                      year === selectedYear ? "bg-gray-200" : ""
-                    }`}
-                  >
-                    {year}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <div className="relative w-full md:w-32"></div>
         </div>
 
         <ResponsiveContainer width="100%" height={300}>
@@ -92,7 +120,6 @@ export default function Dashboard() {
       </div>
 
       <div className="space-y-10">
-        <h1 className="text-gray-900 text-2xl font-bold">Recent Hotel Rooms</h1>
         <RecentHotelRooms />
       </div>
     </div>

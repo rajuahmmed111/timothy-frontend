@@ -15,37 +15,36 @@ export default function HotelRooms() {
   const [selectedHotel, setSelectedHotel] = useState(null);
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(1000); // fetch many to show all
+  const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data, isLoading } = useGetHotelRoomsQuery({
-    page,
-    limit,
-  });
-
+  // Fetch many rooms to enable full client-side search & pagination
+  const { data, isLoading } = useGetHotelRoomsQuery({ page, limit });
   console.log("data", data);
+  const rooms = data?.data || [];
+  console.log("rooms", rooms);
+  
+  const metaPage = rooms?.meta?.page;
+  const metaLimit = rooms?.meta?.limit;
+  const total = rooms?.meta?.total;
+
   const [deleteHotelRoom, { isLoading: isDeleting }] =
     useDeleteHotelRoomMutation();
-  const rooms = data?.data?.data || [];
-  console.log("rooms", rooms);
-  const _apiTotal = data?.data?.meta?.total || 0;
 
   // Client-side search
-  const filtered = rooms.filter((room) => {
-    const haystack = [
-      room?.hotelRoomType,
-      room?.hotel?.hotelCity,
-      room?.hotel?.hotelCountry,
-      room?.isBooked,
-    ]
+  const filtered = rooms?.data?.filter((room) => {
+    const haystack = [room?.hotelRoomType]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
     return haystack.includes(searchTerm.toLowerCase());
   });
 
-  // Show all data (no client-side slicing)
-  const roomsData = filtered?.map((room, index) => ({
+  const start = (page - 1) * limit;
+  const paginated = filtered || [];
+
+
+  const roomsData = paginated?.map((room, index) => ({
     ...room,
     key: room?.id,
     image: room?.hotelRoomImages?.[0],
@@ -60,7 +59,7 @@ export default function HotelRooms() {
     {
       title: "No",
       key: "no",
-      render: (_, __, index) => index + 1,
+      render: (_, __, index) => start + index + 1,
     },
     {
       title: "Image",
@@ -191,7 +190,19 @@ export default function HotelRooms() {
           rowKey="id"
           dataSource={roomsData}
           columns={columns}
-          pagination={false}
+          pagination={{
+            current: page,
+            pageSize: limit,
+            total: total,
+            showSizeChanger: false,
+            showQuickJumper: false,
+            simple: false,
+            hideOnSinglePage: false,
+            showLessItems: false,
+          }}
+          onChange={(pager) => {
+            setPage(pager.current || 1);
+          }}
           loading={isLoading}
         />
       </ConfigProvider>
