@@ -82,6 +82,12 @@ export const hotelApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["HotelBusinessPartner"],
     }),
+    getPopularHotels: builder.query({
+      query: (limit = 4) => ({
+        url: `/hotels/popular?limit=${limit}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -95,4 +101,5 @@ export const {
   useAddHotelBusinessMutation,
   useGetHotelBusinessPartnerMutation,
   useUpdateHotelBusinessMutation,
+  useGetPopularHotelsQuery,
 } = hotelApi;
