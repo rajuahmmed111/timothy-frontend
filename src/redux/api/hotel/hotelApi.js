@@ -4,21 +4,17 @@ export const hotelApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getHotelRooms: builder.query({
       query: (params) => ({
-        url: `/hotels/rooms`,
+        url: `/hotels/room-active-listing`,
         method: "GET",
         params,
       }),
       providesTags: ["hotel"],
     }),
     getHotelAvailableRooms: builder.query({
-      query: ({ limit = 10, page = 1, isBooked } = {}) => ({
-        url: `/hotels/rooms`,
+      query: (params) => ({
+        url: `/hotels/available-rooms`,
         method: "GET",
-        params: {
-          limit,
-          page,
-          ...(isBooked ? { isBooked } : {}),
-        },
+        params,
       }),
       providesTags: ["hotel"],
     }),
@@ -53,7 +49,6 @@ export const hotelApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["hotel"],
     }),
-    
   }),
 });
 

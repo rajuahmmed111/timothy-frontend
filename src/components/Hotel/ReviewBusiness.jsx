@@ -10,8 +10,8 @@ import {
     CheckCircleOutlined,
     CloseCircleOutlined
 } from '@ant-design/icons';
-import { useGetHotelBusinessPartnerMutation } from '../../../../redux/api/hotel/getHotelBusinessPartner';
-import HotelBusinessEdit from './HotelBusinessEdit';
+import { useGetHotelBusinessPartnerMutation } from '../../redux/api/hotel/getHotelBusinessPartner';
+import HotelBusinessEdit from '../../pages/Dashboard/Profile/HotelManagement/HotelBusinessEdit';
 
 const { Title, Text, Paragraph } = Typography;
 

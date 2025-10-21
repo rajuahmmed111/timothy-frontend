@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Dashboard from "../Profile/HotelManagement/Dashboard";
+import Dashboard from "../../../components/Hotel/Dashboard";
 import AddCarBusiness from "./AddCarBusiness";
-import ReviewBusiness from "../Profile/HotelManagement/ReviewBusiness";
+import ReviewBusiness from "../../../components/Hotel/ReviewBusiness";
 import CarBookings from "./CarBookings";
 import CarListings from "./CarListings";
 import AvailableCarListing from "./AvailableCarListing";
@@ -41,13 +41,13 @@ export default function CarManagement() {
             {/* Content */}
             <div className="mt-6">
                 {activeTab === "dashboard" && (
-                    <Dashboard />
+                    "Car Management Dashboard"
                 )}
                 {activeTab === "booking" && (
-                    <CarBookings />
+                    "Car Booking list"
                 )}
                 {activeTab === "listings" && (
-                    <CarListings />
+                    "Car Listings"
                 )}
                 {activeTab === "addBusiness" && (
                     <AddCarBusiness />

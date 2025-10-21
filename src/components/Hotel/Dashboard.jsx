@@ -8,8 +8,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import Hotels from "./Dashboard/Hotels";
 import { ChevronDown } from "lucide-react";
+import RecentHotelRooms from "./RecentHotelRooms";
 
 const salesData = [
   { month: "Jan", sales: 1200 },
@@ -25,8 +25,6 @@ const salesData = [
   { month: "Nov", sales: 3900 },
   { month: "Dec", sales: 4000 },
 ];
-
-
 
 export default function Dashboard() {
   const currentYear = dayjs().year();
@@ -66,8 +64,9 @@ export default function Dashboard() {
                   <div
                     key={year}
                     onClick={() => handleSelect(year)}
-                    className={`p-2 cursor-pointer hover:bg-gray-100 transition ${year === selectedYear ? "bg-gray-200" : ""
-                      }`}
+                    className={`p-2 cursor-pointer hover:bg-gray-100 transition ${
+                      year === selectedYear ? "bg-gray-200" : ""
+                    }`}
                   >
                     {year}
                   </div>
@@ -84,20 +83,18 @@ export default function Dashboard() {
             <Tooltip />
             <Bar
               dataKey="sales"
-              fill="#3b82f6"   // blue color
-              barSize={30}     // thinner bars (try 10–20)
+              fill="#3b82f6" // blue color
+              barSize={30} // thinner bars (try 10–20)
               radius={[10, 10, 0, 0]} // top-left, top-right rounded
             />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-
       <div className="space-y-10">
-        <h1 className="text-gray-900 text-2xl font-bold">Recent Listings</h1>
-        <Hotels />
+        <h1 className="text-gray-900 text-2xl font-bold">Recent Hotel Rooms</h1>
+        <RecentHotelRooms />
       </div>
-
     </div>
   );
 }

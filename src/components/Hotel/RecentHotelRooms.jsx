@@ -9,43 +9,28 @@ import {
   useGetHotelRoomsQuery,
 } from "../../redux/api/hotel/hotelApi";
 
-export default function HotelRooms() {
+export default function RecentHotelRooms() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState(null);
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(1000); // fetch many to show all
-  const [searchTerm, setSearchTerm] = useState("");
+  const [limit, setLimit] = useState(5);
 
   const { data, isLoading } = useGetHotelRoomsQuery({
     page,
     limit,
   });
 
-  console.log("data", data);
   const [deleteHotelRoom, { isLoading: isDeleting }] =
     useDeleteHotelRoomMutation();
   const rooms = data?.data?.data || [];
-  console.log("rooms", rooms);
-  const _apiTotal = data?.data?.meta?.total || 0;
+  const total = data?.data?.meta?.total || 0;
 
-  // Client-side search
-  const filtered = rooms.filter((room) => {
-    const haystack = [
-      room?.hotelRoomType,
-      room?.hotel?.hotelCity,
-      room?.hotel?.hotelCountry,
-      room?.isBooked,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    return haystack.includes(searchTerm.toLowerCase());
-  });
-
-  // Show all data (no client-side slicing)
-  const roomsData = filtered?.map((room, index) => ({
+  const roomsData = (rooms ? [...rooms] : [])
+    .sort((a, b) => new Date(b?.createdAt) - new Date(a?.createdAt))
+    .slice(0, 5)
+    .map((room) => ({
     ...room,
     key: room?.id,
     image: room?.hotelRoomImages?.[0],
@@ -143,24 +128,19 @@ export default function HotelRooms() {
   return (
     <div className="p-5">
       <div className="mb-5 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Hotel Listings</h2>
+        <h2 className="text-xl font-semibold">Recent Hotel Rooms</h2>
         <div className="space-y-2 w-[400px] flex gap-2">
           <input
             type="text"
             placeholder="Search rooms..."
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPage(1);
-            }}
           />
           <Button
             type="primary"
             onClick={() => navigate("/dashboard/add-listing")}
             className="bg-blue-600 text-white !py-6 hover:bg-blue-700 p-3"
           >
-            Active Hotel Listings
+            Add Listing
           </Button>
         </div>
       </div>

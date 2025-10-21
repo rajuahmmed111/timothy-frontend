@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import Dashboard from "../Profile/HotelManagement/Dashboard";
+import Dashboard from "../../../components/Hotel/Dashboard";
 import Bookings from "../Profile/HotelManagement/Bookings";
 import ListingsForHotel from "../Profile/HotelManagement/ListingsForHotel";
 import AddAttractionBusiness from "./AddAttractionBusiness";
-import ReviewBusiness from "../Profile/HotelManagement/ReviewBusiness";
-import AvailableListing from "../Profile/HotelManagement/AvailableListing";
+import ReviewBusiness from "../../../components/Hotel/ReviewBusiness";
+import AvailableListing from "../../../components/Hotel/AvailableListing";
 
 
 export default function AttractionManagement() {

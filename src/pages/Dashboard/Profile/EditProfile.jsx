@@ -2,10 +2,12 @@ import React from "react";
 import { useGetMyProfileQuery } from "../../../redux/services/authApi";
 import { useUpdateMyProfileMutation } from "../../../redux/api/profileapis";
 import Swal from "sweetalert2";
+import Loader from "../../../shared/Loader/Loader";
 
 export default function EditProfile() {
-  const { data, isLoading, isError } = useGetMyProfileQuery();
-  const [updateMyProfile, { isLoading: isUpdating }] = useUpdateMyProfileMutation();
+  const { data, isLoading } = useGetMyProfileQuery();
+  const [updateMyProfile, { isLoading: isUpdating }] =
+    useUpdateMyProfileMutation();
 
   const profile = data?.data || {};
 
@@ -22,15 +24,22 @@ export default function EditProfile() {
 
     try {
       await updateMyProfile(body).unwrap();
-      Swal.fire({ icon: "success", title: "Updated", text: "Profile updated successfully" });
+      Swal.fire({
+        icon: "success",
+        title: "Updated",
+        text: "Profile updated successfully",
+      });
     } catch (err) {
       console.error(err);
-      Swal.fire({ icon: "error", title: "Failed", text: err?.data?.message || "Failed to update profile" });
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: err?.data?.message || "Failed to update profile",
+      });
     }
   };
 
-  if (isLoading) return <div className="bg-white px-20 w-[715px] py-16 rounded-md">Loading...</div>;
-  if (isError) return <div className="bg-white px-20 w-[715px] py-16 rounded-md">Failed to load profile</div>;
+  if (isLoading) return <Loader />;
 
   return (
     <div className="bg-white px-20 w-[715px] py-16 rounded-md">
@@ -39,7 +48,9 @@ export default function EditProfile() {
       </p>
       <form className="space-y-4" onSubmit={onSubmit}>
         <div>
-          <label className="text-xl text-[#0D0D0D] mb-2 font-bold">Full Name</label>
+          <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
+            Full Name
+          </label>
           <input
             type="text"
             name="fullName"
@@ -61,7 +72,9 @@ export default function EditProfile() {
         </div>
 
         <div>
-          <label className="text-xl text-[#0D0D0D] mb-2 font-bold">Contact Number</label>
+          <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
+            Contact Number
+          </label>
           <input
             type="text"
             name="contactNumber"
@@ -72,7 +85,9 @@ export default function EditProfile() {
         </div>
 
         <div>
-          <label className="text-xl text-[#0D0D0D] mb-2 font-bold">Country</label>
+          <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
+            Country
+          </label>
           <input
             type="text"
             name="country"
@@ -83,7 +98,9 @@ export default function EditProfile() {
         </div>
 
         <div>
-          <label className="text-xl text-[#0D0D0D] mb-2 font-bold">Address</label>
+          <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
+            Address
+          </label>
           <input
             type="text"
             name="address"
@@ -94,7 +111,10 @@ export default function EditProfile() {
         </div>
 
         <div className="text-center py-5">
-          <button disabled={isUpdating} className="bg-[#0064D2] disabled:opacity-70 text-white font-semibold w-full py-3 rounded-lg">
+          <button
+            disabled={isUpdating}
+            className="bg-[#0064D2] disabled:opacity-70 text-white font-semibold w-full py-3 rounded-lg"
+          >
             {isUpdating ? "Saving..." : "Save & Change"}
           </button>
         </div>

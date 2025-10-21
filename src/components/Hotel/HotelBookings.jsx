@@ -1,30 +1,54 @@
 import React, { useState } from "react";
-import { Table, ConfigProvider, Modal, Button, Input, Space, Tag } from "antd";
-import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
+import { Table, ConfigProvider, Tag, Button } from "antd";
+import { EyeOutlined } from "@ant-design/icons";
 import { useGetHotelBookingsQuery } from "../../redux/api/hotel/hotelApi";
-
-const { Search } = Input;
+import Loader from "../../shared/Loader/Loader";
+import BookingDetailsModal from "./BookingDetailsModal";
 
 export default function HotelBookings() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const { data, isLoading, error } = useGetHotelBookingsQuery({});
+  const { data, isLoading } = useGetHotelBookingsQuery({});
   const bookings = data?.data || [];
-  console.log("bookings", bookings);
+  // console.log("bookings", bookings);
 
-  const dataSource = bookings.map((booking) => ({
+  const dataSourceFull = bookings.map((booking) => ({
     id: booking?.id,
     bookedFromDate: booking?.bookedFromDate,
     bookedToDate: booking?.bookedToDate,
     rooms: booking?.rooms,
-    // adults: booking?.adults,
-    // children: booking?.children,
     bookingStatus: booking?.bookingStatus,
     totalPrice: booking.totalPrice,
     category: booking.category,
     specialRequest: booking.specialRequest,
   }));
+
+  // Client-side search
+  const filtered = dataSourceFull.filter((b) => {
+    const haystack = [
+      b.id,
+      b.category,
+      b.bookedFromDate,
+      b.bookedToDate,
+      b.bookingStatus,
+      String(b.totalPrice),
+      b.specialRequest,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(searchTerm.toLowerCase());
+  });
+
+  // Client-side pagination
+  const start = (page - 1) * limit;
+  const end = start + limit;
+  const pagedData = filtered.slice(start, end);
+  const total = filtered.length;
 
   const showViewModal = (booking) => {
     setSelectedBooking(booking);
@@ -35,7 +59,7 @@ export default function HotelBookings() {
     {
       title: "No",
       key: "no",
-      render: (_, __, index) => index + 1,
+      render: (_, __, index) => (page - 1) * limit + index + 1,
     },
     {
       title: "Category",
@@ -88,19 +112,7 @@ export default function HotelBookings() {
   ];
 
   if (isLoading) {
-    return (
-      <div className="p-6">
-        <p>Loading bookings...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <p className="text-red-600">Failed to load bookings.</p>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
@@ -111,6 +123,11 @@ export default function HotelBookings() {
             type="text"
             placeholder="Search bookings"
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
       </div>
@@ -131,82 +148,27 @@ export default function HotelBookings() {
       >
         <Table
           rowKey="id"
-          dataSource={dataSource}
+          dataSource={pagedData}
           columns={columns}
-          pagination={{ pageSize: 10 }}
+          pagination={{
+            current: page,
+            pageSize: limit,
+            total: total,
+            showSizeChanger: false,
+            showQuickJumper: false,
+          }}
+          onChange={(pager) => {
+            setPage(pager.current || 1);
+            setLimit(pager.pageSize || 10);
+          }}
         />
       </ConfigProvider>
 
-      {/* View Modal */}
-      <Modal
-        title="Booking Details"
+      <BookingDetailsModal
         open={isViewModalOpen}
-        onCancel={() => setIsViewModalOpen(false)}
-        footer={[
-          <Button key="close" onClick={() => setIsViewModalOpen(false)}>
-            Close
-          </Button>,
-        ]}
-      >
-        {selectedBooking && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-600">Booking ID</p>
-                <p className="font-medium">{selectedBooking.id}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Status</p>
-                <Tag
-                  color={
-                    selectedBooking.bookingStatus === "CONFIRMED"
-                      ? "green"
-                      : selectedBooking.bookingStatus === "CANCELLED"
-                      ? "red"
-                      : "orange"
-                  }
-                >
-                  {selectedBooking.bookingStatus}
-                </Tag>
-              </div>
-              <div>
-                <p className="text-gray-600">From</p>
-                <p className="font-medium">{selectedBooking.bookedFromDate}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">To</p>
-                <p className="font-medium">{selectedBooking.bookedToDate}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Rooms</p>
-                <p className="font-medium">{selectedBooking.rooms}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Adults / Children</p>
-                <p className="font-medium">
-                  {selectedBooking.adults} / {selectedBooking.children}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-600">Total Price</p>
-                <p className="font-medium">${selectedBooking.totalPrice}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Category</p>
-                <p className="font-medium">{selectedBooking.category}</p>
-              </div>
-              {selectedBooking.specialRequest && (
-                <div className="col-span-2">
-                  <p className="text-gray-600">Special Request</p>
-                  <p className="font-medium">
-                    {selectedBooking.specialRequest}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </Modal>
+        onClose={() => setIsViewModalOpen(false)}
+        booking={selectedBooking}
+      />
     </div>
   );
 }

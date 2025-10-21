@@ -1,9 +1,9 @@
 import React from "react";
 import { useState } from "react";
-import Dashboard from "../Profile/HotelManagement/Dashboard";
+import Dashboard from "../../../components/Hotel/Dashboard";
 import AddBusiness from "./AddSecurityBusiness";
-import ReviewBusiness from "../Profile/HotelManagement/ReviewBusiness";
-import AvailableListing from "../Profile/HotelManagement/AvailableListing";
+import ReviewBusiness from "../../../components/Hotel/ReviewBusiness";
+import AvailableListing from "../../../components/Hotel/AvailableListing";
 import ListingsForSecurity from "./ListingsForSecurity";
 import SecurityBookings from "./SecurityBookingList";
 

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import Dashboard from "./Dashboard";
-import AddHotelBusiness from "../../../../components/Hotel/AddHotelBusiness";
-import ReviewBusiness from "./ReviewBusiness";
-import AvailableListing from "./AvailableListing";
-import HotelRooms from "../../../../components/Hotel/HotelRooms";
+import Dashboard from "../../../../components/Hotel/Dashboard";
 import HotelBookings from "../../../../components/Hotel/HotelBookings";
+import HotelRooms from "../../../../components/Hotel/HotelRooms";
+import AddHotelBusiness from "../../../../components/Hotel/AddHotelBusiness";
+import ReviewBusiness from "../../../../components/Hotel/ReviewBusiness";
+import AvailableHotelRooms from "../../../../components/Hotel/AvailableListing";
 
 export default function HotelManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -19,7 +19,7 @@ export default function HotelManagement() {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-5">
       {/* Tabs */}
       <div className="flex bg-blue-600 rounded-full p-1 w-fit">
         {tabs.map((tab) => (
@@ -38,13 +38,13 @@ export default function HotelManagement() {
       </div>
 
       {/* Content */}
-      <div className="mt-6">
+      <div className="mt-5">
         {activeTab === "dashboard" && <Dashboard />}
         {activeTab === "booking" && <HotelBookings />}
         {activeTab === "listings" && <HotelRooms />}
         {activeTab === "addBusiness" && <AddHotelBusiness />}
         {activeTab === "reviewBusiness" && <ReviewBusiness />}
-        {activeTab === "availableListing" && <AvailableListing />}
+        {activeTab === "availableListing" && <AvailableHotelRooms />}
       </div>
     </div>
   );

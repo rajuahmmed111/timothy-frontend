@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import { Table, ConfigProvider, Modal, Button, message } from "antd";
 import { Eye, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-// import RoomDetailsModal from "./RoomDetailsModal";
 
-import Loader from "../../../../shared/Loader/Loader";
+import Loader from "../../shared/Loader/Loader";
 import {
   useDeleteHotelRoomMutation,
   useGetHotelAvailableRoomsQuery,
-} from "../../../../redux/api/hotel/hotelApi";
-import RoomDetailsModal from "../../../../components/Hotel/RoomDetailsModal";
+} from "../../redux/api/hotel/hotelApi";
+import RoomDetailsModal from "./RoomDetailsModal";
 
 export default function AvailableHotelRooms() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -18,18 +17,35 @@ export default function AvailableHotelRooms() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const { data, isLoading } = useGetHotelAvailableRoomsQuery({
-    page,
-    limit,
-    isBooked: "AVAILABLE",
-  });
+  // Fetch all available rooms once; we'll do client-side search & pagination
+  const { data, isLoading } = useGetHotelAvailableRoomsQuery();
+
   const [deleteHotelRoom, { isLoading: isDeleting }] =
     useDeleteHotelRoomMutation();
-  const rooms = data?.data?.data || [];
-  const total = data?.data?.meta?.total || 0;
+  const rooms = data?.data || [];
 
-  const roomsData = rooms.map((room) => ({
+  // Client-side search by type and location
+  const filtered = rooms.filter((room) => {
+    const haystack = [
+      room?.hotelRoomType,
+      room?.hotel?.hotelCity,
+      room?.hotel?.hotelCountry,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(searchTerm.toLowerCase());
+  });
+
+  // Client-side pagination
+  const start = (page - 1) * limit;
+  const end = start + limit;
+  const paged = filtered.slice(start, end);
+  const total = filtered.length;
+
+  const roomsData = paged.map((room) => ({
     ...room,
     key: room.id,
     image: room?.hotelRoomImages?.[0],
@@ -133,6 +149,11 @@ export default function AvailableHotelRooms() {
             type="text"
             placeholder="Search rooms..."
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
           <Button
             type="primary"

@@ -57,7 +57,7 @@ import SignUp from "../pages/Auth/SignUp";
 import SecurityManagement from "../pages/Dashboard/SecurityManagement/SecurityManagement";
 import CarManagement from "../pages/Dashboard/CarManagement/CarManagement";
 import AttractionManagement from "../pages/Dashboard/AttractionManagement/AttractionManagement";
-import ReviewBusiness from "../pages/Dashboard/Profile/HotelManagement/ReviewBusiness";
+import ReviewBusiness from "../components/Hotel/ReviewBusiness";
 import MyBookings from "../pages/Dashboard/Mybookings/MyBookings";
 import HumanRightsStatement from "../pages/Legal/HumanRightsStatement";
 import PrivateRoute from "./guards/PrivateRoute";
