@@ -14,12 +14,32 @@ export default function EditProfile() {
   const onSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+
+    const fullName = (formData.get("fullName") || "").trim();
+    const contactNumber = (formData.get("contactNumber") || "").trim();
+    const country = (formData.get("country") || "").trim();
+    const address = (formData.get("address") || "").trim();
+
+    const missing = [];
+    if (!fullName) missing.push("Full Name");
+    if (!contactNumber) missing.push("Contact Number");
+    if (!country) missing.push("Country");
+    if (!address) missing.push("Address");
+
+    if (missing.length) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing required fields",
+        html: `Please fill the following field(s): <br/><strong>${missing.join(", ")}</strong>`,
+      });
+      return;
+    }
+
     const body = {
-      // email stays read-only; include fullName for updates per new requirement
-      fullName: formData.get("fullName") || null,
-      contactNumber: formData.get("contactNumber") || null,
-      country: formData.get("country") || null,
-      address: formData.get("address") || null,
+      fullName,
+      contactNumber,
+      country,
+      address,
     };
 
     try {

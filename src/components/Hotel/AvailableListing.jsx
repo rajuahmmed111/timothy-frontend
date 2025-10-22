@@ -19,25 +19,26 @@ export default function AvailableHotelRooms() {
   const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch available rooms with server-side pagination
   const { data, isLoading } = useGetHotelAvailableRoomsQuery({ page, limit });
 
   const [deleteHotelRoom, { isLoading: isDeleting }] =
     useDeleteHotelRoomMutation();
-  const rooms = data?.data || [];
 
-  // Client-side search by type and location (on current page data)
-  const filtered = rooms?.data?.filter((room) => {
-    const haystack = [
-      room?.hotelRoomType,
-      room?.hotel?.hotelCity,
-      room?.hotel?.hotelCountry,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    return haystack.includes(searchTerm.toLowerCase());
-  }) || [];
+  const rooms = data?.data || [];
+  console.log("available rooms", rooms);
+
+  const filtered =
+    rooms?.data?.filter((room) => {
+      const haystack = [
+        room?.hotelRoomType,
+        room?.hotel?.hotelCity,
+        room?.hotel?.hotelCountry,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(searchTerm.toLowerCase());
+    }) || [];
 
   // Use server-provided total; index rows by overall position
   const start = (page - 1) * limit;

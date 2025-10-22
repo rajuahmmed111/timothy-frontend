@@ -22,8 +22,8 @@ export default function HotelRooms() {
   const { data, isLoading } = useGetHotelRoomsQuery({ page, limit });
   console.log("data", data);
   const rooms = data?.data || [];
-  console.log("rooms", rooms);
-  
+  console.log("rooms of active room", rooms);
+
   const metaPage = rooms?.meta?.page;
   const metaLimit = rooms?.meta?.limit;
   const total = rooms?.meta?.total;
@@ -42,7 +42,6 @@ export default function HotelRooms() {
 
   const start = (page - 1) * limit;
   const paginated = filtered || [];
-
 
   const roomsData = paginated?.map((room, index) => ({
     ...room,
@@ -95,21 +94,6 @@ export default function HotelRooms() {
       title: "Rating",
       dataIndex: "rating",
       key: "rating",
-    },
-    {
-      title: "Status",
-      key: "status",
-      render: (_, record) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs ${
-            (record.status || record.isBooked) === "AVAILABLE"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {record.status || record.isBooked}
-        </span>
-      ),
     },
     {
       title: "Action",

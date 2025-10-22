@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
-
+import SecurityDashboard from "../../../components/Security/SecurityDashboard";
+import SecurityBookings from "../../../components/Security/SecurityBookings";
 
 export default function SecurityManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -35,8 +36,8 @@ export default function SecurityManagement() {
 
       {/* Content */}
       <div className="mt-6">
-        {activeTab === "dashboard" && "dashboard"}
-        {activeTab === "booking" && "security booking"}
+        {activeTab === "dashboard" && <SecurityDashboard />}
+        {activeTab === "booking" && <SecurityBookings />}
         {activeTab === "listings" && "listings for security"}
         {activeTab === "addBusiness" && "add security business"}
         {activeTab === "reviewBusiness" && "review security business"}
