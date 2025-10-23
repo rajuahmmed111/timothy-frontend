@@ -2,64 +2,23 @@
 import React from 'react'
 import { ChevronLeft, ChevronRight, Star, Quote } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useGetReviewsQuery } from '../../../redux/api/reviews/reviewsApi'
+import Loader from '../../../shared/Loader/Loader'
 
 export default function Testimonials() {
-    const testimonials = [
-        {
-            name: "Giulia Rossi",
-            location: "Rome, Italy",
-            text: "The staff were incredibly welcoming and the room was spotless. I loved the local recommendations, they made my stay even more special!",
-            avatar: "https://avatar.iran.liara.run/public/30",
-            rating: 5,
-            date: "March 2024",
-            verified: true
-        },
-        {
-            name: "Andi Pratama",
-            location: "Bali, Indonesia",
-            text: "Amazing beach view and peaceful surroundings! Perfect for a honeymoon trip. We especially enjoyed the spa and sunset dinners.",
-            avatar: "https://avatar.iran.liara.run/public/31",
-            rating: 5,
-            date: "February 2024",
-            verified: true
-        },
-        {
-            name: "Rebecca Thompson",
-            location: "New York, USA",
-            text: "A seamless check-in experience and top-notch service. I travel often for work, and this was one of the most comfortable stays I've had.",
-            avatar: "https://avatar.iran.liara.run/public/32",
-            rating: 5,
-            date: "January 2024",
-            verified: true
-        },
-        {
-            name: "Claire Dubois",
-            location: "Paris, France",
-            text: "Staying here felt like a dream. The location was ideal for exploring the city, and the breakfast croissants were unforgettable!",
-            avatar: "https://avatar.iran.liara.run/public/33",
-            rating: 5,
-            date: "December 2023",
-            verified: true
-        },
-        {
-            name: "Marco Silva",
-            location: "Lisbon, Portugal",
-            text: "Exceptional hospitality and breathtaking views! The concierge helped us discover hidden gems in the city. Truly a memorable experience.",
-            avatar: "https://avatar.iran.liara.run/public/34",
-            rating: 5,
-            date: "November 2023",
-            verified: true
-        },
-        {
-            name: "Sophie Chen",
-            location: "Singapore",
-            text: "Modern amenities with a personal touch. The rooftop pool was amazing and the staff went above and beyond to make our anniversary special.",
-            avatar: "https://avatar.iran.liara.run/public/35",
-            rating: 5,
-            date: "October 2023",
-            verified: true
-        },
-    ]
+    const { data, isLoading } = useGetReviewsQuery();
+
+    // Transform API data to match the testimonial format
+    const testimonials = data?.data?.map((review, index) => ({
+        id: review.id,
+        name: `Guest ${index + 1}`, // Since we don't have user names in the response
+        location: review.hotelId ? "Hotel Guest" : review.attractionId ? "Attraction Visitor" : review.carId ? "Car Rental Customer" : review.securityId ? "Security Service Client" : "Guest",
+        text: review.comment,
+        avatar: `https://avatar.iran.liara.run/public/${30 + (index % 20)}`, // Generate random avatars
+        rating: review.rating,
+        date: new Date(review.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        verified: true
+    })) || []
 
     const [translateX, setTranslateX] = useState(0)
     const [isHovered, setIsHovered] = useState(false)
@@ -85,6 +44,19 @@ export default function Testimonials() {
             return () => clearInterval(interval)
         }
     }, [isHovered, testimonials.length])
+
+    if (isLoading) return <Loader />;
+
+    // If no reviews, show a message
+    if (!testimonials || testimonials.length === 0) {
+        return (
+            <section className="py-16 relative">
+                <div className="container mx-auto px-5 md:px-0">
+                    <div className="text-center py-10 text-gray-500">No reviews available yet.</div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="py-16 relative">
