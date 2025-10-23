@@ -4,22 +4,22 @@ export const securityApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllSecurity: builder.query({
       query: ({ page, limit }) => ({
-        url: `/hotels/room-active-listing`,
+        url: `/security-protocols/security-guards-active-listing`,
         method: "GET",
         params: {
           page,
           limit,
         },
       }),
-      providesTags: ["hotel"],
+      providesTags: ["security"],
     }),
-    getHotelAvailableRooms: builder.query({
+    getAvailableSecurity: builder.query({
       query: (params) => ({
-        url: `/hotels/available-rooms`,
+        url: `/security-protocols/security-guards-available`,
         method: "GET",
         params,
       }),
-      providesTags: ["hotel"],
+      providesTags: ["security"],
     }),
     getSecurityBookings: builder.query({
       query: (params = {}) => ({
@@ -36,20 +36,20 @@ export const securityApi = baseApi.injectEndpoints({
       }),
       providesTags: ["security"],
     }),
-    deleteHotelRoom: builder.mutation({
+    deleteSecurityGuard: builder.mutation({
       query: (id) => ({
-        url: `/hotels/room/${id}`,
+        url: `/security-protocols/security-guard/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["hotel"],
+      invalidatesTags: ["security"],
     }),
-    addHotelRoom: builder.mutation({
-      query: ({ formData, hotelId }) => ({
-        url: `/hotels/room/${hotelId}`,
+    addSecurityGuard: builder.mutation({
+      query: ({ formData, Id }) => ({
+        url: `/security-protocols/security-guard-type/${Id}`,
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["hotel"],
+      invalidatesTags: ["security"],
     }),
     addHotelBusiness: builder.mutation({
       query: (businessData) => ({
@@ -59,28 +59,24 @@ export const securityApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["hotel"],
     }),
-    getHotelBusinessPartner: builder.mutation({
-      query: ({ limit, page }) => ({
-        url: `/hotels/partner-hotels?limit=${limit}&page=${page}`,
+    getSecurityPartner: builder.mutation({
+      query: ({ page, limit }) => ({
+        url: `/security-protocols/partner`,
         method: "GET",
-        prepareHeaders: (headers) => {
-          headers.set("Accept", "application/json");
-          return headers;
+        params: {
+          page,
+          limit,
         },
       }),
-      invalidatesTags: ["HotelBusinessPartner"],
+      invalidatesTags: ["security"],
     }),
-    updateHotelBusiness: builder.mutation({
+    updateSecurityBusiness: builder.mutation({
       query: ({ id, data }) => ({
-        url: `/hotels/${id}`,
+        url: `/security-protocols/${id}`,
         method: "PATCH",
         body: data,
-        prepareHeaders: (headers) => {
-          headers.set("Accept", "application/json");
-          return headers;
-        },
       }),
-      invalidatesTags: ["HotelBusinessPartner"],
+      invalidatesTags: ["security"],
     }),
     getPopularHotels: builder.query({
       query: (limit = 4) => ({
@@ -91,4 +87,13 @@ export const securityApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetSecurityTotalSalesQuery, useGetSecurityBookingsQuery } = securityApi;
+export const {
+  useGetSecurityTotalSalesQuery,
+  useGetSecurityBookingsQuery,
+  useGetAllSecurityQuery,
+  useDeleteSecurityGuardMutation,
+  useAddSecurityGuardMutation,
+  useGetAvailableSecurityQuery,
+  useGetSecurityPartnerMutation,
+  useUpdateSecurityBusinessMutation,
+} = securityApi;

@@ -1,58 +1,50 @@
 import React, { useState } from "react";
-import { Table, ConfigProvider, Modal, Button, message } from "antd";
+import { Table, ConfigProvider, Modal, Button, message, Tag } from "antd";
 import { Eye, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../shared/Loader/Loader";
-import RoomDetailsModal from "./RoomDetailsModal";
 import {
-  useDeleteHotelRoomMutation,
-  useGetHotelRoomsQuery,
-} from "../../redux/api/hotel/hotelApi";
+  useDeleteSecurityGuardMutation,
+  useGetAvailableSecurityQuery,
+} from "../../redux/api/security/securityApi";
+import SecurityDetailsModal from "./SecurityDetailsModal";
 
-export default function HotelRooms() {
+
+export default function AvailableSecurity() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedHotel, setSelectedHotel] = useState(null);
+  const [selectedGuard, setSelectedGuard] = useState(null);
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch many rooms to enable full client-side search & pagination
-  const { data, isLoading } = useGetHotelRoomsQuery({ page, limit });
-  console.log("data", data);
-  const rooms = data?.data || [];
-  console.log("rooms of active room", rooms);
+  const { data, isLoading } = useGetAvailableSecurityQuery({ page, limit });
+  console.log("available security", data);
+  const [deleteSecurityGuard, { isLoading: isDeleting }] =
+    useDeleteSecurityGuardMutation();
 
-  const metaPage = rooms?.meta?.page;
-  const metaLimit = rooms?.meta?.limit;
-  const total = rooms?.meta?.total;
+  const guards = data?.data?.data || [];
+  const meta = data?.data?.meta || {};
+  console.log("available security", guards);
 
-  const [deleteHotelRoom, { isLoading: isDeleting }] =
-    useDeleteHotelRoomMutation();
-
-  // Client-side search
-  const filtered = rooms?.data?.filter((room) => {
-    const haystack = [room?.hotelRoomType]
+  const filtered = guards.filter((g) => {
+    const haystack = [
+      g?.securityGuardName,
+      g?.category,
+      g?.securityCity,
+      g?.securityCountry,
+    ]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
     return haystack.includes(searchTerm.toLowerCase());
   });
 
+  // Use server-provided total; index rows by overall position
   const start = (page - 1) * limit;
-  const paginated = filtered || [];
-
-  const roomsData = paginated?.map((room, index) => ({
-    ...room,
-    key: room?.id,
-    image: room?.hotelRoomImages?.[0],
-    roomType: room?.hotelRoomType,
-    location: `${room?.hotel?.hotelCity}, ${room?.hotel?.hotelCountry}`,
-    price: `$${room?.hotelRoomPriceNight}/night`,
-    rating: `⭐ ${room?.hotelRating || "N/A"}`,
-    status: room?.isBooked,
-  }));
+  const paged = filtered; // server returns current page
+  const total = meta.total || 0;
 
   const columns = [
     {
@@ -65,35 +57,43 @@ export default function HotelRooms() {
       key: "image",
       render: (_, record) => (
         <img
-          src={
-            record.image ||
-            record.hotel?.businessLogo ||
-            "https://via.placeholder.com/80x60"
-          }
-          alt="Hotel"
+          src={record.securityImages?.[0] || "https://via.placeholder.com/80x60"}
+          alt="Security"
           className="w-20 h-12 object-cover rounded-md"
         />
       ),
     },
     {
-      title: "Room Type",
-      dataIndex: "roomType",
-      key: "roomType",
+      title: "Name",
+      dataIndex: "securityGuardName",
+      key: "securityGuardName",
     },
     {
       title: "Location",
-      dataIndex: "location",
       key: "location",
+      render: (_, r) => `${r.securityCity}, ${r.securityCountry}`,
     },
     {
-      title: "Price",
-      dataIndex: "price",
+      title: "Price/Day",
       key: "price",
+      render: (_, r) => `$${r.securityPriceDay}`,
     },
     {
       title: "Rating",
-      dataIndex: "rating",
       key: "rating",
+      render: (_, r) => `⭐ ${r.securityRating || "N/A"}`,
+    },
+    {
+      title: "Hired",
+      key: "hiredCount",
+      dataIndex: "hiredCount",
+    },
+    {
+      title: "Status",
+      key: "status",
+      render: (_, r) => (
+        <Tag color={r.isBooked === "AVAILABLE" ? "green" : "red"}>{r.isBooked}</Tag>
+      ),
     },
     {
       title: "Action",
@@ -103,14 +103,14 @@ export default function HotelRooms() {
           <Eye
             className="text-[#3b82f6] w-6 h-6 cursor-pointer"
             onClick={() => {
-              setSelectedHotel(record);
+              setSelectedGuard(record);
               setIsViewModalOpen(true);
             }}
           />
           <Trash
             className="text-red-500 w-6 h-6 cursor-pointer"
             onClick={() => {
-              setSelectedHotel(record);
+              setSelectedGuard(record);
               setIsDeleteModalOpen(true);
             }}
           />
@@ -126,11 +126,11 @@ export default function HotelRooms() {
   return (
     <div className="p-5">
       <div className="mb-5 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Hotel Listings</h2>
+        <h2 className="text-xl font-semibold">Available Security Listings</h2>
         <div className="space-y-2 w-[400px] flex gap-2">
           <input
             type="text"
-            placeholder="Search rooms..."
+            placeholder="Search security..."
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
             value={searchTerm}
             onChange={(e) => {
@@ -140,10 +140,10 @@ export default function HotelRooms() {
           />
           <Button
             type="primary"
-            // onClick={() => navigate("/dashboard/add-listing")}
+            onClick={() => navigate("/dashboard/add-security-listing")}
             className="bg-blue-600 text-white !py-6 hover:bg-blue-700 p-3"
           >
-            Add Hotel Listings
+            Add Listing
           </Button>
         </div>
       </div>
@@ -172,7 +172,7 @@ export default function HotelRooms() {
       >
         <Table
           rowKey="id"
-          dataSource={roomsData}
+          dataSource={paged}
           columns={columns}
           pagination={{
             current: page,
@@ -190,32 +190,32 @@ export default function HotelRooms() {
           loading={isLoading}
         />
       </ConfigProvider>
-      <RoomDetailsModal
+      <SecurityDetailsModal
         open={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
-        selectedHotel={selectedHotel}
+        guard={selectedGuard}
       />
       <Modal
-        title="Delete Room"
+        title="Delete Security Guard"
         open={isDeleteModalOpen}
         confirmLoading={isDeleting}
         onOk={async () => {
           try {
-            if (!selectedHotel?.id) return;
-            await deleteHotelRoom(selectedHotel.id).unwrap();
-            message.success("Room deleted successfully");
+            if (!selectedGuard?.id) return;
+            await deleteSecurityGuard(selectedGuard.id).unwrap();
+            message.success("Deleted successfully");
           } catch (e) {
-            message.error(e?.data?.message || "Failed to delete room");
+            message.error(e?.data?.message || "Failed to delete");
           } finally {
             setIsDeleteModalOpen(false);
-            setSelectedHotel(null);
+            setSelectedGuard(null);
           }
         }}
         onCancel={() => setIsDeleteModalOpen(false)}
         okText="Delete"
         okButtonProps={{ danger: true }}
       >
-        <p>Are you sure you want to delete this room?</p>
+        <p>Are you sure you want to delete this security guard?</p>
       </Modal>
     </div>
   );

@@ -2,6 +2,9 @@ import React from "react";
 import { useState } from "react";
 import SecurityDashboard from "../../../components/Security/SecurityDashboard";
 import SecurityBookings from "../../../components/Security/SecurityBookings";
+import AllSecurityListings from "../../../components/Security/AllSecurityListings";
+import AvailableSecurity from "../../../components/Security/AvailableSecurity";
+import ReviewSecurityBussiness from "../../../components/Security/ReviewSecurityBussiness";
 
 export default function SecurityManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -38,10 +41,10 @@ export default function SecurityManagement() {
       <div className="mt-6">
         {activeTab === "dashboard" && <SecurityDashboard />}
         {activeTab === "booking" && <SecurityBookings />}
-        {activeTab === "listings" && "listings for security"}
+        {activeTab === "listings" && <AllSecurityListings />}
         {activeTab === "addBusiness" && "add security business"}
-        {activeTab === "reviewBusiness" && "review security business"}
-        {activeTab === "availableListing" && "available security listing"}
+        {activeTab === "reviewBusiness" && <ReviewSecurityBussiness />}
+        {activeTab === "availableListing" && <AvailableSecurity />}
       </div>
     </div>
   );

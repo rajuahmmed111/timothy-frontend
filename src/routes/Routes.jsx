@@ -63,6 +63,7 @@ import HumanRightsStatement from "../pages/Legal/HumanRightsStatement";
 import PrivateRoute from "./guards/PrivateRoute";
 import RoleRoute from "./guards/RoleRoute";
 import AddSecurityBusiness from "../pages/Dashboard/SecurityManagement/AddSecurityBusiness";
+import AddNewSecurity from "../components/Security/AddNewSecurity";
 
 export const routes = createBrowserRouter([
   {
@@ -287,6 +288,14 @@ export const routes = createBrowserRouter([
         element: (
           <RoleRoute allowed={["BUSINESS_PARTNER"]}>
             <CreateHotelRoom />
+          </RoleRoute>
+        ),
+      },
+          {
+        path: "add-security-listing",
+        element: (
+          <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+            <AddNewSecurity />
           </RoleRoute>
         ),
       },
