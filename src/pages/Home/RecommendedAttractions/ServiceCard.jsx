@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function ServiceCard({ service }) {
+export default function ServiceCardForRecommendedAttractions({ service }) {
     const IconComponent = service.icon;
 
     return (
@@ -25,14 +25,14 @@ export default function ServiceCard({ service }) {
                     </h3>
 
                     {/* Service Icon and Description */}
-                    {/* <div className="flex items-center gap-1 mb-4">
+                    <div className="flex items-center gap-1 mb-4">
                         {IconComponent && (
                             <IconComponent className="w-4 h-4 text-[#0064D2] flex-shrink-0" />
                         )}
                         <p className="text-gray-600 text-sm leading-relaxed">
                             {service.description}
                         </p>
-                    </div> */}
+                    </div>
                 </div>
                 <div className="border border-[#C0C0C0] p-2 rounded-full">
                     <Link to="/security-details">

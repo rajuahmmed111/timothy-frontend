@@ -1,34 +1,30 @@
 import React from 'react';
-import ServiceCard from '../../../components/ServiceCard/ServiceCard';
-import { MapPin } from 'lucide-react';
+import ServiceCardForRecommendedAttractions from './ServiceCard';
+import { MapPin } from 'lucide-react'
+import { useGetAttractionBusinessQuery } from '../../../redux/api/attraction/attractionApi';
+import Loader from  "../../../shared/Loader/Loader";
 
 export default function RecommendedAttractions() {
-    const services = [
-        {
-            title: "Dubai",
-            image: "/RecommendedAttractions/1.png",
+    const { data, isLoading,  } = useGetAttractionBusinessQuery(4);
+
+    if (isLoading) return <Loader />;
+    
+
+    // Transform API data to match ServiceCard props
+    const attractions = data?.data?.data?.map(attraction => {
+        // Get the first appeal for each attraction
+        const appeal = attraction.appeal?.[0];
+        return {
+            id: attraction.id,
+            title: appeal?.attractionCity || 'Unknown City',
+            image: appeal?.attractionImages?.[0] || '/placeholder-image.jpg',
             icon: MapPin,
-            description: "564 things to do",
-        },
-        {
-            title: "London",
-            image: "/RecommendedAttractions/2.png",
-            icon: MapPin,
-            description: "564 things to do",
-        },
-        {
-            title: "Istanbul",
-            image: "/RecommendedAttractions/3.png",
-            icon: MapPin,
-            description: "564 things to do",
-        },
-        {
-            title: "New York",
-            image: "/RecommendedAttractions/4.png",
-            icon: MapPin,
-            description: "564 things to do",
-        },
-    ]
+            description: appeal?.attractionCountry || 'Explore now',
+            rating: parseFloat(appeal?.attractionRating) || 0,
+            price: appeal?.attractionAdultPrice || 0,
+            discount: appeal?.discount || 0
+        };
+    }) || [];
 
     return (
         <section className="py-10 bg-gray-50">
@@ -45,8 +41,8 @@ export default function RecommendedAttractions() {
 
                 {/* Services Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {services.map((service, index) => (
-                        <ServiceCard key={index} service={service} />
+                    {attractions.map((attraction) => (
+                        <ServiceCardForRecommendedAttractions key={attraction.id} service={attraction} />
                     ))}
                 </div>
             </div>
