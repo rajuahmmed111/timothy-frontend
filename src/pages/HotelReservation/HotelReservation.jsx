@@ -4,16 +4,36 @@ import { Select, Space, Slider, Input, Checkbox, Radio, Rate } from 'antd';
 import { UserOutlined, TeamOutlined, HomeOutlined, FilterOutlined, SearchOutlined, WifiOutlined, CarOutlined, ShopOutlined, StarOutlined } from '@ant-design/icons';
 import { DatePicker, Button } from "antd";
 import { useBooking } from '../../context/BookingContext';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import ing1 from "/hotel/1.png"
-import ing2 from "/hotel/2.png"
-import ing3 from "/hotel/3.png"
-import ing4 from "/hotel/4.png"
+// Removed unused dummy image imports
 import HotelCard from '../../components/HotelCard/HotelCard';
+import { useGetAllHotelRoomsQuery } from '../../redux/api/hotel/hotelApi';
+
 
 
 export default function HotelReservation() {
     const { bookingData, updateBookingData, updateGuests } = useBooking();
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Read query params from URL and forward to API
+    const searchParams = new URLSearchParams(location.search);
+    const appliedSearch = (searchParams.get('searchTerm') || '').toLowerCase();
+    const apiParams = {
+        searchTerm: searchParams.get('searchTerm') || undefined,
+        limit: searchParams.get('limit') || undefined,
+        // page is intentionally omitted per recent requirement
+        hotelNumberOfRooms: searchParams.get('hotelNumberOfRooms') || undefined,
+        hotelNumAdults: searchParams.get('hotelNumAdults') || undefined,
+        hotelNumChildren: searchParams.get('hotelNumChildren') || undefined,
+        fromDate: searchParams.get('fromDate') || undefined,
+        toDate: searchParams.get('toDate') || undefined,
+    };
+
+    const { data: hotelRoomsResp } = useGetAllHotelRoomsQuery(apiParams);
+
+
     const [filters, setFilters] = useState({
         priceRange: '',
         accommodationType: '',
@@ -76,6 +96,29 @@ export default function HotelReservation() {
     };
 
     const handleSearch = () => {
+        // Build query params from current input state only on click
+        const params = new URLSearchParams();
+        if (mainSearch) params.set('searchTerm', mainSearch);
+
+        const adults = bookingData?.guests?.adults;
+        const children = bookingData?.guests?.children;
+        const rooms = bookingData?.guests?.rooms;
+        if (adults) params.set('hotelNumAdults', String(adults));
+        if (children) params.set('hotelNumChildren', String(children));
+        if (rooms) params.set('hotelNumberOfRooms', String(rooms));
+
+        const from = bookingData?.dateRange?.[0]?.format?.('YYYY-MM-DD');
+        const to = bookingData?.dateRange?.[1]?.format?.('YYYY-MM-DD');
+        if (from) params.set('fromDate', from);
+        if (to) params.set('toDate', to);
+
+        // Optionally keep existing params like limit
+        const current = new URLSearchParams(location.search);
+        const limit = current.get('limit');
+        if (limit) params.set('limit', limit);
+
+        navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: false });
+
         // Scroll to results section
         const resultsSection = document.getElementById('hotels-results');
         if (resultsSection) {
@@ -83,394 +126,82 @@ export default function HotelReservation() {
         }
     };
 
-    const hotels = [
-        {
-            name: "The Plaza Hotel",
-            location: "New York, USA",
-            image: ing1,
-            price: "$580",
-            rating: 5,
-            type: "hotel",
-            amenities: {
-                breakfast: true,
-                kitchen: false,
-                wifi: true,
-                parking: true,
-                restaurant: true,
-                gym: true,
-                pool: false,
-                spa: true,
-                frontDesk24: true,
-                airportShuttle: true
-            },
-            preferences: {
-                smoking: "non-smoking",
-                pets: "not-allowed"
-            },
-            location_features: {
-                waterView: false,
-                island: false
-            }
-        },
-        {
-            name: "Budget Inn",
-            location: "Los Angeles, USA",
-            image: ing2,
-            price: "$89",
-            rating: 3,
-            type: "hotel",
-            amenities: {
-                breakfast: false,
-                kitchen: false,
-                wifi: true,
-                parking: true,
-                restaurant: false,
-                gym: false,
-                pool: false,
-                spa: false,
-                frontDesk24: false,
-                airportShuttle: false
-            },
-            preferences: {
-                smoking: "smoking",
-                pets: "allowed"
-            },
-            location_features: {
-                waterView: false,
-                island: false
-            }
-        },
-        {
-            name: "Majestic Serenity Palace",
-            location: "Miami, USA",
-            image: ing3,
-            price: "$425",
-            rating: 5,
-            type: "hotel",
-            amenities: {
-                breakfast: true,
-                kitchen: false,
-                wifi: true,
-                parking: true,
-                restaurant: true,
-                gym: true,
-                pool: true,
-                spa: true,
-                frontDesk24: true,
-                airportShuttle: true
-            },
-            preferences: {
-                smoking: "non-smoking",
-                pets: "not-allowed"
-            },
-            location_features: {
-                waterView: true,
-                island: false
-            }
-        },
-        {
-            name: "Grand Central Hotel",
-            location: "Chicago, USA",
-            image: ing4,
-            price: "$320",
-            rating: 4,
-            type: "hotel",
-            amenities: {
-                breakfast: true,
-                kitchen: false,
-                wifi: true,
-                parking: false,
-                restaurant: true,
-                gym: true,
-                pool: false,
-                spa: false,
-                frontDesk24: true,
-                airportShuttle: false
-            },
-            preferences: {
-                smoking: "non-smoking",
-                pets: "allowed"
-            },
-            location_features: {
-                waterView: false,
-                island: false
-            }
-        },
-        {
-            name: "Ocean View Resort",
-            location: "Miami, USA",
-            image: ing1,
-            price: "$275",
-            rating: 4,
-            type: "hotel",
-            amenities: {
-                breakfast: true,
-                kitchen: false,
-                wifi: true,
-                parking: true,
-                restaurant: true,
-                gym: false,
-                pool: true,
-                spa: false,
-                frontDesk24: true,
-                airportShuttle: false
-            },
-            preferences: {
-                smoking: "non-smoking",
-                pets: "allowed"
-            },
-            location_features: {
-                waterView: true,
-                island: false
-            }
-        },
-        {
-            name: "City Center Lodge",
-            location: "Chicago, USA",
-            image: ing2,
-            price: "$150",
-            rating: 3,
-            type: "hotel",
-            amenities: {
-                breakfast: false,
-                kitchen: false,
-                wifi: true,
-                parking: false,
-                restaurant: false,
-                gym: false,
-                pool: false,
-                spa: false,
-                frontDesk24: false,
-                airportShuttle: false
-            },
-            preferences: {
-                smoking: "smoking",
-                pets: "allowed"
-            },
-            location_features: {
-                waterView: false,
-                island: false
-            }
-        },
-        {
-            name: "Royal Paradise Hotel",
-            location: "Las Vegas, USA",
-            image: ing3,
-            price: "$199",
-            rating: 4,
-            type: "hotel",
-            amenities: {
-                breakfast: false,
-                kitchen: false,
-                wifi: true,
-                parking: true,
-                restaurant: true,
-                gym: true,
-                pool: true,
-                spa: true,
-                frontDesk24: true,
-                airportShuttle: true
-            },
-            preferences: {
-                smoking: "smoking",
-                pets: "not-allowed"
-            },
-            location_features: {
-                waterView: false,
-                island: false
-            }
-        },
-        {
-            name: "Sunset Boulevard Inn",
-            location: "Los Angeles, USA",
-            image: ing4,
-            price: "$245",
-            rating: 4,
-            type: "hotel",
-            amenities: {
-                breakfast: true,
-                kitchen: false,
-                wifi: true,
-                parking: true,
-                restaurant: false,
-                gym: false,
-                pool: false,
-                spa: false,
-                frontDesk24: false,
-                airportShuttle: false
-            },
-            preferences: {
-                smoking: "non-smoking",
-                pets: "allowed"
-            },
-            location_features: {
-                waterView: false,
-                island: false
-            }
-        },
-        {
-            name: "Metropolitan Luxury Suites",
-            location: "New York, USA",
-            image: ing1,
-            price: "$495",
-            rating: 5,
-            type: "apartment",
-            amenities: {
-                breakfast: false,
-                kitchen: true,
-                wifi: true,
-                parking: true,
-                restaurant: false,
-                gym: true,
-                pool: false,
-                spa: false,
-                frontDesk24: true,
-                airportShuttle: true
-            },
-            preferences: {
-                smoking: "non-smoking",
-                pets: "allowed"
-            },
-            location_features: {
-                waterView: false,
-                island: false
-            }
-        },
-        {
-            name: "Desert Oasis Hotel",
-            location: "Las Vegas, USA",
-            image: ing2,
-            price: "$135",
-            rating: 3,
-            type: "hotel",
-            amenities: {
-                breakfast: false,
-                kitchen: false,
-                wifi: true,
-                parking: true,
-                restaurant: false,
-                gym: false,
-                pool: true,
-                spa: false,
-                frontDesk24: false,
-                airportShuttle: false
-            },
-            preferences: {
-                smoking: "smoking",
-                pets: "allowed"
-            },
-            location_features: {
-                waterView: false,
-                island: false
-            }
-        },
-        {
-            name: "Beachfront Paradise",
-            location: "Miami, USA",
-            image: ing3,
-            price: "$380",
-            rating: 5,
-            type: "hotel",
-            amenities: {
-                breakfast: true,
-                kitchen: false,
-                wifi: true,
-                parking: true,
-                restaurant: true,
-                gym: true,
-                pool: true,
-                spa: true,
-                frontDesk24: true,
-                airportShuttle: false
-            },
-            preferences: {
-                smoking: "non-smoking",
-                pets: "not-allowed"
-            },
-            location_features: {
-                waterView: true,
-                island: true
-            }
-        },
-        {
-            name: "Downtown Business Hotel",
-            location: "Chicago, USA",
-            image: ing4,
-            price: "$210",
-            rating: 4,
-            type: "hotel",
-            amenities: {
-                breakfast: true,
-                kitchen: false,
-                wifi: true,
-                parking: false,
-                restaurant: true,
-                gym: true,
-                pool: false,
-                spa: false,
-                frontDesk24: true,
-                airportShuttle: true
-            },
-            preferences: {
-                smoking: "non-smoking",
-                pets: "not-allowed"
-            },
-            location_features: {
-                waterView: false,
-                island: false
-            }
-        }
-    ];
+    const hotels = React.useMemo(() => (
+        Array.isArray(hotelRoomsResp?.data?.data) ? hotelRoomsResp.data.data : []
+    ), [hotelRoomsResp]);
 
     // Apply filters to hotels
     React.useEffect(() => {
         let filtered = hotels.filter(hotel => {
-            const price = parseInt(hotel.price.replace('$', ''));
-            
+            // Price
+            const price = Number(hotel?.averagePrice ?? hotel?.room?.[0]?.hotelRoomPriceNight ?? 0);
+
             // Price range filter
             let priceInRange = true;
             if (filters.priceRange) {
                 const [min, max] = filters.priceRange.split('-').map(Number);
-                priceInRange = price >= min && price <= max;
+                priceInRange = price >= (min || 0) && price <= (Number.isFinite(max) ? max : price);
             }
-            
-            // Main search functionality - searches both name and location
-            const mainSearchMatch = mainSearch === '' || 
-                hotel.name.toLowerCase().includes(mainSearch.toLowerCase()) ||
-                hotel.location.toLowerCase().includes(mainSearch.toLowerCase());
-            
-            // Accommodation type filter
+
+            // Main search functionality - searches hotelName and city/country
+            const name = (hotel?.hotelName || '').toLowerCase();
+            const locStr = `${hotel?.hotelCity || ''}, ${hotel?.hotelCountry || ''}`.toLowerCase();
+            const mainSearchMatch = appliedSearch === '' || name.includes(appliedSearch) || locStr.includes(appliedSearch);
+
+            // Accommodation type filter (matches backend field)
             const accommodationMatch = filters.accommodationType === '' || 
-                hotel.type === filters.accommodationType;
-            
-            // Rating filter
-            const ratingMatch = filters.reviews.minRating === 0 || hotel.rating >= filters.reviews.minRating;
-            
-            // Amenities filter
-            const amenitiesMatch = Object.keys(filters.amenities).every(amenity => 
-                !filters.amenities[amenity] || hotel.amenities[amenity]
-            );
-            
-            // Preferences filter
-            const preferencesMatch = 
-                (filters.preferences.smoking === '' || hotel.preferences.smoking === filters.preferences.smoking) &&
-                (filters.preferences.pets === '' || hotel.preferences.pets === filters.preferences.pets);
-            
-            // Location features filter
+                hotel?.hotelAccommodationType === filters.accommodationType;
+
+            // Rating filter (use averageRating or first room rating)
+            const rating = Number(hotel?.averageRating ?? hotel?.room?.[0]?.hotelRating ?? 0);
+            const ratingMatch = filters.reviews.minRating === 0 || rating >= filters.reviews.minRating;
+
+            // Amenities mapping to backend booleans
+            const amenityMap = {
+                breakfast: !!hotel?.hotelBreakfast,
+                kitchen: !!hotel?.hotelKitchen,
+                wifi: !!hotel?.hoitelWifi,
+                parking: !!hotel?.hotelParking,
+                restaurant: !!hotel?.hotelRestaurant,
+                gym: !!hotel?.hotelGym,
+                pool: !!hotel?.hotelPool,
+                spa: !!hotel?.hotelSpa,
+                frontDesk24: !!hotel?.hotel24HourFrontDesk,
+                airportShuttle: !!hotel?.hotelAirportShuttle,
+            };
+            const amenitiesMatch = Object.keys(filters.amenities).every(amenity => {
+                return !filters.amenities[amenity] || amenityMap[amenity];
+            });
+
+            // Preferences mapping (smoking/pets)
+            let smokingMatch = true;
+            if (filters.preferences.smoking === 'smoking') smokingMatch = !!hotel?.hotelSmoking;
+            if (filters.preferences.smoking === 'non-smoking') smokingMatch = !hotel?.hotelSmoking;
+
+            let petsMatch = true;
+            if (filters.preferences.pets === 'allowed') petsMatch = !!hotel?.hotelPetsAllowed;
+            if (filters.preferences.pets === 'not-allowed') petsMatch = !!hotel?.hotelPetsNotAllowed || !hotel?.hotelPetsAllowed;
+            const preferencesMatch = smokingMatch && petsMatch;
+
+            // Location features mapping
+            const location_features = {
+                waterView: !!hotel?.hotelLocationFeatureWaterView,
+                island: !!hotel?.hotelLocationFeatureIsland,
+            };
             const locationMatch = Object.keys(filters.location).every(feature => 
-                !filters.location[feature] || hotel.location_features[feature]
+                !filters.location[feature] || location_features[feature]
             );
-            
+
             return priceInRange && mainSearchMatch && accommodationMatch && ratingMatch && amenitiesMatch && preferencesMatch && locationMatch;
         });
         setFilteredHotels(filtered);
-    }, [filters, mainSearch, hotels]);
+    }, [filters, appliedSearch, hotels]);
 
     // Get unique cities for dropdown
-    const uniqueCities = [...new Set(hotels.map(hotel => {
-        const city = hotel.location.split(',')[0].trim();
-        return city;
-    }))];
+    // const uniqueCities = [...new Set(hotels.map(hotel => {
+    //     const city = hotel.location.split(',')[0].trim();
+    //     return city;
+    // }))];
 
     // Initialize filtered hotels
     React.useEffect(() => {

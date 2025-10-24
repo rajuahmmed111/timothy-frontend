@@ -10,7 +10,8 @@ export default function RecommendedAttractions() {
     if (error) return <div className="text-center py-10 text-red-500">Error loading attractions</div>;
 
     // Transform API data to match ServiceCard props
-    const attractions = data?.data?.data?.map(attraction => {
+    const raw = data?.data?.data;
+    const attractions = Array.isArray(raw) ? raw.map(attraction => {
         // Get the first appeal for each attraction
         const appeal = attraction.appeal?.[0];
         return {
@@ -23,7 +24,7 @@ export default function RecommendedAttractions() {
             price: appeal?.attractionAdultPrice || 0,
             discount: appeal?.discount || 0
         };
-    }) || [];
+    }) : [];
 
     return (
         <section className="py-10 bg-gray-50">
@@ -39,11 +40,15 @@ export default function RecommendedAttractions() {
                 </div>
 
                 {/* Services Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {attractions.map((attraction) => (
-                        <ServiceCardForRecommendedAttractions key={attraction.id} service={attraction} />
-                    ))}
-                </div>
+                {attractions.length === 0 ? (
+                    <div className="text-center py-10 text-gray-500">No attractions available</div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {attractions.map((attraction) => (
+                            <ServiceCardForRecommendedAttractions key={attraction.id} service={attraction} />
+                        ))}
+                    </div>
+                )}
             </div>
         </section>
     )
