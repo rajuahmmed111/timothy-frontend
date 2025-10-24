@@ -85,7 +85,7 @@ export default function Testimonials() {
                         >
                             {duplicatedTestimonials.map((testimonial, index) => (
                                 <div
-                                    key={index}
+                                    key={`${testimonial.id}-${index}`}
                                     className="px-3 flex-shrink-0"
                                     style={{ width: '320px' }}
                                 >
