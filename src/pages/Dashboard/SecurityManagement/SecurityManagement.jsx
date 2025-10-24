@@ -5,6 +5,7 @@ import SecurityBookings from "../../../components/Security/SecurityBookings";
 import AllSecurityListings from "../../../components/Security/AllSecurityListings";
 import AvailableSecurity from "../../../components/Security/AvailableSecurity";
 import ReviewSecurityBussiness from "../../../components/Security/ReviewSecurityBussiness";
+import AddSecurityBusiness from "../../../components/Security/AddSecurityBusiness";
 
 export default function SecurityManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -42,7 +43,7 @@ export default function SecurityManagement() {
         {activeTab === "dashboard" && <SecurityDashboard />}
         {activeTab === "booking" && <SecurityBookings />}
         {activeTab === "listings" && <AllSecurityListings />}
-        {activeTab === "addBusiness" && "add security business"}
+        {activeTab === "addBusiness" && <AddSecurityBusiness />}
         {activeTab === "reviewBusiness" && <ReviewSecurityBussiness />}
         {activeTab === "availableListing" && <AvailableSecurity />}
       </div>

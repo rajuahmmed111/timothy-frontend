@@ -51,13 +51,13 @@ export const securityApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["security"],
     }),
-    addHotelBusiness: builder.mutation({
+    addSecurityBusiness: builder.mutation({
       query: (businessData) => ({
-        url: "/hotels",
+        url: "/security-protocols",
         method: "POST",
         body: businessData,
       }),
-      invalidatesTags: ["hotel"],
+      invalidatesTags: ["security"],
     }),
     getSecurityPartner: builder.mutation({
       query: ({ page, limit }) => ({
@@ -78,12 +78,6 @@ export const securityApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["security"],
     }),
-    getPopularHotels: builder.query({
-      query: (limit = 4) => ({
-        url: `/hotels/popular?limit=${limit}`,
-        method: "GET",
-      }),
-    }),
   }),
 });
 
@@ -96,4 +90,5 @@ export const {
   useGetAvailableSecurityQuery,
   useGetSecurityPartnerMutation,
   useUpdateSecurityBusinessMutation,
+  useAddSecurityBusinessMutation,
 } = securityApi;
