@@ -196,7 +196,7 @@ export const routes = createBrowserRouter([
         element: <CarDetails />,
       },
       {
-        path: "/car-service-details",
+        path: "/car-service-details/:id",
         element: <CarServiceDetails />,
       },
       {
@@ -224,7 +224,7 @@ export const routes = createBrowserRouter([
         element: <AttractionsDetailsPage />,
       },
       {
-        path: "/event-reservation",
+        path: "/event-reservation/:id",
         element: <EventReservationPage />,
       },
       {
@@ -291,7 +291,7 @@ export const routes = createBrowserRouter([
           </RoleRoute>
         ),
       },
-          {
+      {
         path: "add-security-listing",
         element: (
           <RoleRoute allowed={["BUSINESS_PARTNER"]}>
