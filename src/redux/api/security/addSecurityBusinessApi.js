@@ -8,7 +8,7 @@ export const securityApi = baseApi.injectEndpoints({
         method: "POST",
         body: businessData,
       }),
-      invalidatesTags: ["SecurityBusiness"],
+      invalidatesTags: ["Security"],
     }),
   }),
 });

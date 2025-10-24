@@ -7,6 +7,6 @@ export const attractionApi = baseApi.injectEndpoints({
             providesTags: ["AttractionBusiness"],
         }),
     }),
-});
+}); 
 
 export const { useGetAttractionBusinessQuery } = attractionApi;

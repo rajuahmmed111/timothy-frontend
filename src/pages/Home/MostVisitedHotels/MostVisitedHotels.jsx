@@ -1,6 +1,6 @@
 import React from "react";
 import HotelCard from "../../../components/HotelCard/HotelCard";
-import { useGetPopularHotelsQuery } from "../../../redux/api/hotel/mostVisitedHotelsApi";
+import { useGetPopularHotelsQuery } from "../../../redux/api/hotel/hotelApi";
 
 export default function MostVisitedHotels() {
   const { data, isLoading, isError } = useGetPopularHotelsQuery(4);

@@ -86,7 +86,7 @@ export default function Sidebar() {
                 {/* User Management (USER) */}
                 {role === "USER" && (
                     <Section
-                        title="User"
+                        title=""
                         isActive={isSectionActive(location.pathname, [
                             "/dashboard/my-bookings",
                             "/dashboard/my-vouchers",
@@ -117,7 +117,7 @@ export default function Sidebar() {
                 {/* Service Provider (BUSINESS_PARTNER) */}
                 {role === "BUSINESS_PARTNER" && (
                     <Section
-                        title="Service Provider"
+                        title=""
                         isActive={isSectionActive(location.pathname, [
                             "/dashboard/hotel-management",
                             "/dashboard/security-management",

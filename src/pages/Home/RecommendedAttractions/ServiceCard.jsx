@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 export default function ServiceCardForRecommendedAttractions({ service }) {
     const IconComponent = service.icon;
-
+ 
     return (
         <div className="bg-white rounded-xl overflow-hidden shadow-md  transition-all duration-300 cursor-pointer group transform hover:-translate-y-1">
             {/* Image */}

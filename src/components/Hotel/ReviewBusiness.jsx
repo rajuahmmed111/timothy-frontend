@@ -10,8 +10,8 @@ import {
     CheckCircleOutlined,
     CloseCircleOutlined
 } from '@ant-design/icons';
-import { useGetHotelBusinessPartnerMutation } from '../../../../redux/api/hotel/getHotelBusinessPartner';
 import HotelBusinessEdit from './HotelBusinessEdit';
+import { useGetHotelBusinessPartnerMutation } from '../../redux/api/hotel/hotelApi';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -216,7 +216,6 @@ export default function ReviewBusiness() {
                             pageSize={pagination.pageSize}
                             total={pagination.total}
                             onChange={handlePageChange}
-                            showSizeChanger
                             showQuickJumper
                             showTotal={(total) => `Total ${total} hotels`}
                         />

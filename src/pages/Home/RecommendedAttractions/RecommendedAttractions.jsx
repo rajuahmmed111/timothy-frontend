@@ -2,13 +2,12 @@ import React from 'react';
 import ServiceCardForRecommendedAttractions from './ServiceCard';
 import { MapPin } from 'lucide-react'
 import { useGetAttractionBusinessQuery } from '../../../redux/api/attraction/attractionApi';
-import Loader from  "../../../shared/Loader/Loader";
 
 export default function RecommendedAttractions() {
-    const { data, isLoading,  } = useGetAttractionBusinessQuery(4);
+    const { data, isLoading, error } = useGetAttractionBusinessQuery(4);
 
-    if (isLoading) return <Loader />;
-    
+    if (isLoading) return <div className="text-center py-10">Loading...</div>;
+    if (error) return <div className="text-center py-10 text-red-500">Error loading attractions</div>;
 
     // Transform API data to match ServiceCard props
     const attractions = data?.data?.data?.map(attraction => {

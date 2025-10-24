@@ -1,0 +1,99 @@
+import { baseApi } from "../baseUrl";
+
+export const securityApi = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    getAllSecurity: builder.query({
+      query: ({ page, limit }) => ({
+        url: `/security-protocols/security-guards-active-listing`,
+        method: "GET",
+        params: {
+          page,
+          limit,
+        },
+      }),
+      providesTags: ["security"],
+    }),
+    getAvailableSecurity: builder.query({
+      query: (params) => ({
+        url: `/security-protocols/security-guards-available`,
+        method: "GET",
+        params,
+      }),
+      providesTags: ["security"],
+    }),
+    getSecurityBookings: builder.query({
+      query: (params = {}) => ({
+        url: `/security-booking`,
+        method: "GET",
+        params,
+      }),
+      providesTags: ["security"],
+    }),
+    getSecurityTotalSales: builder.query({
+      query: () => ({
+        url: `/statistics/partner-total-earnings-security`,
+        method: "GET",
+      }),
+      providesTags: ["security"],
+    }),
+    deleteSecurityGuard: builder.mutation({
+      query: (id) => ({
+        url: `/security-protocols/security-guard/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["security"],
+    }),
+    addSecurityGuard: builder.mutation({
+      query: ({ formData, Id }) => ({
+        url: `/security-protocols/security-guard-type/${Id}`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["security"],
+    }),
+    addHotelBusiness: builder.mutation({
+      query: (businessData) => ({
+        url: "/hotels",
+        method: "POST",
+        body: businessData,
+      }),
+      invalidatesTags: ["hotel"],
+    }),
+    getSecurityPartner: builder.mutation({
+      query: ({ page, limit }) => ({
+        url: `/security-protocols/partner`,
+        method: "GET",
+        params: {
+          page,
+          limit,
+        },
+      }),
+      invalidatesTags: ["security"],
+    }),
+    updateSecurityBusiness: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/security-protocols/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["security"],
+    }),
+    getPopularHotels: builder.query({
+      query: (limit = 4) => ({
+        url: `/hotels/popular?limit=${limit}`,
+        method: "GET",
+      }),
+    }),
+  }),
+});
+
+export const {
+  useGetSecurityTotalSalesQuery,
+  useGetSecurityBookingsQuery,
+  useGetAllSecurityQuery,
+  useDeleteSecurityGuardMutation,
+  useAddSecurityGuardMutation,
+  useGetAvailableSecurityQuery,
+  useGetSecurityPartnerMutation,
+  useUpdateSecurityBusinessMutation,
+} = securityApi;

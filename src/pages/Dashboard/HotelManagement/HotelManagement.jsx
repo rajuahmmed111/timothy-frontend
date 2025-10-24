@@ -1,12 +1,12 @@
-import React from "react";
-import { useState } from "react";
-import SecurityDashboard from "../../../components/Security/SecurityDashboard";
-import SecurityBookings from "../../../components/Security/SecurityBookings";
-import AllSecurityListings from "../../../components/Security/AllSecurityListings";
-import AvailableSecurity from "../../../components/Security/AvailableSecurity";
-import ReviewSecurityBussiness from "../../../components/Security/ReviewSecurityBussiness";
+import React, { useState } from "react";
+import Dashboard from "../../../components/Hotel/Dashboard";
+import HotelBookings from "../../../components/Hotel/HotelBookings";
+import HotelRooms from "../../../components/Hotel/HotelRooms";
+import AddHotelBusiness from "../../../components/Hotel/AddHotelBusiness";
+import ReviewBusiness from "../../../components/Hotel/ReviewBusiness";
+import AvailableHotelRooms from "../../../components/Hotel/AvailableListing";
 
-export default function SecurityManagement() {
+export default function HotelManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   const tabs = [
@@ -19,7 +19,7 @@ export default function SecurityManagement() {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-5">
       {/* Tabs */}
       <div className="flex bg-blue-600 rounded-full p-1 w-fit">
         {tabs.map((tab) => (
@@ -38,13 +38,13 @@ export default function SecurityManagement() {
       </div>
 
       {/* Content */}
-      <div className="mt-6">
-        {activeTab === "dashboard" && <SecurityDashboard />}
-        {activeTab === "booking" && <SecurityBookings />}
-        {activeTab === "listings" && <AllSecurityListings />}
-        {activeTab === "addBusiness" && "add security business"}
-        {activeTab === "reviewBusiness" && <ReviewSecurityBussiness />}
-        {activeTab === "availableListing" && <AvailableSecurity />}
+      <div className="mt-5">
+        {activeTab === "dashboard" && <Dashboard />}
+        {activeTab === "booking" && <HotelBookings />}
+        {activeTab === "listings" && <HotelRooms />}
+        {activeTab === "addBusiness" && <AddHotelBusiness />}
+        {activeTab === "reviewBusiness" && <ReviewBusiness />}
+        {activeTab === "availableListing" && <AvailableHotelRooms />}
       </div>
     </div>
   );
