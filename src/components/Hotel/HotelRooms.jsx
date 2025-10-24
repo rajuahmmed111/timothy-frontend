@@ -126,7 +126,7 @@ export default function HotelRooms() {
   return (
     <div className="p-5">
       <div className="mb-5 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Hotel Listings</h2>
+        <h2 className="text-xl font-semibold">Active Room Listings</h2>
         <div className="space-y-2 w-[400px] flex gap-2">
           <input
             type="text"
@@ -140,10 +140,10 @@ export default function HotelRooms() {
           />
           <Button
             type="primary"
-            // onClick={() => navigate("/dashboard/add-listing")}
+            onClick={() => navigate("/dashboard/add-listing")}
             className="bg-blue-600 text-white !py-6 hover:bg-blue-700 p-3"
           >
-            Add Hotel Listings
+            Add Room Listings
           </Button>
         </div>
       </div>
