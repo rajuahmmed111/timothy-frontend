@@ -3,7 +3,7 @@ import {baseApi} from "../baseUrl";
 export const attractionApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getAttractionBusiness: builder.query({
-            query: (limit = 4) => `attractions?limit=${limit}`,
+            query: (limit = 4) => `attractions/appeals?page=1&limit=${limit}`,
             providesTags: ["AttractionBusiness"],
         }),
         getAllAttractions: builder.query({

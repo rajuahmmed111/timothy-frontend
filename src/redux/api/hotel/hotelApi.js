@@ -2,6 +2,14 @@ import { baseApi } from "../baseUrl";
 
 export const hotelApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getAllHotelRooms: builder.query({
+      query: (params = {}) => ({
+        url: `/hotels`,
+        method: "GET",
+        params,
+      }),
+      providesTags: ["hotel"],
+    }),
     getHotelRooms: builder.query({
       query: ({ page, limit }) => ({
         url: `/hotels/room-active-listing`,
@@ -92,6 +100,7 @@ export const hotelApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetAllHotelRoomsQuery,
   useGetHotelRoomsQuery,
   useGetHotelAvailableRoomsQuery,
   useGetHotelBookingsQuery,

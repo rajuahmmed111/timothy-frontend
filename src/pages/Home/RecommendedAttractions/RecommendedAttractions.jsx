@@ -11,20 +11,22 @@ export default function RecommendedAttractions() {
 
     // Transform API data to match ServiceCard props
     const raw = data?.data?.data;
-    const attractions = Array.isArray(raw) ? raw.map(attraction => {
-        // Get the first appeal for each attraction
-        const appeal = attraction.appeal?.[0];
-        return {
-            id: attraction.id,
-            title: appeal?.attractionCity || 'Unknown City',
-            image: appeal?.attractionImages?.[0] || '/placeholder-image.jpg',
-            icon: MapPin,
-            description: appeal?.attractionCountry || 'Explore now',
-            rating: parseFloat(appeal?.attractionRating) || 0,
-            price: appeal?.attractionAdultPrice || 0,
-            discount: appeal?.discount || 0
-        };
-    }) : [];
+    let flattened = [];
+    if (Array.isArray(raw)) {
+        flattened = raw;
+    } else if (raw && typeof raw === 'object') {
+        flattened = Object.values(raw).flat();
+    }
+    const attractions = Array.isArray(flattened) ? flattened.map((appeal) => ({
+        id: appeal?.id,
+        title: appeal?.attractionCity || 'Unknown City',
+        image: appeal?.attractionImages?.[0] || '/placeholder-image.jpg',
+        icon: MapPin,
+        description: appeal?.attractionCountry || 'Explore now',
+        rating: parseFloat(appeal?.attractionRating) || 0,
+        price: appeal?.attractionAdultPrice || 0,
+        discount: appeal?.discount || 0,
+    })) : [];
 
     return (
         <section className="py-10 bg-gray-50">
