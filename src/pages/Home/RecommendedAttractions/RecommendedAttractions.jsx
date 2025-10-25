@@ -10,20 +10,23 @@ export default function RecommendedAttractions() {
     if (error) return <div className="text-center py-10 text-red-500">Error loading attractions</div>;
 
     // Transform API data to match ServiceCard props
-    const attractions = data?.data?.data?.map(attraction => {
-        // Get the first appeal for each attraction
-        const appeal = attraction.appeal?.[0];
-        return {
-            id: attraction.id,
-            title: appeal?.attractionCity || 'Unknown City',
-            image: appeal?.attractionImages?.[0] || '/placeholder-image.jpg',
-            icon: MapPin,
-            description: appeal?.attractionCountry || 'Explore now',
-            rating: parseFloat(appeal?.attractionRating) || 0,
-            price: appeal?.attractionAdultPrice || 0,
-            discount: appeal?.discount || 0
-        };
-    }) || [];
+    const raw = data?.data?.data;
+    let flattened = [];
+    if (Array.isArray(raw)) {
+        flattened = raw;
+    } else if (raw && typeof raw === 'object') {
+        flattened = Object.values(raw).flat();
+    }
+    const attractions = Array.isArray(flattened) ? flattened.map((appeal) => ({
+        id: appeal?.id,
+        title: appeal?.attractionCity || 'Unknown City',
+        image: appeal?.attractionImages?.[0] || '/placeholder-image.jpg',
+        icon: MapPin,
+        description: appeal?.attractionCountry || 'Explore now',
+        rating: parseFloat(appeal?.attractionRating) || 0,
+        price: appeal?.attractionAdultPrice || 0,
+        discount: appeal?.discount || 0,
+    })) : [];
 
     return (
         <section className="py-10 bg-gray-50">
@@ -39,11 +42,15 @@ export default function RecommendedAttractions() {
                 </div>
 
                 {/* Services Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {attractions.map((attraction) => (
-                        <ServiceCardForRecommendedAttractions key={attraction.id} service={attraction} />
-                    ))}
-                </div>
+                {attractions.length === 0 ? (
+                    <div className="text-center py-10 text-gray-500">No attractions available</div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {attractions.map((attraction) => (
+                            <ServiceCardForRecommendedAttractions key={attraction.id} service={attraction} />
+                        ))}
+                    </div>
+                )}
             </div>
         </section>
     )

@@ -10,24 +10,28 @@ export default function AvailableService() {
       image: "/security/1.png",
       // icon: House,
       description: "24 available",
+      to: `/security/services/${encodeURIComponent("Personal Bodyguard")}`,
     },
     {
       title: "Security Guard",
       image: "/security/2.png",
       // icon: Car,
       description: "12 available",
+      to: `/security/services/${encodeURIComponent("Security Guard")}`,
     },
     {
       title: "Executive Protection",
       image: "/security/3.png",
       // icon: Shield,
       description: "20 available",
+      to: `/security/services/${encodeURIComponent("Executive Protection")}`,
     },
     {
       title: "Event Security",
       image: "/security/4.png",
       // icon: MapPin,
       description: "25 available",
+      to: `/security/services/${encodeURIComponent("Event Security")}`,
     },
   ];
 

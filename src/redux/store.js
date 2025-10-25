@@ -2,19 +2,17 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { authReducer } from './features/auth/authSlice';
-import { authApi } from './services/authApi';
-import { carApi } from './api/car/getAllCarsApi';
+import { baseApi } from './api/baseUrl';
 
 const rootReducer = combineReducers({
   auth: authReducer,
-  [authApi.reducerPath]: authApi.reducer,
-  [carApi.reducerPath]: carApi.reducer,
+  [baseApi.reducerPath]: baseApi.reducer,
 });
 
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth', 'carApi'],
+  whitelist: ['auth'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -24,7 +22,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }).concat([authApi.middleware, carApi.middleware]),
+    }).concat([baseApi.middleware]),
 });
 
 export const persistor = persistStore(store);

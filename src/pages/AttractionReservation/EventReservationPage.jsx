@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   MapPin,
   Star,
@@ -14,9 +14,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 import img1 from "/burj.png";
+import { useGetAttractionAppealByIdQuery } from "../../redux/api/attraction/attractionApi";
 
 export default function EventReservationPage() {
   const navigate = useNavigate();
+  const { id: appealId = "" } = useParams();
+  const { data, isLoading, error } = useGetAttractionAppealByIdQuery(appealId, { skip: !appealId });
+  const a = data?.data;
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [guests, setGuests] = useState("1");
@@ -99,16 +103,20 @@ export default function EventReservationPage() {
     "22:30",
   ];
 
-  const images = [img1, img1, img1];
+  const images = useMemo(() => {
+    const arr = a?.attractionImages || [];
+    if (arr.length > 0) return arr;
+    return [img1, img1, img1];
+  }, [a]);
 
-  const amenities = [
-    { icon: Wifi, label: "Free WiFi" },
-    { icon: Car, label: "Free parking" },
-    { icon: Coffee, label: "Kitchen" },
-    { icon: Tv, label: "TV" },
-    { icon: Wind, label: "Air conditioning" },
-    { icon: Waves, label: "Pool" },
-  ];
+  const amenities = useMemo(() => [
+    { icon: Wifi, label: `Free WiFi: ${a?.attractionFreeWifi ? 'Yes' : 'No'}` },
+    { icon: Car, label: `Free parking: ${a?.attractionFreeParking ? 'Yes' : 'No'}` },
+    { icon: Coffee, label: `Kitchen: ${a?.attractionKitchen ? 'Yes' : 'No'}` },
+    { icon: Tv, label: `TV: ${a?.attractionTv ? 'Yes' : 'No'}` },
+    { icon: Wind, label: `Air conditioning: ${a?.attractionAirConditioning ? 'Yes' : 'No'}` },
+    { icon: Waves, label: `Pool: ${a?.attractionPool ? 'Yes' : 'No'}` },
+  ], [a]);
 
   const ratingDistribution = [
     { stars: 5, count: 98, percentage: 77 },
@@ -118,25 +126,60 @@ export default function EventReservationPage() {
     { stars: 1, count: 1, percentage: 1 },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen container mx-auto px-5 md:px-0 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl shadow p-6 animate-pulse h-48"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !a) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-500">Failed to load event details.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen container mx-auto px-5 md:px-0 py-10">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">
-          Burj Khalifa: Floors 124 & 125
-        </h1>
-        <p className="text-gray-600">
-          A ticket to visit Dubai from the top of the Burj Khalifa skyscraper
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              {a?.attractionDestinationType}
+            </h1>
+            <p className="text-gray-600">
+              {a?.attractionDescription}
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(`/attraction-details?appealId=${appealId}`)}
+            disabled={!appealId}
+            className={`px-4 py-2 rounded-lg font-medium border ${
+              !appealId
+                ? "opacity-60 cursor-not-allowed"
+                : "bg-[#0064D2] text-white border-[#0064D2] hover:bg-blue-700"
+            }`}
+          >
+            View Attraction Details
+          </button>
+        </div>
         <div className="flex items-center gap-4 mt-2">
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-current text-yellow-500" />
-            <span className="font-medium">4.8</span>
-            <span className="text-gray-600">(128 reviews)</span>
+            <span className="font-medium">{a?.attractionRating}</span>
+            <span className="text-gray-600">({a?.attractionReviewCount} reviews)</span>
           </div>
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4 text-gray-600" />
-            <span className="text-gray-600">Dubai, UAE</span>
+            <span className="text-gray-600">{a?.attractionCity}, {a?.attractionCountry}</span>
           </div>
         </div>
       </div>
@@ -167,14 +210,7 @@ export default function EventReservationPage() {
           {/* Description */}
           <div>
             <h2 className="text-xl font-semibold mb-3">Description</h2>
-            <p className="text-gray-600 leading-relaxed">
-              Visit the iconic Burj Khalifa, the world's tallest building, and
-              experience breathtaking views of Dubai from floors 124 and 125.
-              This unforgettable experience offers panoramic views of the city,
-              desert, and ocean. The observation decks feature floor-to-ceiling
-              windows and outdoor terraces, providing the perfect vantage point
-              to see Dubai's stunning skyline and landmarks.
-            </p>
+            <p className="text-gray-600 leading-relaxed">{a?.attractionDescription}</p>
           </div>
 
           {/* Amenities */}
@@ -203,10 +239,10 @@ export default function EventReservationPage() {
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-1">
                   <Star className="h-5 w-5 fill-current text-yellow-500" />
-                  <span className="text-2xl font-bold">4.8</span>
+                  <span className="text-2xl font-bold">{a?.attractionRating}</span>
                 </div>
                 <div className="text-gray-600">
-                  <span className="font-medium">128</span> reviews
+                  <span className="font-medium">{a?.attractionReviewCount}</span> reviews
                 </div>
               </div>
 
@@ -264,7 +300,7 @@ export default function EventReservationPage() {
         <div className="lg:col-span-1 pb-10">
           <div className="bg-white rounded-xl shadow-lg p-6 sticky top-6">
             <div className="flex items-center justify-between mb-6">
-              <span className="text-2xl font-bold">$600</span>
+              <span className="text-2xl font-bold">${a?.attractionAdultPrice}</span>
               <span className="text-sm text-gray-600">per person</span>
             </div>
             <div className="space-y-4">
@@ -278,20 +314,25 @@ export default function EventReservationPage() {
                     onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg text-left bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
                   >
-                    <span className={selectedDate ? "text-gray-900" : "text-gray-500"}>
-                      {selectedDate 
-                        ? new Date(selectedDate).toLocaleDateString('en-US', { 
-                            weekday: 'short', 
-                            year: 'numeric', 
-                            month: 'short', 
-                            day: 'numeric' 
-                          })
-                        : "Select a date"
+                    <span
+                      className={
+                        selectedDate ? "text-gray-900" : "text-gray-500"
                       }
+                    >
+                      {selectedDate
+                        ? new Date(selectedDate).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "Select a date"}
                     </span>
-                    <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${
-                      isCalendarOpen ? 'rotate-90' : ''
-                    }`} />
+                    <ChevronRight
+                      className={`w-4 h-4 text-gray-400 transition-transform ${
+                        isCalendarOpen ? "rotate-90" : ""
+                      }`}
+                    />
                   </button>
 
                   {/* Calendar Dropdown */}
@@ -332,14 +373,16 @@ export default function EventReservationPage() {
 
                       {/* Weekday Headers */}
                       <div className="grid grid-cols-7 gap-1 mb-2">
-                        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-                          <div
-                            key={day}
-                            className="text-xs font-medium text-gray-500 text-center py-1"
-                          >
-                            {day}
-                          </div>
-                        ))}
+                        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(
+                          (day) => (
+                            <div
+                              key={day}
+                              className="text-xs font-medium text-gray-500 text-center py-1"
+                            >
+                              {day}
+                            </div>
+                          )
+                        )}
                       </div>
 
                       {/* Calendar Grid */}
@@ -422,9 +465,9 @@ export default function EventReservationPage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>
-                    $600 x {guests} guest{parseInt(guests) > 1 ? "s" : ""}
+                    ${a?.attractionAdultPrice} x {guests} guest{parseInt(guests) > 1 ? "s" : ""}
                   </span>
-                  <span>${600 * parseInt(guests)}</span>
+                  <span>${(a?.attractionAdultPrice || 0) * parseInt(guests)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Service fee</span>
@@ -433,7 +476,7 @@ export default function EventReservationPage() {
                 <div className="border-t border-gray-200 my-2"></div>
                 <div className="flex justify-between font-medium text-lg">
                   <span>Total</span>
-                  <span>${600 * parseInt(guests) + 50}</span>
+                  <span>${((a?.attractionAdultPrice || 0) * parseInt(guests)) + 50}</span>
                 </div>
               </div>
 

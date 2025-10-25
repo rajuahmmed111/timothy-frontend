@@ -5,6 +5,7 @@ import { DatePicker } from "antd";
 
 export default function CarReservationHero() {
     const [dateRange, setDateRange] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
     const { RangePicker } = DatePicker;
     return (
         <section
@@ -24,6 +25,8 @@ export default function CarReservationHero() {
                                     type="text"
                                     placeholder="Find Location"
                                     className="w-full p-3 border border-gray-200 rounded-lg"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
                             {/* Check-in & Check-out */}
@@ -36,7 +39,17 @@ export default function CarReservationHero() {
                         </div>
                         {/* Search Button */}
                         <div className="">
-                            <Link to="/car-details" className="w-full">
+                            <Link
+                                to={(() => {
+                                    const params = new URLSearchParams();
+                                    if (searchTerm) params.set('searchTerm', searchTerm);
+                                    if (dateRange?.[0]) params.set('fromDate', dateRange[0].format('YYYY-MM-DD'));
+                                    if (dateRange?.[1]) params.set('toDate', dateRange[1].format('YYYY-MM-DD'));
+                                    const qs = params.toString();
+                                    return qs ? `/car-details?${qs}` : '/car-details';
+                                })()}
+                                className="w-full"
+                            >
                                 <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
                                     Search
                                 </button>

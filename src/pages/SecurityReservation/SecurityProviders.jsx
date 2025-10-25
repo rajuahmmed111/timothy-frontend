@@ -1,40 +1,44 @@
 import React from "react";
 import SecurityCard from "./SecurityCard";
-import { useGetSecurityProtocolsQuery } from "../../redux/api/security/getAllSecurityApi";
+import { useGetSecurityProtocolsRootQuery } from "../../redux/api/security/getAllSecurityApi";
+import Loader from "../../shared/Loader/Loader";
 
 export default function SecurityProviders() {
-  const { data: response, isLoading, isError } = useGetSecurityProtocolsQuery({ limit: 4, page: 1 });
-  
-  // Extract data based on the transformed response structure
-  // The transformResponse in the API slice already formats the data
-  const securityProviders = response?.data || [];
-  
-  // Debug logs
-  console.log('API Response:', response);
-  console.log('Security Providers:', securityProviders);
-  
-  // Check if we have any data at all
-  console.log('Has data:', !!securityProviders.length);
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useGetSecurityProtocolsRootQuery({ limit: 50, page: 1 });
 
-  if (isLoading) {
-    return (
-      <section className="py-10 bg-white">
-        <div className="container mx-auto px-5 md:px-0">
-          <div className="text-center py-10">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
-            <p className="mt-2 text-gray-600">Loading security providers...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const all = response?.data?.data || [];
+  const types = [
+    "Personal Bodyguard",
+    "Security Guard",
+    "Executive Protection",
+    "Event Security",
+  ];
+  const byType = types
+    .map((t) => all.find((b) => b?.securityProtocolType === t))
+    .filter(Boolean);
+  const securityProviders = byType.map((b) => ({
+    id: b?.id || b?._id,
+    image: b?.businessLogo || "/placeholder.svg",
+    name: b?.securityBusinessName || b?.securityName,
+    location: b?.securityProtocolType,
+    price: undefined,
+    rating: 0,
+  }));
+
+  if (isLoading) return <Loader />;
 
   if (isError) {
     return (
       <section className="py-10 bg-white">
         <div className="container mx-auto px-5 md:px-0">
           <div className="text-center py-10">
-            <div className="text-red-500 mb-2">Error loading security providers</div>
+            <div className="text-red-500 mb-2">
+              Error loading security providers
+            </div>
             <p className="text-gray-600">Please try again later.</p>
           </div>
         </div>
@@ -62,9 +66,10 @@ export default function SecurityProviders() {
         {securityProviders.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {securityProviders.map((securityProvider) => (
-              <SecurityCard 
-                key={securityProvider.id} 
-                securityProvider={securityProvider} 
+              <SecurityCard
+                key={securityProvider.id}
+                securityProvider={securityProvider}
+                to={`/security-protocol-details/${securityProvider.id}`}
               />
             ))}
           </div>

@@ -3,8 +3,22 @@ import { baseApi } from '../baseUrl';
 export const carApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllCars: builder.query({
-      query: ({ page = 1, limit = 10 }) => ({
-        url: `/car-rentals/cars?page=${page}&limit=${limit}`,
+      query: (params = {}) => {
+        const { page = 1, limit = 10, ...rest } = params;
+        const filtered = Object.fromEntries(
+          Object.entries({ page: String(page), limit: String(limit), ...rest })
+            .filter(([_, v]) => v !== undefined && v !== null && v !== '')
+        );
+        const search = new URLSearchParams(filtered).toString();
+        return {
+          url: `/car-rentals/cars${search ? `?${search}` : ''}`,
+          method: 'GET',
+        };
+      },
+    }),
+    getSingleCar: builder.query({
+      query: (id) => ({
+        url: `/car-rentals/car/${id}`,
         method: 'GET',
       }),
     }),
@@ -12,4 +26,4 @@ export const carApi = baseApi.injectEndpoints({
   overrideExisting: false,  
 });
 
-export const { useGetAllCarsQuery } = carApi;
+export const { useGetAllCarsQuery, useGetSingleCarQuery } = carApi;

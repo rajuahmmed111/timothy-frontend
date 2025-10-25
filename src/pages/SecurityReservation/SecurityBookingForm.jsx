@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { User, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DatePicker, Select, Button, Space } from "antd";
 import { UserOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 
 
-export default function SecurityBookingForm() {
+export default function SecurityBookingForm({ guardId, guardName, pricePerDay, photo, fromDate, toDate }) {
     const navigate = useNavigate();
     const [serviceType, setServiceType] = useState('personal');
     const [isBooking, ] = useState(false);
@@ -14,13 +15,14 @@ export default function SecurityBookingForm() {
 
     const { RangePicker } = DatePicker;
 
+    const unitPrice = Number(pricePerDay) || 500;
     const serviceTypes = [
         {
             id: 'personal',
             name: 'Security',
             description: 'Dedicated protection for individuals',
             icon: <User className="w-5 h-5 text-blue-600" />,
-            price: 500
+            price: unitPrice
         },
     ];
 
@@ -52,16 +54,40 @@ export default function SecurityBookingForm() {
             serviceType: selectedService.name,
             personnelCount: personnelCount,
             total: calculateTotal(),
-            serviceDescription: selectedService.description
+            serviceDescription: selectedService.description,
+            guardId,
+            guardName,
+            pricePerDay: unitPrice,
+            photo
         };
 
         // Navigate to security checkout page with booking details
         navigate('/security/checkout', { state: { bookingDetails } });
     };
 
+    // Prefill date range from props (URL query)
+    useEffect(() => {
+        if (fromDate && toDate) {
+            setDateRange([dayjs(fromDate), dayjs(toDate)]);
+        }
+    }, [fromDate, toDate]);
+
     return (
         <div className="bg-white rounded-2xl shadow-xl p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Book Security Service</h2>
+
+            {/* Guard Summary */}
+            {(guardName || photo) && (
+                <div className="flex items-center gap-3 mb-4">
+                    {photo && (
+                        <img src={photo} alt={guardName || 'Guard'} className="w-12 h-12 rounded-lg object-cover" />
+                    )}
+                    <div>
+                        {guardName && <div className="font-medium text-gray-900">{guardName}</div>}
+                        <div className="text-sm text-gray-600">${unitPrice} / day</div>
+                    </div>
+                </div>
+            )}
 
             <form onSubmit={handleBooking} className="space-y-5">
                 {/* Service Type */}
