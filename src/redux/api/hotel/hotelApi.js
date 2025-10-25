@@ -10,6 +10,13 @@ export const hotelApi = baseApi.injectEndpoints({
       }),
       providesTags: ["hotel"],
     }),
+    getHotelDetails: builder.query({
+      query: (id) => ({
+        url: `/hotels/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["hotel"],
+    }),
     getHotelRooms: builder.query({
       query: ({ page, limit }) => ({
         url: `/hotels/room-active-listing`,
@@ -111,4 +118,5 @@ export const {
   useGetHotelBusinessPartnerMutation,
   useUpdateHotelBusinessMutation,
   useGetPopularHotelsQuery,
+  useGetHotelDetailsQuery,
 } = hotelApi;

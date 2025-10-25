@@ -10,15 +10,17 @@ import {
   User,
 } from "lucide-react";
 
-export default function PropertyDetails() {
-  const amenities = [
-    { icon: Wifi, label: "Free WiFi" },
-    { icon: Car, label: "Free Parking" },
-    { icon: Coffee, label: "Coffee Bar" },
-    { icon: Waves, label: "Swimming Pool" },
-    { icon: Utensils, label: "Restaurant" },
-    { icon: Dumbbell, label: "Fitness Center" },
+export default function PropertyDetails({ hotel }) {
+  const amenityDefs = [
+    { key: 'hoitelWifi', icon: Wifi, label: 'Free WiFi' },
+    { key: 'hotelParking', icon: Car, label: 'Free Parking' },
+    { key: 'hotelCoffeeBar', icon: Coffee, label: 'Coffee Bar' },
+    { key: 'hotelPool', icon: Waves, label: 'Swimming Pool' },
+    { key: 'hotelRestaurant', icon: Utensils, label: 'Restaurant' },
+    { key: 'hotelGym', icon: Dumbbell, label: 'Fitness Center' },
+    { key: 'hotelSpa', icon: Dumbbell, label: 'Spa' },
   ];
+  const amenities = amenityDefs.filter(a => hotel?.[a.key]);
 
   const reviews = [
     {
@@ -61,14 +63,10 @@ export default function PropertyDetails() {
     <div className="space-y-5">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          About Azure Oasis
+          About {hotel?.hotelName || 'Hotel'}
         </h2>
         <p className="text-gray-700 leading-relaxed">
-          Nestled along the pristine shores of Thailand's Riviera, Azure Oasis
-          offers an unparalleled luxury experience. Our Mediterranean-inspired
-          architecture blends seamlessly with tropical surroundings, creating an
-          oasis of tranquility and sophistication. Each room is thoughtfully
-          designed with modern amenities and stunning ocean views.
+          {hotel?.businessDescription || 'No description available.'}
         </p>
       </div>
 
@@ -97,8 +95,7 @@ export default function PropertyDetails() {
           Cancellation Policy
         </h3>
         <p className="text-gray-700 leading-relaxed">
-          Flexible cancellation up to 24 hours before check-in. After that, a
-          20% cancellation fee applies.
+          {hotel?.hotelCancelationPolicy || 'Please refer to the property for cancellation policy.'}
         </p>
       </div>
 
