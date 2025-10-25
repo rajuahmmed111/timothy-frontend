@@ -25,6 +25,8 @@ import Checkout from "../pages/HotelReservation/Checkout";
 import SecurityReservation from "../pages/SecurityReservation/SecurityReservation";
 import SecurityDetails from "../pages/SecurityReservation/SecurityDetails";
 import SecurityServiceDetails from "../pages/SecurityReservation/SecurityServiceDetails";
+import SecurityProtocolDetails from "../pages/SecurityReservation/SecurityProtocolDetails";
+import SecurityServiceList from "../pages/SecurityReservation/SecurityServiceList";
 import SecurityCheckout from "../pages/SecurityReservation/SecurityCheckout";
 import SecurityPaymentPage from "../pages/Payment/PaymentPage";
 import SecurityBookingConfirmation from "../pages/SecurityReservation/SecurityBookingConfirmation";
@@ -180,8 +182,16 @@ export const routes = createBrowserRouter([
         element: <SecurityDetails />,
       },
       {
-        path: "/security-service-details",
+        path: "/security-service-details/:id",
         element: <SecurityServiceDetails />,
+      },
+      {
+        path: "/security-protocol-details/:id",
+        element: <SecurityProtocolDetails />,
+      },
+      {
+        path: "/security/services/:type",
+        element: <SecurityServiceList />,
       },
       {
         path: "/security/booking-confirmation",

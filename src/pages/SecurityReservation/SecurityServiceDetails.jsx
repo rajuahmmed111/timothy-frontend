@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useMemo, useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   MapPin,
   Star,
@@ -11,39 +11,41 @@ import {
   ChevronRight,
 } from "lucide-react";
 import SecurityBookingForm from "./SecurityBookingForm";
+import { Spin } from "antd";
+import { useGetSecurityGuardByIdQuery } from "../../redux/api/security/getAllSecurityApi";
 
 export default function SecurityServiceDetails() {
-  const location = useLocation();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const locationRouter = useLocation();
+  const sp = new URLSearchParams(locationRouter.search);
+  const fromDateQuery = sp.get('fromDate') || '';
+  const toDateQuery = sp.get('toDate') || '';
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { data, isLoading, isFetching, isError } = useGetSecurityGuardByIdQuery(id, {
+    refetchOnMountOrArgChange: true,
+  });
 
-  const service = location.state?.service || {
-    id: 1,
-    name: "Jacob Jones",
-    location: "New York, USA",
-    images: [
-      "/SecurityProviders/1.png",
-      "/SecurityProviders/2.png",
-      "/SecurityProviders/3.png",
-      "/SecurityProviders/4.png",
-      "/SecurityProviders/5.png",
-      "/SecurityProviders/6.png",
-    ],
-    price: 500,
-    rating: 5,
-    description:
-      "Professional security service with 10+ years of experience in personal and corporate security.",
-    services: [
-      "24/7 Security Personnel",
-      "Armed & Unarmed Guards",
-      "Event Security",
-      "CCTV Monitoring",
-      "Rapid Response",
-    ],
-    experience: "10+ years",
-    languages: ["English", "Spanish"],
-    availability: "24/7",
-    certification: "Licensed & Certified",
-  };
+  const guard = useMemo(() => data?.data || data, [data]);
+  const service = useMemo(() => {
+    const images = Array.isArray(guard?.securityImages) && guard.securityImages.length > 0
+      ? guard.securityImages
+      : ["/SecurityProviders/1.png"]; 
+    return {
+      id: guard?.id || guard?._id || id,
+      name: guard?.securityGuardName || "",
+      location: [guard?.securityCity, guard?.securityCountry].filter(Boolean).join(", "),
+      images,
+      price: guard?.securityPriceDay || 0,
+      rating: Number(guard?.securityRating) || 0,
+      description: guard?.securityGuardDescription || "",
+      services: Array.isArray(guard?.securityServicesOffered) ? guard.securityServicesOffered : [],
+      experience: guard?.experience != null ? `${guard.experience}+ years` : "",
+      languages: Array.isArray(guard?.languages) ? guard.languages : [],
+      availability: guard?.availability || "",
+      certification: guard?.certification || "",
+    };
+  }, [guard, id]);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % service.images.length);
@@ -58,6 +60,25 @@ export default function SecurityServiceDetails() {
   const goToImage = (index) => {
     setCurrentImageIndex(index);
   };
+
+  // Reset image index when navigating to a new guard id
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [id]);
+
+  if (isLoading || isFetching) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  // If fetching failed or no guard returned, it's likely a protocol ID.
+  if (isError || !guard) {
+    navigate(`/security-protocol-details/${id}`);
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -167,14 +188,14 @@ export default function SecurityServiceDetails() {
                         <Shield className="w-5 h-5 text-sky-600 mr-2 flex-shrink-0" />
                         <div>
                           <p className="text-sm text-gray-500">Experience</p>
-                          <p className="font-medium">{service.experience}</p>
+                          <p className="font-medium">{guard?.experience} years</p>
                         </div>
                       </div>
                       <div className="flex items-center">
                         <Clock className="w-5 h-5 text-sky-600 mr-2 flex-shrink-0" />
                         <div>
                           <p className="text-sm text-gray-500">Availability</p>
-                          <p className="font-medium">{service.availability}</p>
+                          <p className="font-medium">{guard?.availability}</p>
                         </div>
                       </div>
                       <div className="flex items-center">
@@ -182,7 +203,7 @@ export default function SecurityServiceDetails() {
                         <div>
                           <p className="text-sm text-gray-500">Languages</p>
                           <p className="font-medium">
-                            {service.languages.join(", ")}
+                            {(Array.isArray(guard?.languages) ? guard.languages : []).join(", ")}
                           </p>
                         </div>
                       </div>
@@ -190,7 +211,7 @@ export default function SecurityServiceDetails() {
                         <CheckCircle className="w-5 h-5 text-sky-600 mr-2 flex-shrink-0" />
                         <div>
                           <p className="text-sm text-gray-500">Certification</p>
-                          <p className="font-medium">{service.certification}</p>
+                          <p className="font-medium">{guard?.certification}</p>
                         </div>
                       </div>
                     </div>
@@ -200,7 +221,14 @@ export default function SecurityServiceDetails() {
 
               {/* Right Column - Booking Form */}
               <div className="p-6 md:p-8 md:w-1/3 bg-gray-50 border-l border-gray-200">
-                <SecurityBookingForm />
+                <SecurityBookingForm
+                  guardId={service.id}
+                  guardName={service.name}
+                  pricePerDay={service.price}
+                  photo={service.images?.[0]}
+                  fromDate={fromDateQuery}
+                  toDate={toDateQuery}
+                />
               </div>
             </div>
           </div>
