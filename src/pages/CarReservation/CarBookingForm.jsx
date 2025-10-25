@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, Clock, User, Car, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DatePicker } from "antd";
+import { useSelector } from 'react-redux';
 
 
 export default function CarBookingForm({ car }) {
@@ -9,6 +10,7 @@ export default function CarBookingForm({ car }) {
     const [isBooking, setIsBooking] = useState(false);
     const [dateRange, setDateRange] = useState(null);
     const { RangePicker } = DatePicker;
+    const user = useSelector((state) => state?.auth?.user);
 
 
 
@@ -36,9 +38,11 @@ export default function CarBookingForm({ car }) {
             carType: car?.name || 'Selected Car',
             total: calculateTotal(),
             carDescription: car?.description || 'Car rental booking',
-            location: car?.location || 'Selected Location'
+            location: car?.location || 'Selected Location',
+            userId: user?._id || user?.id || null,
+            user: user || null,
         };
-        navigate('/car/checkout', { state: { bookingDetails } });
+        navigate('/car/checkout', { state: { bookingDetails, user } });
     };
 
     return (
