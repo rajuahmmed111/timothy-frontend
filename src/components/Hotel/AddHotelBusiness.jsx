@@ -563,12 +563,10 @@ export default function AddHotelBusiness() {
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="5-Star Luxury">5-Star Luxury</option>
-                      <option value="4-Star">4-Star</option>
-                      <option value="3-Star">3-Star</option>
-                      <option value="Boutique">Boutique Hotel</option>
-                      <option value="Resort">Resort</option>
-                      <option value="Budget">Budget Hotel</option>
+                      <option value="hotel">Hotel</option>
+                      <option value="apartment">Apartment</option>
+                      <option value="holiday-accommodation">Holiday Accommodation</option>
+                     
                     </select>
                   </div>
                 </div>
