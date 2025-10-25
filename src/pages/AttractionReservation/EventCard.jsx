@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import img1 from "/burj.png";
 export default function EventCard({ event }) {
   return (
-    <Link to="/event-reservation" className="w-full">
+    <Link to={`/event-reservation/${encodeURIComponent(event?.id || "")}`} className="w-full">
       <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
         {/* Hotel Image */}
         <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">

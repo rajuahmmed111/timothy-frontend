@@ -142,7 +142,7 @@ export const routes = createBrowserRouter([
         element: <HotelReservation />,
       },
       {
-        path: "/hotel-details",
+        path: "/hotel-details/:id",
         element: <HotelDetails />,
       },
       {
@@ -195,7 +195,7 @@ export const routes = createBrowserRouter([
         element: <CarDetails />,
       },
       {
-        path: "/car-service-details",
+        path: "/car-service-details/:id",
         element: <CarServiceDetails />,
       },
       {
@@ -223,7 +223,7 @@ export const routes = createBrowserRouter([
         element: <AttractionsDetailsPage />,
       },
       {
-        path: "/event-reservation",
+        path: "/event-reservation/:id",
         element: <EventReservationPage />,
       },
       {

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 export default function HotelCard({ hotel }) {
   return (
-    <Link to="/hotel-details" className="w-full">
+    <Link to={`/hotel-details/${hotel.id}`} className="w-full">
       <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
         {/* Hotel Image */}
         <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
@@ -14,9 +14,9 @@ export default function HotelCard({ hotel }) {
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           />
           <div className="absolute top-3 right-3">
-            <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700">
+            {/* <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700">
               Popular
-            </div>
+            </div> */}
           </div>
         </div>
 

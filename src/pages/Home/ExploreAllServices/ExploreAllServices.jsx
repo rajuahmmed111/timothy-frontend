@@ -7,20 +7,23 @@ export default function ExploreAllServices() {
     {
       title: "Hotel Reservation",
       image: "/ExploreAllServices/1.png",
-
+      to: "/hotel",
 
     },
     {
       title: "Car Rental",
       image: "/ExploreAllServices/2.png",
+      to: "/car-reservation",
     },
     {
       title: "Security Protocol",
       image: "/ExploreAllServices/3.png",
+      to: "/security-reservation",
     },
     {
       title: "Attractions",
       image: "/ExploreAllServices/4.png",
+      to: "/attraction-reservation",
     },
   ];
 

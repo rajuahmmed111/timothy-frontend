@@ -36,7 +36,7 @@ export default function AttractionCard({ attraction }) {
                 </div>
                 <div
                 className="border border-[#C0C0C0] p-2 rounded-full">
-                    <Link to="/attraction-details">
+                    <Link to={`/attraction-details?searchTerm=${encodeURIComponent(attraction.title)}&page=1&limit=10`}>
                     <ArrowRight className="w-6 h-6" />
                     </Link>
                 </div>

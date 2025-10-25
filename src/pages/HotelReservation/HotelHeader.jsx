@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { MapPin, Star, ExternalLink } from "lucide-react";
-export default function HotelHeader() {
+export default function HotelHeader({ hotel }) {
   const [hoveredMarker, setHoveredMarker] = useState(null);
 
   const openFullMap = () => {
@@ -63,7 +63,7 @@ export default function HotelHeader() {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-gray-900">Azure Oasis</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{hotel?.hotelName || ""}</h1>
               <div className="flex items-center">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
@@ -75,7 +75,7 @@ export default function HotelHeader() {
             </div>
             <div className="flex items-center mt-2 text-gray-600">
               <MapPin className="w-4 h-4 mr-1" />
-              <span className="text-sm">Riviera Resort, Pristine Thailand</span>
+              <span className="text-sm">{`${hotel?.hotelCity || ""}${hotel?.hotelCity && hotel?.hotelCountry ? ", " : ""}${hotel?.hotelCountry || ""}`}</span>
             </div>
           </div>
 
@@ -99,9 +99,7 @@ export default function HotelHeader() {
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-red-500" />
                   <div>
-                    <h5 className="font-semibold text-xs text-gray-900">
-                      Azure Oasis Hotel
-                    </h5>
+                    <h5 className="font-semibold text-xs text-gray-900">{hotel?.hotelName || ""}</h5>
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star

@@ -1,33 +1,15 @@
 import React from "react";
 import SecurityCard from "./SecurityCard";
 import { useGetSecurityProtocolsQuery } from "../../redux/api/security/getAllSecurityApi";
+import Loader from "../../shared/Loader/Loader";
 
 export default function SecurityProviders() {
   const { data: response, isLoading, isError } = useGetSecurityProtocolsQuery({ limit: 4, page: 1 });
   
-  // Extract data based on the transformed response structure
-  // The transformResponse in the API slice already formats the data
-  const securityProviders = response?.data || [];
-  
-  // Debug logs
-  console.log('API Response:', response);
-  console.log('Security Providers:', securityProviders);
-  
-  // Check if we have any data at all
-  console.log('Has data:', !!securityProviders.length);
+  // Extract data from the nested structure: response.data.data
+  const securityProviders = response?.data?.data || [];
 
-  if (isLoading) {
-    return (
-      <section className="py-10 bg-white">
-        <div className="container mx-auto px-5 md:px-0">
-          <div className="text-center py-10">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
-            <p className="mt-2 text-gray-600">Loading security providers...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  if (isLoading) return <Loader />;
 
   if (isError) {
     return (

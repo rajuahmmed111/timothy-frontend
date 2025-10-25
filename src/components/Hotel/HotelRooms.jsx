@@ -15,7 +15,7 @@ export default function HotelRooms() {
   const [selectedHotel, setSelectedHotel] = useState(null);
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch many rooms to enable full client-side search & pagination
@@ -24,8 +24,8 @@ export default function HotelRooms() {
   const rooms = data?.data || [];
   console.log("rooms of active room", rooms);
 
-  const metaPage = rooms?.meta?.page;
-  const metaLimit = rooms?.meta?.limit;
+  // const metaPage = rooms?.meta?.page;
+  // const metaLimit = rooms?.meta?.limit;
   const total = rooms?.meta?.total;
 
   const [deleteHotelRoom, { isLoading: isDeleting }] =
@@ -43,7 +43,7 @@ export default function HotelRooms() {
   const start = (page - 1) * limit;
   const paginated = filtered || [];
 
-  const roomsData = paginated?.map((room, index) => ({
+  const roomsData = paginated?.map((room) => ({
     ...room,
     key: room?.id,
     image: room?.hotelRoomImages?.[0],

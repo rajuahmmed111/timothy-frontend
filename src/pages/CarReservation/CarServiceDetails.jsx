@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   MapPin,
   Star,
@@ -12,32 +12,53 @@ import {
   ChevronRight,
 } from "lucide-react";
 import CarBookingForm from "./CarBookingForm";
+import { useParams } from "react-router-dom";
+import { useGetSingleCarQuery } from "../../redux/api/car/getAllCarsApi";
 
 export default function CarServiceDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { id } = useParams();
+  const { data, isLoading } = useGetSingleCarQuery(id);
 
-  const car = {
-    id: 1,
-    name: "Toyota Camry",
-    location: "New York, USA",
-    images: [
-      "/car/1.png",
-      "/car/2.png",
-      "/car/3.png",
-      "/car/4.png",
-      "/car/5.png",
-    ],
-    price: "$500",
-    rating: 5,
-    availability: "Available",
-    mileage: "15,000 km",
-    transmission: "Automatic",
-    fuelType: "Petrol",
-    seats: 5,
-    year: 2022,
-    description:
-      "The Toyota Camry 2022 offers a perfect balance of comfort, performance, and reliability. With its powerful yet fuel-efficient petrol engine, smooth automatic transmission, and spacious 5-seater design, it's an ideal choice for family trips and city drives. Equipped with modern features and a stylish exterior, the Camry delivers a premium driving experience.",
-  };
+  const apiCar = data?.data;
+
+  const car = useMemo(() => {
+    if (!apiCar) return null;
+    const images = Array.isArray(apiCar.carImages) && apiCar.carImages.length > 0
+      ? apiCar.carImages
+      : ["/car/default-car.png"];
+    return {
+      id: apiCar.id,
+      name: apiCar.carModel || "Car Details",
+      location: `${apiCar.carCity || ""}${apiCar.carCity && apiCar.carCountry ? ", " : ""}${apiCar.carCountry || ""}`,
+      images,
+      price: `$${apiCar.carPriceDay ?? 0}`,
+      rating: parseFloat(apiCar.carRating) || 0,
+      availability: apiCar.isBooked === "AVAILABLE" ? "Available" : "Unavailable",
+      mileage: apiCar.carMileage,
+      transmission: apiCar.carTransmission,
+      fuelType: apiCar.fuelType || apiCar.carOilType,
+      seats: apiCar.carSeats,
+      year: undefined,
+      description: apiCar.carDescription,
+    };
+  }, [apiCar]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Loading car details...</p>
+      </div>
+    );
+  }
+
+  if (!car) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Car not found.</p>
+      </div>
+    );
+  }
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % car.images.length);
@@ -69,7 +90,7 @@ export default function CarServiceDetails() {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
-                        className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                        className={`w-5 h-5 ${car.rating >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
                       />
                     ))}
                   </div>
