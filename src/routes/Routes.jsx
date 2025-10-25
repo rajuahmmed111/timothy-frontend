@@ -62,8 +62,7 @@ import MyBookings from "../pages/Dashboard/Mybookings/MyBookings";
 import HumanRightsStatement from "../pages/Legal/HumanRightsStatement";
 import PrivateRoute from "./guards/PrivateRoute";
 import RoleRoute from "./guards/RoleRoute";
-import AddSecurityBusiness from "../pages/Dashboard/SecurityManagement/AddSecurityBusiness";
-import AddNewSecurity from "../components/Security/AddNewSecurity";
+import AddSecurityBusiness from "../components/Security/AddSecurityBusiness";
 
 export const routes = createBrowserRouter([
   {
@@ -291,14 +290,14 @@ export const routes = createBrowserRouter([
           </RoleRoute>
         ),
       },
-      {
-        path: "add-security-listing",
-        element: (
-          <RoleRoute allowed={["BUSINESS_PARTNER"]}>
-            <AddNewSecurity />
-          </RoleRoute>
-        ),
-      },
+      //     {
+      //   path: "add-security-listing",
+      //   element: (
+      //     <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+      //       <AddNewSecurity />
+      //     </RoleRoute>
+      //   ),
+      // },
       {
         path: "security-management",
         element: (
