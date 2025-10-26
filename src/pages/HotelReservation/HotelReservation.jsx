@@ -31,6 +31,7 @@ export default function HotelReservation() {
         fromDate: searchParams.get('fromDate') || undefined,
         toDate: searchParams.get('toDate') || undefined,
         // URL-driven filter params
+        hotelAccommodationType: searchParams.get('hotelAccommodationType') || undefined,
         hotelRating: searchParams.get('hotelRating') || undefined,
         minPrice: searchParams.get('minPrice') || undefined,
         maxPrice: searchParams.get('maxPrice') || undefined,
@@ -110,6 +111,14 @@ export default function HotelReservation() {
         }
     }, [bookingData.searchQuery]);
 
+    // Keep Accommodation Type filter in sync with URL param
+    useEffect(() => {
+        const typeFromUrl = new URLSearchParams(location.search).get('hotelAccommodationType') || '';
+        if (typeFromUrl !== filters.accommodationType) {
+            setFilters(prev => ({ ...prev, accommodationType: typeFromUrl }));
+        }
+    }, [location.search, filters.accommodationType]);
+
     // Filter functions
     const handleFilterChange = (filterType, value) => {
         setFilters(prev => ({
@@ -137,6 +146,11 @@ export default function HotelReservation() {
         const to = bookingData?.dateRange?.[1]?.format?.('YYYY-MM-DD');
         if (from) params.set('fromDate', from);
         if (to) params.set('toDate', to);
+
+        // Include accommodation type if selected
+        if (filters?.accommodationType) {
+            params.set('hotelAccommodationType', filters.accommodationType);
+        }
 
         // Optionally keep existing params like limit/page
         const current = new URLSearchParams(location.search);
@@ -229,6 +243,8 @@ export default function HotelReservation() {
     React.useEffect(() => {
         setFilteredHotels(hotels);
     }, []);
+
+    
     return (
         <div className='py-8 md:py-16 container mx-auto px-4'>
             <div className="bg-white p-4 md:p-5 rounded-2xl shadow-lg w-full">
@@ -403,19 +419,22 @@ allowClear
 
 {/* Accommodation Type */}
 <div>
-<label className="block text-sm font-medium text-gray-700 mb-2">Accommodation Type</label>
-<Radio.Group
-value={filters.accommodationType}
-onChange={(e) => handleFilterChange('accommodationType', e.target.value)}
-className="w-full"
->
-<div className="space-y-2">
-<Radio value="">All</Radio>
-<Radio value="hotel">Hotels</Radio>
-<Radio value="apartment">Apartments</Radio>
-<Radio value="holiday_accommodation">Holiday Accommodation</Radio>
-</div>
-</Radio.Group>
+  <label className="block text-sm font-medium text-gray-700 mb-2">Accommodation Type</label>
+  <Radio.Group
+    value={filters.accommodationType}
+    onChange={(e) => { 
+      handleFilterChange('accommodationType', e.target.value); 
+      updateQueryParams({ hotelAccommodationType: e.target.value || '' }); 
+    }}
+    className="w-full"
+  >
+    <div className="space-y-2">
+      <Radio value="">All</Radio>
+      <Radio value="hotel">Hotels</Radio>
+      <Radio value="apartment">Apartments</Radio>
+      <Radio value="holiday-accommodation">Holiday Accommodation</Radio>
+    </div>
+  </Radio.Group>
 </div>
 
 {/* Amenities */}
@@ -574,6 +593,7 @@ hotelPetsNotAllowed: '',
 hotelNoPetsPreferences: '',
 hotelLocationFeatureWaterView: '',
 hotelLocationFeatureIsland: '',
+hotelAccommodationType: '',
 page: 1,
 });
 setFilters({
@@ -619,7 +639,7 @@ Clear All Filters
 Showing {filteredHotels.length} of {hotels.length} hotels
 </p>
 </div>
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 min-h-screen md:min-h-[600px] ">
 {filteredHotels.slice((currentPage - 1) * limitVal, currentPage * limitVal).map((hotel, index) => {
 const firstRoom = hotel?.room?.[0] || {};
 const image = firstRoom?.hotelRoomImages?.[0] || hotel?.businessLogo || hotel?.coverImage || '';
@@ -628,11 +648,13 @@ const locationStr = `${hotel?.hotelCity || ''}${hotel?.hotelCity && hotel?.hotel
 const priceNum = Number(hotel?.averagePrice ?? firstRoom?.hotelRoomPriceNight ?? 0);
 const ratingNum = Number(hotel?.averageRating ?? firstRoom?.hotelRating ?? 0);
 const cardModel = {
+id: hotel?.id,
 image,
 name,
 location: locationStr,
 price: priceNum > 0 ? priceNum : undefined,
 rating: ratingNum,
+raw: hotel,
 };
 return <HotelCard key={index} hotel={cardModel} />
 })}

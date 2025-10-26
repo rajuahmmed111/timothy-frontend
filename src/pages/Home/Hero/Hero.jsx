@@ -41,8 +41,20 @@ export default function Hero() {
             location: location,
             searchQuery: location
         });
-        navigate('/hotel');
+        const [start, end] = bookingData.dateRange || [];
+        const paramsObj = {};
+        const trimmed = (location || '').trim();
+        if (trimmed) {
+            paramsObj.searchTerm = trimmed;
+        }
+        if (start && end && typeof start.format === 'function' && typeof end.format === 'function') {
+            paramsObj.fromDate = start.format('YYYY-MM-DD');
+            paramsObj.toDate = end.format('YYYY-MM-DD');
+        }
+        const params = new URLSearchParams(paramsObj).toString();
+        navigate(params ? `/hotel?${params}` : '/hotel');
     };
+    
     return (
         <section
             className="relative h-[600px] bg-cover bg-center"

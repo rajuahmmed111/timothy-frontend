@@ -148,6 +148,10 @@ export const routes = createBrowserRouter([
         element: <HotelDetails />,
       },
       {
+        path: "/hotel-details/selectedhotel",
+        element: <HotelDetails />,
+      },
+      {
         path: "/reserv-details",
         element: <ReservationDetails />,
       },

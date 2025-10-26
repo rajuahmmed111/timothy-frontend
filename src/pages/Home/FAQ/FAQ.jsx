@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 export default function FAQ() {
   const [openItems, setOpenItems] = useState({});
 
@@ -10,6 +10,8 @@ export default function FAQ() {
       [index]: !prev[index],
     }));
   };
+
+  const navigate = useNavigate();
 
   const faqData = [
     {
@@ -117,7 +119,9 @@ export default function FAQ() {
             <p className="text-gray-600 mb-4">
               Still have questions? We're here to help!
             </p>
-            <button className="bg-[#0064D2] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#0052A3] transition-colors">
+            <button
+            onClick={() => navigate("/contact-us")}
+            className="bg-[#0064D2] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#0052A3] transition-colors">
               Contact Support
             </button>
           </div>
