@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Building2, Upload, X, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAddCarBusinessMutation } from '../../../redux/api/car/addCarBusinessApi';
+import { useAddCarBusinessMutation } from '../../redux/api/car/addCarBusinessApi';
 import Swal from 'sweetalert2';
 
 export default function AddCarBusiness() {

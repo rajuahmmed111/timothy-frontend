@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Calendar, Car, CreditCard, ArrowLeft, ChevronDown } from "lucide-react";
+import { useSelector } from "react-redux";
 
 export default function CarCheckout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const user = useSelector((state) => state?.auth?.user);
   const [isProcessing, setIsProcessing] = useState(false);
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
@@ -217,7 +219,8 @@ export default function CarCheckout() {
                 </div>
               </div>
 
-              {/* Guest Information Form */}
+              {/* Guest Information Form (only for not logged-in users) */}
+              {!user && (
               <div className="bg-white rounded-2xl shadow-sm p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   Guest
@@ -338,6 +341,7 @@ export default function CarCheckout() {
                   </div>
                 </form>
               </div>
+              )}
             </div>
 
             {/* Right Column - Price Summary */}
