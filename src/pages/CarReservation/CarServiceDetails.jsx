@@ -33,6 +33,7 @@ export default function CarServiceDetails() {
       location: `${apiCar.carCity || ""}${apiCar.carCity && apiCar.carCountry ? ", " : ""}${apiCar.carCountry || ""}`,
       images,
       price: `$${apiCar.carPriceDay ?? 0}`,
+      pricePerDay: Number(apiCar.carPriceDay) || 0,
       rating: parseFloat(apiCar.carRating) || 0,
       availability: apiCar.isBooked === "AVAILABLE" ? "Available" : "Unavailable",
       mileage: apiCar.carMileage,
@@ -225,9 +226,9 @@ export default function CarServiceDetails() {
                 </div>
               </div>
 
-              {/* Right Column - Booking Form */}
-              <div className="p-6 md:p-8 md:w-1/3 bg-gray-50 border-l border-gray-200">
-                <CarBookingForm car={car} />
+              {/* Right Column - Booking Section */}
+              <div className="p-6 md:p-8 md:w-1/3 border-l border-gray-100">
+                <CarBookingForm car={car} carIdFromParams={id} />
               </div>
             </div>
           </div>

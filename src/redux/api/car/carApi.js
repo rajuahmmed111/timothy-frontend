@@ -78,6 +78,36 @@ export const carApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["security"],
     }),
+    createCarBooking: builder.mutation({
+      query: ({ carId, data }) => ({
+        url: `/car-booking/${carId}`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["car"],
+    }),
+    createCarPaystackSession: builder.mutation({
+      query: (bookingId) => ({
+        url: `/payments/create-checkout-session-paystack/car/${bookingId}`,
+        method: "POST",
+      }),
+    }),
+    getCarBookingById: builder.query({
+      query: (id) => ({
+        url: `/car-booking/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["car"],
+    }),
+    loginWebsite: builder.mutation({
+      query: (credentials) => ({
+        url: `/auth/login-website`,
+        method: "POST",
+        body: credentials,
+      }),
+    }),
+
+    
   }),
 });
 
@@ -91,4 +121,9 @@ export const {
   useGetSecurityPartnerMutation,
   useUpdateSecurityBusinessMutation,
   useAddSecurityBusinessMutation,
+  useCreateCarBookingMutation,
+  useGetCarBookingByIdQuery,
+  useLazyGetCarBookingByIdQuery,
+  useLoginWebsiteMutation,
+  useCreateCarPaystackSessionMutation,
 } = carApi;

@@ -7,6 +7,7 @@ export default function CarReservationHero() {
     const [dateRange, setDateRange] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const { RangePicker } = DatePicker;
+    const isDisabled = !searchTerm.trim();
     return (
         <section
             className="relative h-[600px] bg-cover bg-center"
@@ -49,8 +50,16 @@ export default function CarReservationHero() {
                                     return qs ? `/car-details?${qs}` : '/car-details';
                                 })()}
                                 className="w-full"
+                                onClick={(e) => {
+                                    if (isDisabled) {
+                                        e.preventDefault();
+                                    }
+                                }}
                             >
-                                <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
+                                <button
+                                    disabled={isDisabled}
+                                    className={`w-full ${isDisabled ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#0064D2] hover:bg-[#0053ad]'} text-white py-3 rounded-lg font-bold`}
+                                >
                                     Search
                                 </button>
                             </Link>

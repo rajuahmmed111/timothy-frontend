@@ -1,16 +1,25 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Calendar, Car, CreditCard, ArrowLeft, ChevronDown } from "lucide-react";
-import { useSelector } from "react-redux";
+import {
+  Calendar,
+  Car,
+  CreditCard,
+  ArrowLeft,
+  ChevronDown,
+} from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { useLoginWebsiteMutation, useCreateCarBookingMutation, useCreateCarPaystackSessionMutation } from "../../redux/api/car/carApi";
+import { setCredentials } from "../../redux/features/auth/authSlice";
+import { Modal, message } from "antd";
 
 export default function CarCheckout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const user = useSelector((state) => state?.auth?.user);
   const [isProcessing, setIsProcessing] = useState(false);
   const [guestInfo, setGuestInfo] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     phone: "",
     countryCode: "+1",
@@ -18,9 +27,17 @@ export default function CarCheckout() {
     city: "",
     postcode: "",
     country: "",
+    password: "",
   });
 
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [loginWebsite, { isLoading: isLoginLoading }] =
+    useLoginWebsiteMutation();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [createCarBooking, { isLoading: isCreatingBooking }] = useCreateCarBookingMutation();
+  const [createdBookingId, setCreatedBookingId] = useState(null);
+  const [createCarPaystackSession, { isLoading: isCreatingPayment }] = useCreateCarPaystackSessionMutation();
+  const [serverTotal, setServerTotal] = useState(null);
 
   // Common country codes
   const countryCodes = [
@@ -47,29 +64,31 @@ export default function CarCheckout() {
   ];
 
   // Get booking details from navigation state
-  const bookingDetails = location.state?.bookingDetails || {
-    bookingId: "CAR12345678",
-    carName: "Toyota Camry",
-    pickupDate: "2024-03-15",
-    returnDate: "2024-03-18",
-    carType: "Toyota Camry",
-    total: 1500,
-    carDescription:
-      "The Toyota Camry 2022 offers a perfect balance of comfort, performance, and reliability.",
-    location: "New York, USA",
-  };
+  const bookingDetails = location.state?.bookingDetails;
+
+  console.log(bookingDetails);
 
   // Calculate additional details
-  const days =
-    Math.ceil(
-      (new Date(bookingDetails.returnDate) -
-        new Date(bookingDetails.pickupDate)) /
-        (1000 * 60 * 60 * 24)
-    ) || 1;
-  const carPrice = bookingDetails.total / days;
-  const serviceFee = Math.round(bookingDetails.total * 0.12);
-  const taxes = Math.round(bookingDetails.total * 0.08);
-  const finalTotal = bookingDetails.total + serviceFee + taxes;
+  const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const days = Math.max(
+    1,
+    Math.floor(
+      (new Date(bookingDetails.returnDate) - new Date(bookingDetails.pickupDate)) /
+        msPerDay
+    )
+  );
+  const carPrice = round2(bookingDetails.total / days);
+  const taxes = round2(bookingDetails.total * 0.05);
+  const finalTotal = round2(bookingDetails.total + taxes);
+
+  // Prefer server totals (after booking create) if available
+  const displayFinalTotal = serverTotal ?? finalTotal;
+  const displayVat = serverTotal
+    ? round2(displayFinalTotal - round2(displayFinalTotal / 1.05))
+    : taxes;
+  const displaySubtotal = serverTotal ? round2(displayFinalTotal / 1.05) : bookingDetails.total;
+  const displayUnit = round2(displaySubtotal / days);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -92,29 +111,96 @@ export default function CarCheckout() {
     setIsCountryDropdownOpen(false);
   };
 
-  const selectedCountry = countryCodes.find(c => c.code === guestInfo.countryCode);
+  const selectedCountry = countryCodes.find(
+    (c) => c.code === guestInfo.countryCode
+  );
 
   const handleProceedToPayment = () => {
     setIsProcessing(true);
 
-    // Navigate to payment page with complete booking data
-    navigate("/car/payment", {
-      state: {
-        bookingDetails: {
-          ...bookingDetails,
-          serviceFee,
-          taxes,
-          finalTotal,
-          days,
-        },
-      },
-    });
+    // // Navigate to payment page with complete booking data
+    // navigate("/car/payment", {
+    //   state: {
+    //     bookingDetails: {
+    //       ...bookingDetails,
+    //       // serviceFee,
+    //       taxes,
+    //       finalTotal,
+    //       days,
+    //     },
+    //   },
+    // });
 
     setIsProcessing(false);
   };
 
+  const handleProceedClick = async () => {
+    
+    if (!user) return;
+    setIsProcessing(true);
+    try {
+      const carId = bookingDetails?.carId;
+      if (carId && bookingDetails?.pickupDate && bookingDetails?.returnDate) {
+        const res = await createCarBooking({
+          carId,
+          data: {
+            carBookedFromDate: bookingDetails.pickupDate,
+            carBookedToDate: bookingDetails.returnDate,
+            vat: taxes,
+            totalPrice: finalTotal,
+            days,
+            unitPrice: displayUnit,
+            // promo_code: 'CAR28',
+          },
+        }).unwrap();
+        const created = res?.data || res;
+        if (created?.id) setCreatedBookingId(created.id);
+        if (typeof created?.totalPrice === "number") setServerTotal(round2(created.totalPrice));
+      }
+      setIsConfirmOpen(true);
+    } catch (e) {
+      const msg = e?.data?.message || e?.message || "Failed to create booking";
+      try { message.error(msg); } catch {}
+      setIsConfirmOpen(false);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleBackToBooking = () => {
     navigate(-1);
+  };
+
+  const handleGuestLoginThenProceed = async () => {
+    if (
+      !guestInfo.fullName ||
+      !guestInfo.email ||
+      !guestInfo.password ||
+      !guestInfo.phone ||
+      !guestInfo.country
+    ) {
+      return;
+    }
+    try {
+      const res = await loginWebsite({
+        fullName: guestInfo.fullName,
+        email: guestInfo.email,
+        password: guestInfo.password,
+        contactNumber: guestInfo.phone,
+        country: guestInfo.country,
+      }).unwrap();
+
+      const accessToken = res?.data?.accessToken || res?.accessToken;
+      const authUser = res?.data?.user || res?.user;
+      if (accessToken) {
+        try {
+          localStorage.setItem("accessToken", accessToken);
+        } catch {}
+        dispatch(setCredentials({ accessToken, user: authUser }));
+      }
+    } catch (e) {
+      // silently fail; you can add toast here if desired
+    }
   };
 
   return (
@@ -221,126 +307,158 @@ export default function CarCheckout() {
 
               {/* Guest Information Form (only for not logged-in users) */}
               {!user && (
-              <div className="bg-white rounded-2xl shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  Guest
-                </h2>
+                <div className="bg-white rounded-2xl shadow-sm p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                    Guest
+                  </h2>
 
-                <form className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        First Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={guestInfo.firstName}
-                        onChange={(e) =>
-                          handleGuestInfoChange("firstName", e.target.value)
-                        }
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        placeholder="Enter your first name"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Last Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={guestInfo.lastName}
-                        onChange={(e) =>
-                          handleGuestInfoChange("lastName", e.target.value)
-                        }
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        placeholder="Enter your last name"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      value={guestInfo.email}
-                      onChange={(e) =>
-                        handleGuestInfoChange("email", e.target.value)
-                      }
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                      placeholder="Enter your email address"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number *
-                    </label>
-                    <div className="flex">
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                          className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white hover:bg-gray-50 min-w-[130px]"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <span className="text-lg">{selectedCountry?.flag}</span>
-                            <span className="text-sm font-medium">{selectedCountry?.code}</span>
-                          </div>
-                          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isCountryDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        
-                        {isCountryDropdownOpen && (
-                          <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                            {countryCodes.map((country) => (
-                              <button
-                                key={country.code}
-                                type="button"
-                                onClick={() => handleCountrySelect(country.code)}
-                                className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
-                              >
-                                <span className="text-lg">{country.flag}</span>
-                                <span className="text-sm font-medium">{country.code}</span>
-                                <span className="text-sm text-gray-500">{country.country}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                  <form className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={guestInfo.fullName}
+                          onChange={(e) =>
+                            handleGuestInfoChange("fullName", e.target.value)
+                          }
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                          placeholder="Enter your first name"
+                        />
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address *
+                      </label>
                       <input
-                        type="tel"
-                        value={guestInfo.phone}
+                        type="email"
+                        value={guestInfo.email}
                         onChange={(e) =>
-                          handleGuestInfoChange("phone", e.target.value)
+                          handleGuestInfoChange("email", e.target.value)
                         }
                         required
-                        className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        placeholder="Enter your phone number"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                        placeholder="Enter your email address"
                       />
                     </div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Country *
-                    </label>
-                    <input
-                      type="text"
-                      value={guestInfo.country}
-                      onChange={(e) =>
-                        handleGuestInfoChange("country", e.target.value)
-                      }
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                      placeholder="Enter your country"
-                    />
-                  </div>
-                </form>
-              </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Password *
+                      </label>
+                      <input
+                        type="password"
+                        value={guestInfo.password}
+                        onChange={(e) =>
+                          handleGuestInfoChange("password", e.target.value)
+                        }
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                        placeholder="Enter your password"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number *
+                      </label>
+                      <div className="flex">
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setIsCountryDropdownOpen(!isCountryDropdownOpen)
+                            }
+                            className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white hover:bg-gray-50 min-w-[130px]"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span className="text-lg">
+                                {selectedCountry?.flag}
+                              </span>
+                              <span className="text-sm font-medium">
+                                {selectedCountry?.code}
+                              </span>
+                            </div>
+                            <ChevronDown
+                              className={`w-4 h-4 text-gray-400 transition-transform {
+                                isCountryDropdownOpen ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+
+                          {isCountryDropdownOpen && (
+                            <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                              {countryCodes.map((country) => (
+                                <button
+                                  key={country.code}
+                                  type="button"
+                                  onClick={() =>
+                                    handleCountrySelect(country.code)
+                                  }
+                                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                                >
+                                  <span className="text-lg">
+                                    {country.flag}
+                                  </span>
+                                  <span className="text-sm font-medium">
+                                    {country.code}
+                                  </span>
+                                  <span className="text-sm text-gray-500">
+                                    {country.country}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="tel"
+                          value={guestInfo.phone}
+                          onChange={(e) =>
+                            handleGuestInfoChange("phone", e.target.value)
+                          }
+                          required
+                          className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                          placeholder="Enter your phone number"
+                        />
+                      </div>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Country *
+                      </label>
+                      <input
+                        type="text"
+                        value={guestInfo.country}
+                        onChange={(e) =>
+                          handleGuestInfoChange("country", e.target.value)
+                        }
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                        placeholder="Enter your country"
+                      />
+                    </div>
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={handleGuestLoginThenProceed}
+                        disabled={isLoginLoading}
+                        className={`w-full bg-gray-800 text-white py-3 px-6 rounded-lg font-medium transition-colors {
+                          isLoginLoading
+                            ? "opacity-70 cursor-not-allowed"
+                            : "hover:bg-gray-900"
+                        }`}
+                      >
+                        {isLoginLoading ? "Logging in..." : "Login & Continue"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
               )}
             </div>
 
@@ -354,30 +472,30 @@ export default function CarCheckout() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">
-                      ${carPrice} × {days} {days === 1 ? "day" : "days"}
+                      {carPrice} × {days} {days === 1 ? "day" : "days"}
                     </span>
                     <span className="text-gray-900">
-                      ${bookingDetails.total}
+                      {bookingDetails.total}
                     </span>
                   </div>
 
-                  <div className="flex justify-between">
+                  {/* <div className="flex justify-between">
                     <span className="text-gray-600">Service fee</span>
                     <span className="text-gray-900">${serviceFee}</span>
-                  </div>
+                  </div> */}
 
                   <div className="flex justify-between">
-                    <span className="text-gray-600">VAT</span>
-                    <span className="text-gray-900">${taxes}</span>
+                    <span className="text-gray-600">VAT 5%</span>
+                    <span className="text-gray-900">{displayVat}</span>
                   </div>
 
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between">
                       <span className="text-lg font-semibold text-gray-900">
-                        Total
+                        Total Amount
                       </span>
                       <span className="text-lg font-semibold text-gray-900">
-                        ${finalTotal}
+                        {displayFinalTotal}/=
                       </span>
                     </div>
                   </div>
@@ -385,19 +503,65 @@ export default function CarCheckout() {
 
                 {/* Proceed to Payment Button */}
                 <button
-                  onClick={handleProceedToPayment}
-                  disabled={isProcessing}
-                  className="w-full mt-6 bg-[#0064D2] text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center"
+                  onClick={handleProceedClick}
+                  disabled={isProcessing || !user}
+                  className={`w-full mt-6 bg-[#0064D2] text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center {
+                    isProcessing || !user ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
                 >
                   {isProcessing ? (
                     "Processing..."
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5 mr-2" />
-                      Proceed to Payment
+                      Proceed to Checkout
                     </>
                   )}
                 </button>
+
+
+                <Modal
+                  open={isConfirmOpen}
+                  onOk={async () => {
+                    if (!createdBookingId) {
+                      try { message.error("No booking id to pay for"); } catch {}
+                      return;
+                    }
+                    try {
+                      const res = await createCarPaystackSession(createdBookingId).unwrap();
+                      const url = res?.data?.checkoutUrl || res?.data?.url || res?.data?.authorization_url || res?.url;
+                      const ref = res?.data?.reference;
+                      try {
+                        console.log("Paystack URL:", url);
+                        if (ref) console.log("Paystack Reference:", ref);
+                      } catch {}
+                      if (url) {
+                        window.open(url, "_blank");
+                      } else {
+                        try { message.error("Payment URL not received"); } catch {}
+                      }
+                    } catch (e) {
+                      const msg = e?.data?.message || e?.message || "Failed to start payment";
+                      try { message.error(msg); } catch {}
+                    } finally {
+                      setIsConfirmOpen(false);
+                    }
+                  }}
+                  onCancel={() => setIsConfirmOpen(false)}
+                  okText="Pay Now"
+                  cancelText="Later"
+                  centered
+                >
+                  <div className="space-y-2">
+                    <div className="text-lg font-semibold text-gray-900">
+                      Ready to pay?
+                    </div>
+                    <div className="text-gray-600">
+                      Choose Pay Now to continue to payment, or Later to stay on
+                      this page.
+                    </div>
+                  </div>
+                </Modal>
               </div>
             </div>
           </div>

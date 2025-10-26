@@ -213,6 +213,10 @@ export const routes = createBrowserRouter([
         element: <CarServiceDetails />,
       },
       {
+        path: "/car-booking/:id",
+        element: <CarServiceDetails />,
+      },
+      {
         path: "/car/checkout",
         element: <CarCheckout />,
       },

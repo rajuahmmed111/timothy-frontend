@@ -6,6 +6,7 @@ export default function AttractionsHero() {
   const [dateRange, setDateRange] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const { RangePicker } = DatePicker;
+      const isDisabled = !searchTerm.trim();
   return (
     <section
       className="relative h-[600px] bg-cover bg-center"
@@ -35,11 +36,28 @@ export default function AttractionsHero() {
                   className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400"
                 />
               </div>
+              
             </div>
             {/* Search Button */}
             <div className="">
-              <Link to={`/attraction-details?searchTerm=${encodeURIComponent(searchTerm)}`} className="w-full">
-                <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
+              <Link
+                to={`/attraction-details?searchTerm=${encodeURIComponent(
+                  searchTerm
+                )}`}
+                className="w-full"
+                onClick={(e) => {
+                  if (isDisabled) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <button
+                  className={`w-full ${
+                    isDisabled
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-[#0064D2] hover:bg-[#0053ad]"
+                  } text-white py-3 rounded-lg font-bold`}
+                >
                   Search
                 </button>
               </Link>
