@@ -30,10 +30,20 @@ export default function HotelCard({ hotel }) {
             <MapPin className="w-4 h-4" /> {hotel.location}
           </p>
 
-          {/* Rating */}
-          <div className="flex items-center gap-2 mb-3">
-            <div className="text-2xl font-bold text-gray-900">
-              {hotel.price}
+          {/* Price and Rating */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-baseline gap-2">
+              <div className="text-2xl font-bold text-gray-900">
+                ${Math.max(0, Math.round((Number(hotel.price || 0) * (100 - Number(hotel.discount || 0))) / 100))}
+              </div>
+              {Number(hotel.discount || 0) > 0 && (
+                <>
+                  <div className="text-sm text-gray-400 line-through">${Number(hotel.price || 0)}</div>
+                  <div className="text-xs bg-red-100 text-red-700 font-medium px-2 py-0.5 rounded">
+                    -{Math.round(Number(hotel.discount))}%
+                  </div>
+                </>
+              )}
             </div>
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (

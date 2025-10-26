@@ -647,12 +647,14 @@ const name = hotel?.hotelName || hotel?.name || 'Unnamed Hotel';
 const locationStr = `${hotel?.hotelCity || ''}${hotel?.hotelCity && hotel?.hotelCountry ? ', ' : ''}${hotel?.hotelCountry || ''}`;
 const priceNum = Number(hotel?.averagePrice ?? firstRoom?.hotelRoomPriceNight ?? 0);
 const ratingNum = Number(hotel?.averageRating ?? firstRoom?.hotelRating ?? 0);
+const discountPct = Number(firstRoom?.discount ?? hotel?.discount ?? 0);
 const cardModel = {
 id: hotel?.id,
 image,
 name,
 location: locationStr,
 price: priceNum > 0 ? priceNum : undefined,
+discount: discountPct > 0 ? discountPct : 0,
 rating: ratingNum,
 raw: hotel,
 };

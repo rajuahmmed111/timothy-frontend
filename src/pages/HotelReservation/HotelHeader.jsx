@@ -1,6 +1,6 @@
 import React from "react";
 import { MapPin, Star, ExternalLink } from "lucide-react";
-export default function HotelHeader({ hotel }) {
+export default function HotelHeader({ hotel, reviewAverage, reviewCount }) {
 
   const lat = typeof hotel?.hotelLate === 'number' ? hotel.hotelLate : undefined;
   const lng = typeof hotel?.hotelLong === 'number' ? hotel.hotelLong : undefined;
@@ -23,13 +23,17 @@ export default function HotelHeader({ hotel }) {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold text-gray-900">{hotel?.hotelName || ""}</h1>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 {[1, 2, 3, 4, 5].map((s, i) => (
                   <Star
                     key={s}
-                    className={`w-5 h-5 ${i < Math.round(Number(hotel?.averageRating || 0)) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                    className={`w-5 h-5 ${i < Math.round(Number((reviewAverage ?? hotel?.averageRating) || 0)) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
                   />
                 ))}
+                <span className="text-sm text-gray-700">
+                  {Number((reviewAverage ?? hotel?.averageRating) || 0).toFixed(1)}
+                  {typeof reviewCount === 'number' ? ` • ${reviewCount} reviews` : ''}
+                </span>
               </div>
             </div>
             <div className="flex items-center mt-2 text-gray-600">
@@ -63,7 +67,7 @@ export default function HotelHeader({ hotel }) {
                       {[1, 2, 3, 4, 5].map((star, i) => (
                         <Star
                           key={star}
-                          className={`w-2.5 h-2.5 ${i < Math.round(Number(hotel?.averageRating || 0)) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                          className={`w-2.5 h-2.5 ${i < Math.round(Number((reviewAverage ?? hotel?.averageRating) || 0)) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
                         />
                       ))}
                     </div>
