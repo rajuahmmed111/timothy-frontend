@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import CarDashboard from "../../../components/Car/CarDashboard";
 import AddCarBusiness from "../../../components/Car/AddCarBusiness";
+import CarListings from "../../../components/Car/CarListings";
+import AvailableCarListing from "../../../components/Car/AvailableCarListing";
+import CarBookings from "../../../components/Car/CarBookings";
 
 export default function CarManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -36,11 +39,11 @@ export default function CarManagement() {
       {/* Content */}
       <div className="mt-6">
         {activeTab === "dashboard" && <CarDashboard />}
-        {activeTab === "booking" && "Car Booking list"}
-        {activeTab === "listings" && "Car Listings"}
+        {activeTab === "booking" && <CarBookings />}
+        {activeTab === "listings" && <CarListings />}
         {activeTab === "addBusiness" && <AddCarBusiness />}
         {activeTab === "reviewBusiness" && "Review Car Business"}
-        {activeTab === "availableListing" && "Available Car Listing"}
+        {activeTab === "availableListing" && <AvailableCarListing />}
       </div>
     </div>
   );
