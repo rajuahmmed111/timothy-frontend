@@ -8,7 +8,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLoginWebsiteMutation, useCreateCarBookingMutation, useCreateCarPaystackSessionMutation } from "../../redux/api/car/carApi";
+import { useLoginWebsiteMutation, useCreateCarBookingMutation, useCreateCarPaystackSessionMutation, useCreateCarStripeSessionMutation } from "../../redux/api/car/carApi";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { Modal, message } from "antd";
 
@@ -37,6 +37,7 @@ export default function CarCheckout() {
   const [createCarBooking, { isLoading: isCreatingBooking }] = useCreateCarBookingMutation();
   const [createdBookingId, setCreatedBookingId] = useState(null);
   const [createCarPaystackSession, { isLoading: isCreatingPayment }] = useCreateCarPaystackSessionMutation();
+  const [createCarStripeSession, { isLoading: isCreatingStripe }] = useCreateCarStripeSessionMutation();
   const [serverTotal, setServerTotal] = useState(null);
 
   // Common country codes
@@ -89,6 +90,14 @@ export default function CarCheckout() {
     : taxes;
   const displaySubtotal = serverTotal ? round2(displayFinalTotal / 1.05) : bookingDetails.total;
   const displayUnit = round2(displaySubtotal / days);
+
+  // Determine if Paystack should be used (Africa) else Stripe
+  const africanPrefix = "+2"; // Most African countries start with +2
+  const userCountry = user?.country || "";
+  const phoneCode = guestInfo?.countryCode || "";
+  const isAfricaByPhone = typeof phoneCode === "string" && phoneCode.startsWith(africanPrefix);
+  const isAfricaByCountry = typeof userCountry === "string" && /\b(Algeria|Angola|Benin|Botswana|Burkina|Burundi|Cameroon|Cape Verde|Central African Republic|Chad|Comoros|Congo|DRC|Cote d'Ivoire|Ivory Coast|Djibouti|Egypt|Equatorial Guinea|Eritrea|Eswatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Kenya|Lesotho|Liberia|Libya|Madagascar|Malawi|Mali|Mauritania|Mauritius|Morocco|Mozambique|Namibia|Niger|Nigeria|Rwanda|Sao Tome|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Tanzania|Togo|Tunisia|Uganda|Zambia|Zimbabwe)\b/i.test(userCountry);
+  const shouldUsePaystack = isAfricaByCountry || isAfricaByPhone;
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -528,17 +537,33 @@ export default function CarCheckout() {
                       return;
                     }
                     try {
-                      const res = await createCarPaystackSession(createdBookingId).unwrap();
-                      const url = res?.data?.checkoutUrl || res?.data?.url || res?.data?.authorization_url || res?.url;
-                      const ref = res?.data?.reference;
-                      try {
-                        console.log("Paystack URL:", url);
-                        if (ref) console.log("Paystack Reference:", ref);
-                      } catch {}
-                      if (url) {
-                        window.open(url, "_blank");
+                      if (shouldUsePaystack) {
+                        const res = await createCarPaystackSession(createdBookingId).unwrap();
+                        const url = res?.data?.checkoutUrl || res?.data?.url || res?.data?.authorization_url || res?.url;
+                        const ref = res?.data?.reference;
+                        try {
+                          console.log("Paystack URL:", url);
+                          if (ref) console.log("Paystack Reference:", ref);
+                        } catch {}
+                        if (url) {
+                          window.open(url, "_blank");
+                        } else {
+                          try { message.error("Payment URL not received"); } catch {}
+                        }
                       } else {
-                        try { message.error("Payment URL not received"); } catch {}
+                        const res = await createCarStripeSession(createdBookingId).unwrap();
+                        const url = res?.data?.checkoutUrl || res?.data?.url || res?.url;
+                        const ref = res?.data?.reference || res?.data?.id || res?.data?.checkoutSessionId;
+                        try {
+                          console.log("Stripe URL:", url);
+                          if (ref) console.log("Stripe Reference:", ref);
+                        } catch {}
+                        if (url) {
+                          window.location.assign(url);
+                          console.log("Checkout Session ID:", ref);
+                        } else {
+                          try { message.error("Payment URL not received"); } catch {}
+                        }
                       }
                     } catch (e) {
                       const msg = e?.data?.message || e?.message || "Failed to start payment";
@@ -548,7 +573,7 @@ export default function CarCheckout() {
                     }
                   }}
                   onCancel={() => setIsConfirmOpen(false)}
-                  okText="Pay Now"
+                  okText={shouldUsePaystack ? "Pay with Paystack" : "Pay with Stripe"}
                   cancelText="Later"
                   centered
                 >

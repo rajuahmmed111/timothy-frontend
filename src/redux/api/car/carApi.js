@@ -92,6 +92,12 @@ export const carApi = baseApi.injectEndpoints({
         method: "POST",
       }),
     }),
+    createCarStripeSession: builder.mutation({
+      query: (bookingId) => ({
+        url: `/payments/create-stripe-checkout-session-website/car/${bookingId}`,
+        method: "POST",
+      }),
+    }),
     getCarBookingById: builder.query({
       query: (id) => ({
         url: `/car-booking/${id}`,
@@ -126,4 +132,5 @@ export const {
   useLazyGetCarBookingByIdQuery,
   useLoginWebsiteMutation,
   useCreateCarPaystackSessionMutation,
+  useCreateCarStripeSessionMutation,
 } = carApi;
