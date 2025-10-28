@@ -8,7 +8,12 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLoginWebsiteMutation, useCreateCarBookingMutation, useCreateCarPaystackSessionMutation, useCreateCarStripeSessionMutation } from "../../redux/api/car/carApi";
+import {
+  useLoginWebsiteMutation,
+  useCreateCarBookingMutation,
+  useCreateCarPaystackSessionMutation,
+  useCreateCarStripeSessionMutation,
+} from "../../redux/api/car/carApi";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { Modal, message } from "antd";
 
@@ -34,10 +39,13 @@ export default function CarCheckout() {
   const [loginWebsite, { isLoading: isLoginLoading }] =
     useLoginWebsiteMutation();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [createCarBooking, { isLoading: isCreatingBooking }] = useCreateCarBookingMutation();
+  const [createCarBooking, { isLoading: isCreatingBooking }] =
+    useCreateCarBookingMutation();
   const [createdBookingId, setCreatedBookingId] = useState(null);
-  const [createCarPaystackSession, { isLoading: isCreatingPayment }] = useCreateCarPaystackSessionMutation();
-  const [createCarStripeSession, { isLoading: isCreatingStripe }] = useCreateCarStripeSessionMutation();
+  const [createCarPaystackSession, { isLoading: isCreatingPayment }] =
+    useCreateCarPaystackSessionMutation();
+  const [createCarStripeSession, { isLoading: isCreatingStripe }] =
+    useCreateCarStripeSessionMutation();
   const [serverTotal, setServerTotal] = useState(null);
 
   // Common country codes
@@ -75,7 +83,8 @@ export default function CarCheckout() {
   const days = Math.max(
     1,
     Math.floor(
-      (new Date(bookingDetails.returnDate) - new Date(bookingDetails.pickupDate)) /
+      (new Date(bookingDetails.returnDate) -
+        new Date(bookingDetails.pickupDate)) /
         msPerDay
     )
   );
@@ -88,15 +97,22 @@ export default function CarCheckout() {
   const displayVat = serverTotal
     ? round2(displayFinalTotal - round2(displayFinalTotal / 1.05))
     : taxes;
-  const displaySubtotal = serverTotal ? round2(displayFinalTotal / 1.05) : bookingDetails.total;
+  const displaySubtotal = serverTotal
+    ? round2(displayFinalTotal / 1.05)
+    : bookingDetails.total;
   const displayUnit = round2(displaySubtotal / days);
 
   // Determine if Paystack should be used (Africa) else Stripe
   const africanPrefix = "+2"; // Most African countries start with +2
   const userCountry = user?.country || "";
   const phoneCode = guestInfo?.countryCode || "";
-  const isAfricaByPhone = typeof phoneCode === "string" && phoneCode.startsWith(africanPrefix);
-  const isAfricaByCountry = typeof userCountry === "string" && /\b(Algeria|Angola|Benin|Botswana|Burkina|Burundi|Cameroon|Cape Verde|Central African Republic|Chad|Comoros|Congo|DRC|Cote d'Ivoire|Ivory Coast|Djibouti|Egypt|Equatorial Guinea|Eritrea|Eswatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Kenya|Lesotho|Liberia|Libya|Madagascar|Malawi|Mali|Mauritania|Mauritius|Morocco|Mozambique|Namibia|Niger|Nigeria|Rwanda|Sao Tome|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Tanzania|Togo|Tunisia|Uganda|Zambia|Zimbabwe)\b/i.test(userCountry);
+  const isAfricaByPhone =
+    typeof phoneCode === "string" && phoneCode.startsWith(africanPrefix);
+  const isAfricaByCountry =
+    typeof userCountry === "string" &&
+    /\b(Algeria|Angola|Benin|Botswana|Burkina|Burundi|Cameroon|Cape Verde|Central African Republic|Chad|Comoros|Congo|DRC|Cote d'Ivoire|Ivory Coast|Djibouti|Egypt|Equatorial Guinea|Eritrea|Eswatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Kenya|Lesotho|Liberia|Libya|Madagascar|Malawi|Mali|Mauritania|Mauritius|Morocco|Mozambique|Namibia|Niger|Nigeria|Rwanda|Sao Tome|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Tanzania|Togo|Tunisia|Uganda|Zambia|Zimbabwe)\b/i.test(
+      userCountry
+    );
   const shouldUsePaystack = isAfricaByCountry || isAfricaByPhone;
 
   const formatDate = (dateString) => {
@@ -127,24 +143,12 @@ export default function CarCheckout() {
   const handleProceedToPayment = () => {
     setIsProcessing(true);
 
-    // // Navigate to payment page with complete booking data
-    // navigate("/car/payment", {
-    //   state: {
-    //     bookingDetails: {
-    //       ...bookingDetails,
-    //       // serviceFee,
-    //       taxes,
-    //       finalTotal,
-    //       days,
-    //     },
-    //   },
-    // });
+  
 
     setIsProcessing(false);
   };
 
   const handleProceedClick = async () => {
-    
     if (!user) return;
     setIsProcessing(true);
     try {
@@ -164,12 +168,15 @@ export default function CarCheckout() {
         }).unwrap();
         const created = res?.data || res;
         if (created?.id) setCreatedBookingId(created.id);
-        if (typeof created?.totalPrice === "number") setServerTotal(round2(created.totalPrice));
+        if (typeof created?.totalPrice === "number")
+          setServerTotal(round2(created.totalPrice));
       }
       setIsConfirmOpen(true);
     } catch (e) {
       const msg = e?.data?.message || e?.message || "Failed to create booking";
-      try { message.error(msg); } catch {}
+      try {
+        message.error(msg);
+      } catch {}
       setIsConfirmOpen(false);
     } finally {
       setIsProcessing(false);
@@ -528,18 +535,25 @@ export default function CarCheckout() {
                   )}
                 </button>
 
-
                 <Modal
                   open={isConfirmOpen}
                   onOk={async () => {
                     if (!createdBookingId) {
-                      try { message.error("No booking id to pay for"); } catch {}
+                      try {
+                        message.error("No booking id to pay for");
+                      } catch {}
                       return;
                     }
                     try {
                       if (shouldUsePaystack) {
-                        const res = await createCarPaystackSession(createdBookingId).unwrap();
-                        const url = res?.data?.checkoutUrl || res?.data?.url || res?.data?.authorization_url || res?.url;
+                        const res = await createCarPaystackSession(
+                          createdBookingId
+                        ).unwrap();
+                        const url =
+                          res?.data?.checkoutUrl ||
+                          res?.data?.url ||
+                          res?.data?.authorization_url ||
+                          res?.url;
                         const ref = res?.data?.reference;
                         try {
                           console.log("Paystack URL:", url);
@@ -548,12 +562,20 @@ export default function CarCheckout() {
                         if (url) {
                           window.open(url, "_blank");
                         } else {
-                          try { message.error("Payment URL not received"); } catch {}
+                          try {
+                            message.error("Payment URL not received");
+                          } catch {}
                         }
                       } else {
-                        const res = await createCarStripeSession(createdBookingId).unwrap();
-                        const url = res?.data?.checkoutUrl || res?.data?.url || res?.url;
-                        const ref = res?.data?.reference || res?.data?.id || res?.data?.checkoutSessionId;
+                        const res = await createCarStripeSession(
+                          createdBookingId
+                        ).unwrap();
+                        const url =
+                          res?.data?.checkoutUrl || res?.data?.url || res?.url;
+                        const ref =
+                          res?.data?.reference ||
+                          res?.data?.id ||
+                          res?.data?.checkoutSessionId;
                         try {
                           console.log("Stripe URL:", url);
                           if (ref) console.log("Stripe Reference:", ref);
@@ -562,18 +584,27 @@ export default function CarCheckout() {
                           window.location.assign(url);
                           console.log("Checkout Session ID:", ref);
                         } else {
-                          try { message.error("Payment URL not received"); } catch {}
+                          try {
+                            message.error("Payment URL not received");
+                          } catch {}
                         }
                       }
                     } catch (e) {
-                      const msg = e?.data?.message || e?.message || "Failed to start payment";
-                      try { message.error(msg); } catch {}
+                      const msg =
+                        e?.data?.message ||
+                        e?.message ||
+                        "Failed to start payment";
+                      try {
+                        message.error(msg);
+                      } catch {}
                     } finally {
                       setIsConfirmOpen(false);
                     }
                   }}
                   onCancel={() => setIsConfirmOpen(false)}
-                  okText={shouldUsePaystack ? "Pay with Paystack" : "Pay with Stripe"}
+                  okText={
+                    shouldUsePaystack ? "Pay with Paystack" : "Pay with Stripe"
+                  }
                   cancelText="Later"
                   centered
                 >

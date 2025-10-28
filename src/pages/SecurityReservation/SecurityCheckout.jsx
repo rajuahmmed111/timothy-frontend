@@ -7,19 +7,33 @@ import {
   ArrowLeft,
   ChevronDown,
 } from "lucide-react";
-import { useCreateSecurityBookingMutation, useCreateSecurityStripeCheckoutSessionMutation } from "../../redux/api/security/securityBookingApi";
+import {
+  useCreateSecurityBookingMutation,
+  useCreateSecurityStripeCheckoutSessionMutation,
+  useCreateSecurityPaystackCheckoutSessionMutation,
+} from "../../redux/api/security/securityBookingApi";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Modal, message } from "antd";
 
 export default function SecurityCheckout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+
   const [showPaymentChoiceModal, setShowPaymentChoiceModal] = useState(false);
   const [createdBooking, setCreatedBooking] = useState(null);
-  const [createBooking, { isLoading: isCreating }] = useCreateSecurityBookingMutation();
-  const [createStripeSession, { isLoading: isCreatingStripe }] = useCreateSecurityStripeCheckoutSessionMutation();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null); // null, 'processing', 'success', 'error'
+  const [shouldUsePaystack, setShouldUsePaystack] = useState(false);
+  const [createBooking, { isLoading: isCreating }] =
+    useCreateSecurityBookingMutation();
+  const [createStripeSession, { isLoading: isCreatingStripe }] =
+    useCreateSecurityStripeCheckoutSessionMutation();
+  const [createPaystackSession, { isLoading: isCreatingPaystack }] =
+    useCreateSecurityPaystackCheckoutSessionMutation();
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
     lastName: "",
@@ -32,12 +46,71 @@ export default function SecurityCheckout() {
     country: "",
   });
 
+  // Get booking details from navigation state
+  const bookingDetails = location.state?.bookingDetails || {};
+
   // Determine payment provider by user location (Africa => Paystack, otherwise Stripe)
   const AFRICAN_COUNTRIES = [
-    "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic","Chad","Comoros","Congo","Democratic Republic of the Congo","Djibouti","Egypt","Equatorial Guinea","Eritrea","Eswatini","Ethiopia","Gabon","Gambia","Ghana","Guinea","Guinea-Bissau","Ivory Coast","Kenya","Lesotho","Liberia","Libya","Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia","Niger","Nigeria","Rwanda","Sao Tome and Principe","Senegal","Seychelles","Sierra Leone","Somalia","South Africa","South Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe"
+    "Algeria",
+    "Angola",
+    "Benin",
+    "Botswana",
+    "Burkina Faso",
+    "Burundi",
+    "Cabo Verde",
+    "Cameroon",
+    "Central African Republic",
+    "Chad",
+    "Comoros",
+    "Congo",
+    "Democratic Republic of the Congo",
+    "Djibouti",
+    "Egypt",
+    "Equatorial Guinea",
+    "Eritrea",
+    "Eswatini",
+    "Ethiopia",
+    "Gabon",
+    "Gambia",
+    "Ghana",
+    "Guinea",
+    "Guinea-Bissau",
+    "Ivory Coast",
+    "Kenya",
+    "Lesotho",
+    "Liberia",
+    "Libya",
+    "Madagascar",
+    "Malawi",
+    "Mali",
+    "Mauritania",
+    "Mauritius",
+    "Morocco",
+    "Mozambique",
+    "Namibia",
+    "Niger",
+    "Nigeria",
+    "Rwanda",
+    "Sao Tome and Principe",
+    "Senegal",
+    "Seychelles",
+    "Sierra Leone",
+    "Somalia",
+    "South Africa",
+    "South Sudan",
+    "Sudan",
+    "Tanzania",
+    "Togo",
+    "Tunisia",
+    "Uganda",
+    "Zambia",
+    "Zimbabwe",
   ];
-  const storedUserRaw = typeof window !== 'undefined' ? (localStorage.getItem('user') || localStorage.getItem('profile') || null) : null;
-  let userCountry = '';
+  const storedUserRaw =
+    typeof window !== "undefined"
+      ? localStorage.getItem("user") || localStorage.getItem("profile") || null
+      : null;
+  let userCountry = "";
   try {
     const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
     userCountry =
@@ -45,13 +118,16 @@ export default function SecurityCheckout() {
       storedUser?.address?.country ||
       storedUser?.profile?.country ||
       storedUser?.location?.country ||
-      '';
+      "";
   } catch (e) {
-    userCountry = '';
+    userCountry = "";
   }
   const isAfricanUser = AFRICAN_COUNTRIES.some(
     (c) => c.toLowerCase() === String(userCountry).toLowerCase()
   );
+
+  // Calculate total price for display
+  const totalPrice = bookingDetails?.total || 0;
 
   const isLoggedIn = Boolean(
     typeof window !== "undefined" &&
@@ -71,8 +147,6 @@ export default function SecurityCheckout() {
     }
   }, [apiError]);
 
-  // Get booking details from navigation state
-  const bookingDetails = location.state?.bookingDetails;
   console.log("booking", bookingDetails);
   // Calculate additional details
   const days =
@@ -81,7 +155,6 @@ export default function SecurityCheckout() {
         (1000 * 60 * 60 * 24)
     ) || 1;
   const servicePrice = bookingDetails.total / days;
-
   const taxes = Math.round(bookingDetails.total * 0.08);
   const finalTotal = bookingDetails.total + taxes;
 
@@ -107,11 +180,14 @@ export default function SecurityCheckout() {
       console.log("Creating booking with:", { id, body });
       const resp = await createBooking({ id, body }).unwrap();
       console.log("Create booking response:", resp);
-      setCreatedBooking(resp?.data || resp);
-      setShowPaymentChoiceModal(true);
+      const booking = resp?.data || resp;
+      setCreatedBooking(booking);
+      setPaymentStatus(null);
+      setIsPaymentModalOpen(true);
     } catch (err) {
       console.error("Create booking failed:", err);
-      const statusCode = err?.status || err?.data?.statusCode || err?.originalStatus;
+      const statusCode =
+        err?.status || err?.data?.statusCode || err?.originalStatus;
       const apiMessage =
         err?.data?.message ||
         err?.data?.error ||
@@ -472,73 +548,116 @@ export default function SecurityCheckout() {
                     )}
                   </button>
                 )}
+
+                {/* Payment Modal */}
+                <Modal
+                 
+                  open={isPaymentModalOpen}
+                  onOk={async () => {
+                    if (!createdBooking?.id) {
+                      message.error("No booking ID found to process payment");
+                      return;
+                    }
+                    
+                    setIsProcessingPayment(true);
+                    
+                    try {
+                      if (shouldUsePaystack) {
+                        // Process Paystack payment
+                        const res = await createPaystackSession(createdBooking.id).unwrap();
+                        const url = res?.data?.checkoutUrl || 
+                                  res?.data?.url || 
+                                  res?.data?.authorization_url || 
+                                  res?.url;
+                        
+                        if (url) {
+                          window.location.href = url; // Use location.href for full page redirect
+                        } else {
+                          throw new Error("Payment URL not received from Paystack");
+                        }
+                      } else {
+                        // Process Stripe payment
+                        const res = await createStripeSession(createdBooking.id).unwrap();
+                        const url = res?.data?.checkoutUrl || 
+                                  res?.data?.url || 
+                                  res?.url;
+                        
+                        if (url) {
+                          window.location.href = url; // Use location.href for full page redirect
+                        } else {
+                          throw new Error("Payment URL not received from Stripe");
+                        }
+                      }
+                    } catch (error) {
+                      console.error("Payment error:", error);
+                      message.error(error?.message || "Failed to process payment");
+                      setIsPaymentModalOpen(false);
+                    } finally {
+                      setIsProcessingPayment(false);
+                    }
+                  }}
+                  onCancel={() => !isProcessingPayment && setIsPaymentModalOpen(false)}
+                  okButtonProps={{ loading: isProcessingPayment }}
+                  okText={shouldUsePaystack ? "Pay with Paystack" : "Pay with Stripe"}
+                  cancelText="Cancel"
+                  confirmLoading={isProcessingPayment}
+                  closable={!isProcessingPayment}
+                  centered
+                >
+                  <div className="space-y-4 p-4">
+                    <div className="text-lg font-semibold text-gray-900">
+                      Ready to pay?
+                    </div>
+                    <div className="text-gray-600 mb-4">
+                      You will be redirected to {shouldUsePaystack ? 'Paystack' : 'Stripe'} to complete your payment.
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          id="stripe"
+                          name="paymentMethod"
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                          checked={!shouldUsePaystack}
+                          onChange={() => setShouldUsePaystack(false)}
+                        />
+                        <label htmlFor="stripe" className="ml-2 block text-sm font-medium text-gray-700">
+                          Pay with Stripe (International Cards)
+                        </label>
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          id="paystack"
+                          name="paymentMethod"
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                          checked={shouldUsePaystack}
+                          onChange={() => setShouldUsePaystack(true)}
+                        />
+                        <label htmlFor="paystack" className="ml-2 block text-sm font-medium text-gray-700">
+                          Pay with Paystack (African Cards)
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </Modal>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Payment Choice Modal */}
-      {showPaymentChoiceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setShowPaymentChoiceModal(false)}
-          />
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900">Booking Created</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Your booking has been created successfully.
-            </p>
-          
-            <div className="mt-6 flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowPaymentChoiceModal(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Later
-              </button>
-              <button
-                onClick={async () => {
-                  setShowPaymentChoiceModal(false);
-                  const provider = isAfricanUser ? 'paystack' : 'stripe';
-                  const bookingId = createdBooking?.id || createdBooking?.data?.id || bookingDetails?.createdBookingId;
-                  if (provider === 'stripe' && bookingId) {
-                    try {
-                      const resp = await createStripeSession(bookingId).unwrap();
-                      const redirectUrl = resp?.data?.url || resp?.url;
-                      if (redirectUrl) {
-                        window.location.href = redirectUrl;
-                        return;
-                      }
-                    } catch (e) {
-                      toast.error(e?.data?.message || 'Failed to start Stripe checkout');
-                    }
-                  }
-
-                  navigate("/security/payment", {
-                    state: {
-                      bookingDetails: {
-                        ...bookingDetails,
-                        taxes,
-                        finalTotal,
-                        days,
-                        createdBookingId: bookingId,
-                        paymentProvider: provider,
-                      },
-                    },
-                  });
-                }}
-                className="px-4 py-2 rounded-lg bg-[#0064D2] text-white hover:bg-[#0052ad]"
-              >
-                {isAfricanUser ? 'Pay with Paystack' : (isCreatingStripe ? 'Redirecting...' : 'Pay with Stripe')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
       {/* Unauthorized Modal */}
       {showAuthModal && (

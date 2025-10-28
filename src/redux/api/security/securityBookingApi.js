@@ -25,7 +25,19 @@ export const securiBookingtyApi = baseApi.injectEndpoints({
         body: {},
       }),
     }),
+    createSecurityPaystackCheckoutSession: builder.mutation({
+      query: (bookingId) => ({
+        url: `/payments/create-checkout-session-paystack/security/${bookingId}`,
+        method: "POST",
+        body: {},
+      }),
+    }),
   }),
 });
 
-export const { useGetSecurityBookingQuery, useCreateSecurityBookingMutation, useCreateSecurityStripeCheckoutSessionMutation } = securiBookingtyApi;
+export const { 
+  useGetSecurityBookingQuery, 
+  useCreateSecurityBookingMutation, 
+  useCreateSecurityStripeCheckoutSessionMutation,
+  useCreateSecurityPaystackCheckoutSessionMutation 
+} = securiBookingtyApi;
