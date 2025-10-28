@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Spin } from "antd";
 import { MapPin } from "lucide-react";
-import { useGetSecurityProtocolByIdQuery } from "../../redux/api/security/getAllSecurityApi";
+import { useGetSecurityProtocolByIdQuery } from "../../redux/api/security/securityApi";
 
 export default function SecurityProtocolDetails() {
   const { id } = useParams();
@@ -29,6 +29,30 @@ export default function SecurityProtocolDetails() {
   }
 
   if ((isError || !protocol) && !isLoading && !isFetching) {
+    const status = error?.status;
+    const message = error?.data?.message || "";
+    const isUnauthorized = status === 401 || /not authorized/i.test(message);
+    if (isUnauthorized) {
+      const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-md p-6 w-full max-w-md text-center">
+            <h2 className="text-xl font-semibold text-gray-900">You are not authorized</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Please log in to view this protocol. You will be redirected back here after login.
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <a
+                href={`/login?redirect=${redirect}`}
+                className="px-4 py-2 rounded-lg bg-[#0064D2] text-white hover:bg-[#0052ad]"
+              >
+                Login
+              </a>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen flex items-center justify-center text-red-500">
         <div className="text-center">

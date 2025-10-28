@@ -18,7 +18,6 @@ export default function CarBookingConfirmation() {
         total: 150,
         paymentMethod: '•••• •••• •••• 4242',
         paymentStatus: 'completed',
-        total: 150,
     };
 
     // Handle send to email functionality

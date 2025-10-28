@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -12,6 +12,7 @@ export default function SecurityCheckout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
     lastName: "",
@@ -23,6 +24,24 @@ export default function SecurityCheckout() {
     postcode: "",
     country: "",
   });
+
+  const isLoggedIn = Boolean(
+    typeof window !== 'undefined' && (
+      localStorage.getItem('accessToken') ||
+      localStorage.getItem('token') ||
+      localStorage.getItem('user')
+    )
+  );
+
+  // Detect 401 errors passed via navigation state and open modal
+  const apiError = location.state?.error || location.state?.apiError || null;
+  useEffect(() => {
+    const statusCode = apiError?.statusCode || apiError?.status || apiError?.err?.statusCode;
+    const message = apiError?.message || apiError?.errorMessages?.[0]?.message;
+    if (statusCode === 401 || /not authorized/i.test(message || "")) {
+      setShowAuthModal(true);
+    }
+  }, [apiError]);
 
   // Get booking details from navigation state
   const bookingDetails = location.state?.bookingDetails || {
@@ -41,9 +60,9 @@ export default function SecurityCheckout() {
         (1000 * 60 * 60 * 24)
     ) || 1;
   const servicePrice = bookingDetails.total / days;
-  const serviceFee = Math.round(bookingDetails.total * 0.1);
+ 
   const taxes = Math.round(bookingDetails.total * 0.08);
-  const finalTotal = bookingDetails.total + serviceFee + taxes;
+  const finalTotal = bookingDetails.total  + taxes;
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -62,7 +81,7 @@ export default function SecurityCheckout() {
       state: {
         bookingDetails: {
           ...bookingDetails,
-          serviceFee,
+     
           taxes,
           finalTotal,
           days,
@@ -71,6 +90,11 @@ export default function SecurityCheckout() {
     });
 
     setIsProcessing(false);
+  };
+
+  const handleLoginRedirect = () => {
+    const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
+    navigate(`/login?redirect=${redirectTo}`);
   };
 
   const handleGoBack = () => {
@@ -160,12 +184,12 @@ export default function SecurityCheckout() {
                   </div>
 
                   {/* Service Type */}
-                  <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                  {/* <div className="flex justify-between items-center py-3 border-b border-gray-100">
                     <span className="text-gray-600">Service Type</span>
                     <span className="font-medium text-gray-900">
                       {bookingDetails.serviceType}
                     </span>
-                  </div>
+                  </div> */}
 
                   {/* Service Description */}
                   <div className="py-3 border-b border-gray-100">
@@ -209,7 +233,8 @@ export default function SecurityCheckout() {
                 </div>
               </div>
 
-              {/* Guest Information Form */}
+              {/* Guest Information Form (hidden if logged in) */}
+              {!isLoggedIn && (
               <div className="bg-white rounded-2xl shadow-sm p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   Guest
@@ -346,6 +371,7 @@ export default function SecurityCheckout() {
                   </div>
                 </form>
               </div>
+              )}
             </div>
 
             {/* Right Column - Price Summary */}
@@ -365,10 +391,6 @@ export default function SecurityCheckout() {
                     </span>
                   </div>
 
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Service fee</span>
-                    <span className="text-gray-900">${serviceFee}</span>
-                  </div>
 
                   <div className="flex justify-between">
                     <span className="text-gray-600">VAT</span>
@@ -387,26 +409,59 @@ export default function SecurityCheckout() {
                   </div>
                 </div>
 
-                {/* Proceed to Payment Button */}
-                <button
-                  onClick={handleProceedToPayment}
-                  disabled={isProcessing}
-                  className="w-full mt-6 bg-[#0064D2] text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center"
-                >
-                  {isProcessing ? (
-                    "Processing..."
-                  ) : (
-                    <>
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      Proceed to Payment
-                    </>
-                  )}
-                </button>
+                {/* Proceed to Booking Button (visible only if logged in) */}
+                {isLoggedIn && (
+                  <button
+                    onClick={handleProceedToPayment}
+                    disabled={isProcessing}
+                    className="w-full mt-6 bg-[#0064D2] cursor-pointer text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center"
+                  >
+                    {isProcessing ? (
+                      "Processing..."
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5 mr-2" />
+                        Proceed to Booking
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Unauthorized Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowAuthModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+            <div className="flex items-start">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">You are not authorized</h3>
+                <p className="mt-2 text-sm text-gray-600">
+                  Please log in to continue with your booking. Your current selection will be preserved after login.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Not now
+              </button>
+              <button
+                onClick={handleLoginRedirect}
+                className="px-4 py-2 rounded-lg bg-[#0064D2] text-white hover:bg-[#0052ad]"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

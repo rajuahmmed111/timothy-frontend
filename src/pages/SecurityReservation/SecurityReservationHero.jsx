@@ -9,6 +9,33 @@ export default function SecurityReservationHero() {
   const [securityType, setSecurityType] = useState("");
   const [dateRange, setDateRange] = useState(null);
 
+  const handleSearch = () => {
+    const hasLocation = Boolean(location?.trim());
+    const hasDates = Boolean(dateRange?.[0]) || Boolean(dateRange?.[1]);
+    const hasType = Boolean(securityType);
+    if (!hasLocation && !hasDates && !hasType) return; // do nothing when all empty
+
+    const params = new URLSearchParams();
+    if (location) {
+      const parts = location
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (parts.length === 2) {
+        params.set("country", parts[0]);
+        params.set("city", parts[1]);
+      } else if (parts.length === 1) {
+        params.set("city", parts[0]);
+      }
+    }
+    if (dateRange?.[0]) params.set("fromDate", dateRange[0].format("YYYY-MM-DD"));
+    if (dateRange?.[1]) params.set("toDate", dateRange[1].format("YYYY-MM-DD"));
+    if (securityType) params.set("securityProtocolType", securityType);
+    const qs = params.toString();
+    const url = qs ? `/security-details?${qs}` : "/security-details";
+    navigate(url);
+  };
+
   const onSearch = () => {
     const params = new URLSearchParams();
     if (location) {
@@ -81,32 +108,19 @@ export default function SecurityReservationHero() {
             </div>
             {/* Search Button */}
             <div className="">
-              <Link
-                to={(() => {
-                  const params = new URLSearchParams();
-                  if (location) {
-                    const parts = location.split(",").map((s) => s.trim()).filter(Boolean);
-                    if (parts.length === 2) {
-                      params.set("country", parts[0]);
-                      params.set("city", parts[1]);
-                    } else if (parts.length === 1) {
-                      params.set("city", parts[0]);
-                    }
-                  }
-                  if (dateRange?.[0]) params.set("fromDate", dateRange[0].format("YYYY-MM-DD"));
-                  if (dateRange?.[1]) params.set("toDate", dateRange[1].format("YYYY-MM-DD"));
-                  if (securityType) params.set("securityProtocolType", securityType);
-                  const qs = params.toString();
-                  return qs
-                    ? `/security-details?${qs}`
-                    : "/security-details";
-                })()}
-                className="w-full"
-              >
-                <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
-                  Search
-                </button>
-              </Link>
+              {(() => {
+                const isDisabled =
+                  !location?.trim() && !dateRange?.[0] && !dateRange?.[1] && !securityType;
+                return (
+                  <button
+                    onClick={handleSearch}
+                    disabled={isDisabled}
+                    className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Search
+                  </button>
+                );
+              })()}
             </div>
           </div>
         </div>
