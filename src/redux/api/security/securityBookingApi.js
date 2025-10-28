@@ -18,7 +18,14 @@ export const securiBookingtyApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["SecurityBooking"],
     }),
+    createSecurityStripeCheckoutSession: builder.mutation({
+      query: (bookingId) => ({
+        url: `/payments/create-stripe-checkout-session-website/security/${bookingId}`,
+        method: "POST",
+        body: {},
+      }),
+    }),
   }),
 });
 
-export const { useGetSecurityBookingQuery, useCreateSecurityBookingMutation } = securiBookingtyApi;
+export const { useGetSecurityBookingQuery, useCreateSecurityBookingMutation, useCreateSecurityStripeCheckoutSessionMutation } = securiBookingtyApi;

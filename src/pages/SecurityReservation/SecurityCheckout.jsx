@@ -7,7 +7,7 @@ import {
   ArrowLeft,
   ChevronDown,
 } from "lucide-react";
-import { useCreateSecurityBookingMutation } from "../../redux/api/security/securityBookingApi";
+import { useCreateSecurityBookingMutation, useCreateSecurityStripeCheckoutSessionMutation } from "../../redux/api/security/securityBookingApi";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -19,6 +19,7 @@ export default function SecurityCheckout() {
   const [showPaymentChoiceModal, setShowPaymentChoiceModal] = useState(false);
   const [createdBooking, setCreatedBooking] = useState(null);
   const [createBooking, { isLoading: isCreating }] = useCreateSecurityBookingMutation();
+  const [createStripeSession, { isLoading: isCreatingStripe }] = useCreateSecurityStripeCheckoutSessionMutation();
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
     lastName: "",
@@ -30,6 +31,27 @@ export default function SecurityCheckout() {
     postcode: "",
     country: "",
   });
+
+  // Determine payment provider by user location (Africa => Paystack, otherwise Stripe)
+  const AFRICAN_COUNTRIES = [
+    "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Republic","Chad","Comoros","Congo","Democratic Republic of the Congo","Djibouti","Egypt","Equatorial Guinea","Eritrea","Eswatini","Ethiopia","Gabon","Gambia","Ghana","Guinea","Guinea-Bissau","Ivory Coast","Kenya","Lesotho","Liberia","Libya","Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia","Niger","Nigeria","Rwanda","Sao Tome and Principe","Senegal","Seychelles","Sierra Leone","Somalia","South Africa","South Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe"
+  ];
+  const storedUserRaw = typeof window !== 'undefined' ? (localStorage.getItem('user') || localStorage.getItem('profile') || null) : null;
+  let userCountry = '';
+  try {
+    const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
+    userCountry =
+      storedUser?.country ||
+      storedUser?.address?.country ||
+      storedUser?.profile?.country ||
+      storedUser?.location?.country ||
+      '';
+  } catch (e) {
+    userCountry = '';
+  }
+  const isAfricanUser = AFRICAN_COUNTRIES.some(
+    (c) => c.toLowerCase() === String(userCountry).toLowerCase()
+  );
 
   const isLoggedIn = Boolean(
     typeof window !== "undefined" &&
@@ -477,8 +499,23 @@ export default function SecurityCheckout() {
                 Later
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   setShowPaymentChoiceModal(false);
+                  const provider = isAfricanUser ? 'paystack' : 'stripe';
+                  const bookingId = createdBooking?.id || createdBooking?.data?.id || bookingDetails?.createdBookingId;
+                  if (provider === 'stripe' && bookingId) {
+                    try {
+                      const resp = await createStripeSession(bookingId).unwrap();
+                      const redirectUrl = resp?.data?.url || resp?.url;
+                      if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                        return;
+                      }
+                    } catch (e) {
+                      toast.error(e?.data?.message || 'Failed to start Stripe checkout');
+                    }
+                  }
+
                   navigate("/security/payment", {
                     state: {
                       bookingDetails: {
@@ -486,14 +523,15 @@ export default function SecurityCheckout() {
                         taxes,
                         finalTotal,
                         days,
-                        createdBookingId: createdBooking?.id,
+                        createdBookingId: bookingId,
+                        paymentProvider: provider,
                       },
                     },
                   });
                 }}
                 className="px-4 py-2 rounded-lg bg-[#0064D2] text-white hover:bg-[#0052ad]"
               >
-                Pay now
+                {isAfricanUser ? 'Pay with Paystack' : (isCreatingStripe ? 'Redirecting...' : 'Pay with Stripe')}
               </button>
             </div>
           </div>
