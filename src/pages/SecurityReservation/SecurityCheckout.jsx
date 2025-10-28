@@ -7,12 +7,18 @@ import {
   ArrowLeft,
   ChevronDown,
 } from "lucide-react";
+import { useCreateSecurityBookingMutation } from "../../redux/api/security/securityBookingApi";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function SecurityCheckout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showPaymentChoiceModal, setShowPaymentChoiceModal] = useState(false);
+  const [createdBooking, setCreatedBooking] = useState(null);
+  const [createBooking, { isLoading: isCreating }] = useCreateSecurityBookingMutation();
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
     lastName: "",
@@ -66,23 +72,45 @@ export default function SecurityCheckout() {
     });
   };
 
-  const handleProceedToPayment = () => {
-    setIsProcessing(true);
-
-    // Navigate to payment page with complete booking data
-    navigate("/security/payment", {
-      state: {
-        bookingDetails: {
-          ...bookingDetails,
-
-          taxes,
-          finalTotal,
-          days,
-        },
-      },
-    });
-
-    setIsProcessing(false);
+  const handleProceedToPayment = async () => {
+    try {
+      setIsProcessing(true);
+      const id = bookingDetails?.guardId;
+      const body = {
+        number_of_security: 1,
+        securityBookedFromDate: bookingDetails?.startDate,
+        securityBookedToDate: bookingDetails?.endDate,
+        totalPrice: finalTotal,
+      };
+      console.log("Creating booking with:", { id, body });
+      const resp = await createBooking({ id, body }).unwrap();
+      console.log("Create booking response:", resp);
+      setCreatedBooking(resp?.data || resp);
+      setShowPaymentChoiceModal(true);
+    } catch (err) {
+      console.error("Create booking failed:", err);
+      const statusCode = err?.status || err?.data?.statusCode || err?.originalStatus;
+      const apiMessage =
+        err?.data?.message ||
+        err?.data?.error ||
+        err?.data?.errorMessage ||
+        err?.data?.errorMessages?.[0]?.message ||
+        err?.error ||
+        err?.message ||
+        "";
+      const isAlreadyBooked = /already\s*book(ed)?/i.test(apiMessage);
+      if (statusCode === 401) {
+        setShowAuthModal(true);
+      }
+      toast.dismiss();
+      toast.error(
+        isAlreadyBooked
+          ? "This security service is already booked for the selected dates"
+          : apiMessage || "Failed to create booking. Please try again."
+      );
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleLoginRedirect = () => {
@@ -409,10 +437,10 @@ export default function SecurityCheckout() {
                 {isLoggedIn && (
                   <button
                     onClick={handleProceedToPayment}
-                    disabled={isProcessing}
+                    disabled={isProcessing || isCreating}
                     className="w-full mt-6 bg-[#0064D2] cursor-pointer text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center"
                   >
-                    {isProcessing ? (
+                    {isProcessing || isCreating ? (
                       "Processing..."
                     ) : (
                       <>
@@ -427,6 +455,52 @@ export default function SecurityCheckout() {
           </div>
         </div>
       </div>
+
+      {/* Payment Choice Modal */}
+      {showPaymentChoiceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setShowPaymentChoiceModal(false)}
+          />
+          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">Booking Created</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Your booking has been created successfully.
+            </p>
+          
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowPaymentChoiceModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Later
+              </button>
+              <button
+                onClick={() => {
+                  setShowPaymentChoiceModal(false);
+                  navigate("/security/payment", {
+                    state: {
+                      bookingDetails: {
+                        ...bookingDetails,
+                        taxes,
+                        finalTotal,
+                        days,
+                        createdBookingId: createdBooking?.id,
+                      },
+                    },
+                  });
+                }}
+                className="px-4 py-2 rounded-lg bg-[#0064D2] text-white hover:bg-[#0052ad]"
+              >
+                Pay now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
 
       {/* Unauthorized Modal */}
       {showAuthModal && (
