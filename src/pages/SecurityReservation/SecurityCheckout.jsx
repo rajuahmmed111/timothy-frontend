@@ -26,17 +26,17 @@ export default function SecurityCheckout() {
   });
 
   const isLoggedIn = Boolean(
-    typeof window !== 'undefined' && (
-      localStorage.getItem('accessToken') ||
-      localStorage.getItem('token') ||
-      localStorage.getItem('user')
-    )
+    typeof window !== "undefined" &&
+      (localStorage.getItem("accessToken") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("user"))
   );
 
   // Detect 401 errors passed via navigation state and open modal
   const apiError = location.state?.error || location.state?.apiError || null;
   useEffect(() => {
-    const statusCode = apiError?.statusCode || apiError?.status || apiError?.err?.statusCode;
+    const statusCode =
+      apiError?.statusCode || apiError?.status || apiError?.err?.statusCode;
     const message = apiError?.message || apiError?.errorMessages?.[0]?.message;
     if (statusCode === 401 || /not authorized/i.test(message || "")) {
       setShowAuthModal(true);
@@ -44,15 +44,8 @@ export default function SecurityCheckout() {
   }, [apiError]);
 
   // Get booking details from navigation state
-  const bookingDetails = location.state?.bookingDetails || {
-    bookingId: "SEC12345678",
-    startDate: "2024-03-15",
-    endDate: "2024-03-18",
-    serviceType: "Personal Security",
-    total: 1500,
-    serviceDescription: "Dedicated protection for individuals",
-  };
-
+  const bookingDetails = location.state?.bookingDetails;
+  console.log("booking", bookingDetails);
   // Calculate additional details
   const days =
     Math.ceil(
@@ -60,9 +53,9 @@ export default function SecurityCheckout() {
         (1000 * 60 * 60 * 24)
     ) || 1;
   const servicePrice = bookingDetails.total / days;
- 
+
   const taxes = Math.round(bookingDetails.total * 0.08);
-  const finalTotal = bookingDetails.total  + taxes;
+  const finalTotal = bookingDetails.total + taxes;
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -81,7 +74,7 @@ export default function SecurityCheckout() {
       state: {
         bookingDetails: {
           ...bookingDetails,
-     
+
           taxes,
           finalTotal,
           days,
@@ -93,7 +86,9 @@ export default function SecurityCheckout() {
   };
 
   const handleLoginRedirect = () => {
-    const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
+    const redirectTo = encodeURIComponent(
+      window.location.pathname + window.location.search
+    );
     navigate(`/login?redirect=${redirectTo}`);
   };
 
@@ -235,142 +230,144 @@ export default function SecurityCheckout() {
 
               {/* Guest Information Form (hidden if logged in) */}
               {!isLoggedIn && (
-              <div className="bg-white rounded-2xl shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  Guest
-                </h2>
+                <div className="bg-white rounded-2xl shadow-sm p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                    Guest
+                  </h2>
 
-                <form className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        First Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={guestInfo.firstName}
-                        onChange={(e) =>
-                          handleGuestInfoChange("firstName", e.target.value)
-                        }
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        placeholder="Enter your first name"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Last Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={guestInfo.lastName}
-                        onChange={(e) =>
-                          handleGuestInfoChange("lastName", e.target.value)
-                        }
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        placeholder="Enter your last name"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      value={guestInfo.email}
-                      onChange={(e) =>
-                        handleGuestInfoChange("email", e.target.value)
-                      }
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                      placeholder="Enter your email address"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number *
-                    </label>
-                    <div className="flex">
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setIsCountryDropdownOpen(!isCountryDropdownOpen)
+                  <form className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          First Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={guestInfo.firstName}
+                          onChange={(e) =>
+                            handleGuestInfoChange("firstName", e.target.value)
                           }
-                          className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white hover:bg-gray-50 min-w-[130px]"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <span className="text-lg">
-                              {selectedCountry?.flag}
-                            </span>
-                            <span className="text-sm font-medium">
-                              {selectedCountry?.code}
-                            </span>
-                          </div>
-                          <ChevronDown
-                            className={`w-4 h-4 text-gray-400 transition-transform ${
-                              isCountryDropdownOpen ? "rotate-180" : ""
-                            }`}
-                          />
-                        </button>
-
-                        {isCountryDropdownOpen && (
-                          <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                            {countryCodes.map((country) => (
-                              <button
-                                key={country.code}
-                                type="button"
-                                onClick={() =>
-                                  handleCountrySelect(country.code)
-                                }
-                                className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
-                              >
-                                <span className="text-lg">{country.flag}</span>
-                                <span className="text-sm font-medium">
-                                  {country.code}
-                                </span>
-                                <span className="text-sm text-gray-500">
-                                  {country.country}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                          placeholder="Enter your first name"
+                        />
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Last Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={guestInfo.lastName}
+                          onChange={(e) =>
+                            handleGuestInfoChange("lastName", e.target.value)
+                          }
+                          required
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                          placeholder="Enter your last name"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address *
+                      </label>
                       <input
-                        type="tel"
-                        value={guestInfo.phone}
+                        type="email"
+                        value={guestInfo.email}
                         onChange={(e) =>
-                          handleGuestInfoChange("phone", e.target.value)
+                          handleGuestInfoChange("email", e.target.value)
                         }
                         required
-                        className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        placeholder="Enter your phone number"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                        placeholder="Enter your email address"
                       />
                     </div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Country *
-                    </label>
-                    <input
-                      type="text"
-                      value={guestInfo.country}
-                      onChange={(e) =>
-                        handleGuestInfoChange("country", e.target.value)
-                      }
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                      placeholder="Enter your country"
-                    />
-                  </div>
-                </form>
-              </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number *
+                      </label>
+                      <div className="flex">
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setIsCountryDropdownOpen(!isCountryDropdownOpen)
+                            }
+                            className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white hover:bg-gray-50 min-w-[130px]"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span className="text-lg">
+                                {selectedCountry?.flag}
+                              </span>
+                              <span className="text-sm font-medium">
+                                {selectedCountry?.code}
+                              </span>
+                            </div>
+                            <ChevronDown
+                              className={`w-4 h-4 text-gray-400 transition-transform ${
+                                isCountryDropdownOpen ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+
+                          {isCountryDropdownOpen && (
+                            <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                              {countryCodes.map((country) => (
+                                <button
+                                  key={country.code}
+                                  type="button"
+                                  onClick={() =>
+                                    handleCountrySelect(country.code)
+                                  }
+                                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                                >
+                                  <span className="text-lg">
+                                    {country.flag}
+                                  </span>
+                                  <span className="text-sm font-medium">
+                                    {country.code}
+                                  </span>
+                                  <span className="text-sm text-gray-500">
+                                    {country.country}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="tel"
+                          value={guestInfo.phone}
+                          onChange={(e) =>
+                            handleGuestInfoChange("phone", e.target.value)
+                          }
+                          required
+                          className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                          placeholder="Enter your phone number"
+                        />
+                      </div>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Country *
+                      </label>
+                      <input
+                        type="text"
+                        value={guestInfo.country}
+                        onChange={(e) =>
+                          handleGuestInfoChange("country", e.target.value)
+                        }
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                        placeholder="Enter your country"
+                      />
+                    </div>
+                  </form>
+                </div>
               )}
             </div>
 
@@ -384,17 +381,16 @@ export default function SecurityCheckout() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">
-                      ${servicePrice} × {days} {days === 1 ? "day" : "days"}
+                      {servicePrice} × {days} {days === 1 ? "day" : "days"}
                     </span>
                     <span className="text-gray-900">
                       ${bookingDetails.total}
                     </span>
                   </div>
 
-
                   <div className="flex justify-between">
-                    <span className="text-gray-600">VAT</span>
-                    <span className="text-gray-900">${taxes}</span>
+                    <span className="text-gray-600">VAT (5%)</span>
+                    <span className="text-gray-900">{taxes}</span>
                   </div>
 
                   <div className="border-t border-gray-200 pt-3">
@@ -403,7 +399,7 @@ export default function SecurityCheckout() {
                         Total
                       </span>
                       <span className="text-lg font-semibold text-gray-900">
-                        ${finalTotal}
+                        {finalTotal}
                       </span>
                     </div>
                   </div>
@@ -435,13 +431,19 @@ export default function SecurityCheckout() {
       {/* Unauthorized Modal */}
       {showAuthModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowAuthModal(false)} />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setShowAuthModal(false)}
+          />
           <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
             <div className="flex items-start">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">You are not authorized</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  You are not authorized
+                </h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  Please log in to continue with your booking. Your current selection will be preserved after login.
+                  Please log in to continue with your booking. Your current
+                  selection will be preserved after login.
                 </p>
               </div>
             </div>

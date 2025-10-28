@@ -10,7 +10,15 @@ export const securiBookingtyApi = baseApi.injectEndpoints({
       }),
       providesTags: ["SecurityBooking"],
     }),
+    createSecurityBooking: builder.mutation({
+      query: ({ id, body }) => ({
+        url: `/security-booking/${id}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["SecurityBooking"],
+    }),
   }),
 });
 
-export const { useGetSecurityBookingQuery } = securiBookingtyApi;
+export const { useGetSecurityBookingQuery, useCreateSecurityBookingMutation } = securiBookingtyApi;

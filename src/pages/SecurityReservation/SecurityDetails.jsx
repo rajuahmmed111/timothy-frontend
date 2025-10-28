@@ -17,7 +17,7 @@ export default function SecurityDetails() {
     sp.get("securityProtocolType") || sp.get("sptype") || "All"
   );
 
-  console.log("securityProtocolType" ,useGetAllSecurityProtocolsQuery);
+  console.log("securityProtocolType", useGetAllSecurityProtocolsQuery);
   const initialFrom = sp.get("fromDate");
   const initialTo = sp.get("toDate");
   const [dateRange, setDateRange] = useState(
@@ -128,9 +128,11 @@ export default function SecurityDetails() {
         params.set("city", parts[0]);
       }
     }
-    if (dateRange?.[0]) params.set("fromDate", dateRange[0].format("YYYY-MM-DD"));
+    if (dateRange?.[0])
+      params.set("fromDate", dateRange[0].format("YYYY-MM-DD"));
     if (dateRange?.[1]) params.set("toDate", dateRange[1].format("YYYY-MM-DD"));
-    if (selectedType && selectedType !== "All") params.set("securityProtocolType", selectedType);
+    if (selectedType && selectedType !== "All")
+      params.set("securityProtocolType", selectedType);
     const qs = params.toString();
     const url = qs ? `/security-details?${qs}` : "/security-details";
     navigate(url, { replace: false });
@@ -147,7 +149,8 @@ export default function SecurityDetails() {
           (Array.isArray(g?.securityImages) && g.securityImages[0]) ||
           b?.businessLogo ||
           "/placeholder.svg",
-        name: g?.securityGuardName || b?.securityBusinessName || b?.securityName,
+        name:
+          g?.securityGuardName || b?.securityBusinessName || b?.securityName,
         location:
           [g?.securityCity, g?.securityCountry].filter(Boolean).join(", ") ||
           b?.securityBusinessType ||
@@ -160,17 +163,19 @@ export default function SecurityDetails() {
       }));
     }
     // Protocol-level card when no guards
-    return [{
-      id: b?.id || b?._id,
-      to: `/security-service-details/${b?.id || b?._id}`,
-      image: b?.businessLogo || "/placeholder.svg",
-      name: b?.securityBusinessName || b?.securityName,
-      location: b?.securityProtocolType || b?.securityBusinessType || "",
-      price: 0,
-      rating: 0,
-      ownerName: b?.user?.fullName,
-      ownerAvatar: b?.user?.profileImage,
-    }];
+    return [
+      {
+        id: b?.id || b?._id,
+        to: `/security-service-details/${b?.id || b?._id}`,
+        image: b?.businessLogo || "/placeholder.svg",
+        name: b?.securityBusinessName || b?.securityName,
+        location: b?.securityProtocolType || b?.securityBusinessType || "",
+        price: 0,
+        rating: 0,
+        ownerName: b?.user?.fullName,
+        ownerAvatar: b?.user?.profileImage,
+      },
+    ];
   });
 
   const handleTypeChange = (e) => {
@@ -218,7 +223,10 @@ export default function SecurityDetails() {
         </div>
         {/* Search Button */}
         <div>
-          <button onClick={handleSearch} className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold">
+          <button
+            onClick={handleSearch}
+            className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold"
+          >
             Search
           </button>
         </div>

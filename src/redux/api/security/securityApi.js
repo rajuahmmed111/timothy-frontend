@@ -44,6 +44,13 @@ export const securityApi = baseApi.injectEndpoints({
       }),
       providesTags: ["security"],
     }),
+    getSecurityGuardByPartnerId: builder.query({
+      query: (id) => ({
+        url: `/security-protocols/security-guard/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["security"],
+    }),
     getSecurityProtocolById: builder.query({
       query: (id) => ({
         url: `/security-protocols/${id}`,
@@ -102,6 +109,7 @@ export const {
   useGetAllSecurityQuery,
   useGetAllSecurityProtocolsQuery,
   useGetSecurityProtocolByIdQuery,
+  useGetSecurityGuardByPartnerIdQuery,
   useDeleteSecurityGuardMutation,
   useAddSecurityGuardMutation,
   useGetAvailableSecurityQuery,
