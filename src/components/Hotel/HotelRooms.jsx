@@ -24,8 +24,6 @@ export default function HotelRooms() {
   const rooms = data?.data || [];
   console.log("rooms of active room", rooms);
 
-  // const metaPage = rooms?.meta?.page;
-  // const metaLimit = rooms?.meta?.limit;
   const total = rooms?.meta?.total;
 
   const [deleteHotelRoom, { isLoading: isDeleting }] =

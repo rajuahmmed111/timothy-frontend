@@ -2,32 +2,32 @@ import { baseApi } from "../baseUrl";
 
 export const carApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllSecurity: builder.query({
+    getAllCar: builder.query({
       query: ({ page, limit }) => ({
-        url: `/security-protocols/security-guards-active-listing`,
+        url: `/car-rentals/car-active-listing`,
         method: "GET",
         params: {
           page,
           limit,
         },
       }),
-      providesTags: ["security"],
+      providesTags: ["car"],
     }),
-    getAvailableSecurity: builder.query({
+    getAvailableCar: builder.query({
       query: (params) => ({
-        url: `/security-protocols/security-guards-available`,
+        url: `/car-rentals/car-available`,
         method: "GET",
         params,
       }),
-      providesTags: ["security"],
+      providesTags: ["car"],
     }),
-    getSecurityBookings: builder.query({
+    getCarBookings: builder.query({
       query: (params = {}) => ({
-        url: `/security-booking`,
+        url: `/car-booking`,
         method: "GET",
         params,
       }),
-      providesTags: ["security"],
+      providesTags: ["car"],
     }),
     getCarTotalSales: builder.query({
       query: () => ({
@@ -36,16 +36,16 @@ export const carApi = baseApi.injectEndpoints({
       }),
       providesTags: ["car"],
     }),
-    deleteSecurityGuard: builder.mutation({
+    deleteCar: builder.mutation({
       query: (id) => ({
-        url: `/security-protocols/security-guard/${id}`,
+        url: `/car-rentals/car/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["security"],
+      invalidatesTags: ["car"],
     }),
     addSecurityGuard: builder.mutation({
       query: ({ formData, Id }) => ({
-        url: `/security-protocols/security-guard-type/${Id}`,
+        url: `/car-rentals/car/${Id}`,
         method: "POST",
         body: formData,
       }),
@@ -119,11 +119,11 @@ export const carApi = baseApi.injectEndpoints({
 
 export const {
   useGetCarTotalSalesQuery,
-  useGetSecurityBookingsQuery,
-  useGetAllSecurityQuery,
-  useDeleteSecurityGuardMutation,
+  useGetCarBookingsQuery,
+  useGetAllCarQuery,
+  useDeleteCarMutation,
   useAddSecurityGuardMutation,
-  useGetAvailableSecurityQuery,
+  useGetAvailableCarQuery,
   useGetSecurityPartnerMutation,
   useUpdateSecurityBusinessMutation,
   useAddSecurityBusinessMutation,

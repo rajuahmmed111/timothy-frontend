@@ -1,125 +1,91 @@
 import React, { useState } from "react";
 import { Table, ConfigProvider, Modal, Button } from "antd";
 import { Eye, Trash } from "lucide-react";
-
-
+import { useGetAvailableCarQuery, useDeleteCarMutation } from "../../redux/api/car/carApi";
 
 export default function AvailableCarListing() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
 
-  const cars = [
-    {
-      id: 1,
-      name: "Toyota Camry",
-      location: "Dubai, UAE",
-      price: 85,
-      rating: 4.9,
-      image:
-        "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 2,
-      name: "BMW X5",
-      location: "Abu Dhabi, UAE",
-      price: 150,
-      rating: 4.7,
-      image:
-        "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 3,
-      name: "Mercedes-Benz S-Class",
-      location: "Sharjah, UAE",
-      price: 200,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 4,
-      name: "Lamborghini Huracan",
-      location: "Dubai, UAE",
-      price: 500,
-      rating: 5.0,
-      image:
-        "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 5,
-      name: "Tesla Model 3",
-      location: "Dubai, UAE",
-      price: 120,
-      rating: 4.6,
-      image:
-        "https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 6,
-      name: "Audi A4",
-      location: "Ajman, UAE",
-      price: 110,
-      rating: 4.5,
-      image:
-        "https://images.unsplash.com/photo-1606016159991-8b61b1c5a5b6?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 7,
-      name: "Honda Civic",
-      location: "Fujairah, UAE",
-      price: 70,
-      rating: 4.3,
-      image:
-        "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 8,
-      name: "Nissan Sentra",
-      location: "Ras Al Khaimah, UAE",
-      price: 65,
-      rating: 4.2,
-      image:
-        "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 9,
-      name: "Ford Explorer",
-      location: "Dubai, UAE",
-      price: 130,
-      rating: 4.4,
-      image:
-        "https://images.unsplash.com/photo-1551830820-330a71b99659?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 10,
-      name: "Porsche 911",
-      location: "Dubai, UAE",
-      price: 450,
-      rating: 4.9,
-      image:
-        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80",
-    },
-  ];
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [search, setSearch] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteCar, { isLoading: isDeleting }] = useDeleteCarMutation();
 
+  const { data, isLoading } = useGetAvailableCarQuery({ page, limit: pageSize });
 
-  // Open view modal
+  const cars = data?.data?.data || data?.data || [];
+  const meta = data?.data?.meta || data?.meta || {};
+  const total = meta?.total ?? cars.length;
+
+  const rows = cars.map((car, idx) => ({
+    ...car,
+    key: car?.id || car?._id || idx,
+    image: car?.carImages?.[0] || car?.image,
+    name: car?.carType || car?.name,
+    model: car?.carModel || car?.model,
+    location: [car?.carCity || car?.city, car?.carCountry || car?.country]
+      .filter(Boolean)
+      .join(", "),
+    pricePerDay: car?.carPriceDay || car?.pricePerDay || car?.price || 0,
+    rating: car?.carRating || car?.rating || null,
+    status: car?.isBooked ?? car?.status,
+    raw: car,
+    seats: car?.carSeats || car?.seats,
+    oilType: car?.carOilType || car?.oilType,
+    engineType: car?.carEngineType || car?.engineType,
+    transmission: car?.carTransmission || car?.transmission,
+    power: car?.carPower || car?.power,
+    drivetrain: car?.carDrivetrain || car?.drivetrain,
+    mileage: car?.carMileage || car?.mileage,
+    capacity: car?.carCapacity || car?.capacity,
+    color: car?.carColor || car?.color,
+    fuelType: car?.fuelType || car?.fuelType,
+    gearType: car?.gearType || car?.gearType,
+    reviewCount: car?.carReviewCount || car?.reviewCount,
+    partnerId: car?.partnerId || car?.partnerId,
+    rentalId: car?.car_RentalId || car?.rentalId,
+    createdAt: car?.createdAt || car?.createdAt,
+    updatedAt: car?.updatedAt || car?.updatedAt,
+  }));
+
+  const filtered = search
+    ? rows.filter((c) => {
+        const q = search.toLowerCase();
+        return (
+          (c.name || "").toLowerCase().includes(q) ||
+          (c.model || "").toLowerCase().includes(q) ||
+          (c.location || "").toLowerCase().includes(q)
+        );
+      })
+    : rows;
+
+  // Handlers
   const showViewModal = (car) => {
     setSelectedCar(car);
     setIsViewModalOpen(true);
   };
 
-  // Open delete modal
   const showDeleteModal = (car) => {
     setSelectedCar(car);
     setIsDeleteModalOpen(true);
   };
 
-  // Confirm delete
-  const handleDelete = () => {
-    console.log("Deleted:", selectedCar);
-    setIsDeleteModalOpen(false);
-    setSelectedCar(null);
+  const handleDelete = async () => {
+    const id = selectedCar?.raw?.id || selectedCar?.id;
+    if (!id) {
+      setIsDeleteModalOpen(false);
+      setSelectedCar(null);
+      return;
+    }
+    try {
+      await deleteCar(id).unwrap();
+    } catch (e) {
+    } finally {
+      setIsDeleteModalOpen(false);
+      setSelectedCar(null);
+    }
   };
 
   const columns = [
@@ -133,7 +99,11 @@ export default function AvailableCarListing() {
       dataIndex: "image",
       key: "image",
       render: (image) => (
-        <img src={image} alt="Car" className="w-20 h-12 object-cover rounded-md" />
+        <img
+          src={image}
+          alt="Car"
+          className="w-20 h-12 object-cover rounded-md"
+        />
       ),
     },
     {
@@ -142,21 +112,46 @@ export default function AvailableCarListing() {
       key: "name",
     },
     {
+      title: "Model",
+      dataIndex: "model",
+      key: "model",
+    },
+    {
+      title: "Seats",
+      dataIndex: "seats",
+      key: "seats",
+    },
+    {
+      title: "Oil Type",
+      dataIndex: "oilType",
+      key: "oilType",
+    },
+    {
+      title: "Engine Type",
+      dataIndex: "engineType",
+      key: "engineType",
+    },
+    {
+      title: "Transmission",
+      dataIndex: "transmission",
+      key: "transmission",
+    },
+    {
       title: "Location",
       dataIndex: "location",
       key: "location",
     },
     {
       title: "Price",
-      dataIndex: "price",
-      key: "price",
-      render: (price) => `$${price}/day`,
+      dataIndex: "pricePerDay",
+      key: "pricePerDay",
+      render: (pricePerDay) => `$${pricePerDay}/day`,
     },
     {
       title: "Rating",
       dataIndex: "rating",
       key: "rating",
-      render: (rating) => `⭐ ${rating}`,
+      render: (rating) => (rating ? `⭐ ${rating}` : "N/A"),
     },
     {
       title: "Action",
@@ -182,7 +177,9 @@ export default function AvailableCarListing() {
         <div className="space-y-2 w-[400px]">
           <input
             type="text"
-            placeholder="Search cars"
+            placeholder="Search by type, model or location"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
           />
         </div>
@@ -202,15 +199,23 @@ export default function AvailableCarListing() {
         }}
       >
         <Table
-          rowKey="id"
-          dataSource={cars}
+          rowKey="key"
+          dataSource={filtered}
           columns={columns}
-          pagination={{ pageSize: 10 }}
-
+          loading={isLoading}
+          pagination={{
+            current: page,
+            pageSize,
+            total,
+            showSizeChanger: false,
+          }}
+          onChange={(p) => {
+            setPage(p.current);
+            setPageSize(p.pageSize);
+          }}
         />
       </ConfigProvider>
 
-      {/* View Modal */}
       <Modal
         title="Car Details"
         open={isViewModalOpen}
@@ -222,16 +227,42 @@ export default function AvailableCarListing() {
         ]}
       >
         {selectedCar && (
-          <div className="space-y-3">
-            <img
-              src={selectedCar.image}
-              alt={selectedCar.name}
-              className="w-full h-48 object-cover rounded-lg"
-            />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3">
+              <img
+                src={
+                  selectedCar.raw?.carImages?.[0] ||
+                  selectedCar.carImages?.[0] ||
+                  selectedCar.image
+                }
+                alt={selectedCar.name}
+                className="w-full h-40 object-cover rounded-lg"
+              />
+            </div>
+
             <h3 className="text-lg font-bold">{selectedCar.name}</h3>
-            <p>📍 {selectedCar.location}</p>
-            <p>⭐ {selectedCar.rating}</p>
-            <p className="font-semibold">${selectedCar.price}/day</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+              <div><span className="font-semibold">Model:</span> {selectedCar.raw?.carModel}</div>
+              <div><span className="font-semibold">Seats:</span> {selectedCar.raw?.carSeats}</div>
+              <div><span className="font-semibold">Oil:</span> {selectedCar.raw?.carOilType}</div>
+              <div><span className="font-semibold">Engine:</span> {selectedCar.raw?.carEngineType}</div>
+              <div><span className="font-semibold">Transmission:</span> {selectedCar.raw?.carTransmission}</div>
+              <div><span className="font-semibold">Power:</span> {selectedCar.raw?.carPower}</div>
+              <div><span className="font-semibold">Drivetrain:</span> {selectedCar.raw?.carDrivetrain}</div>
+              <div><span className="font-semibold">Mileage:</span> {selectedCar.raw?.carMileage}</div>
+              <div><span className="font-semibold">Capacity:</span> {selectedCar.raw?.carCapacity}</div>
+              <div><span className="font-semibold">Color:</span> {selectedCar.raw?.carColor}</div>
+              <div><span className="font-semibold">Fuel:</span> {selectedCar.raw?.fuelType}</div>
+              <div><span className="font-semibold">Gear:</span> {selectedCar.raw?.gearType}</div>
+              <div><span className="font-semibold">Rating:</span> {selectedCar.raw?.carRating ?? selectedCar.rating ?? "N/A"}</div>
+              <div><span className="font-semibold">Price/Day:</span> ${selectedCar.raw?.carPriceDay ?? selectedCar.pricePerDay}</div>
+              <div><span className="font-semibold">Category:</span> {selectedCar.raw?.category}</div>
+              <div><span className="font-semibold">Discount:</span> {selectedCar.raw?.discount}</div>
+              <div><span className="font-semibold">Status:</span> {selectedCar.raw?.isBooked ?? selectedCar.status}</div>
+              <div><span className="font-semibold">Address:</span> {selectedCar.raw?.carAddress}</div>
+              <div><span className="font-semibold">City:</span> {selectedCar.raw?.carCity}</div>
+              <div><span className="font-semibold">Country:</span> {selectedCar.raw?.carCountry}</div>
+            </div>
           </div>
         )}
       </Modal>
@@ -245,7 +276,7 @@ export default function AvailableCarListing() {
           <Button key="cancel" onClick={() => setIsDeleteModalOpen(false)}>
             Cancel
           </Button>,
-          <Button key="delete" type="primary" danger onClick={handleDelete}>
+          <Button key="delete" type="primary" danger onClick={handleDelete} loading={isDeleting}>
             Delete
           </Button>,
         ]}
