@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Select, Space, Button, Input } from "antd";
@@ -6,10 +6,10 @@ import { UserOutlined, TeamOutlined, HomeOutlined } from "@ant-design/icons";
 import { DatePicker } from "antd";
 import { useBooking } from "../../context/BookingContext";
 
-export default function BookingForm() {
+export default function BookingForm({ hotel }) {
   const navigate = useNavigate();
   const { bookingData, updateBookingData, updateGuests } = useBooking();
-  const [selectedRoom, setSelectedRoom] = useState("deluxe");
+  const [selectedRoom, setSelectedRoom] = useState("");
   const [isBooking, setIsBooking] = useState(false);
   const [specialRequest, setSpecialRequest] = useState("");
   const { Option } = Select;
@@ -44,32 +44,43 @@ export default function BookingForm() {
     return true;
   };
 
-  const rooms = [
-    {
-      id: "deluxe",
-      name: "Deluxe Room",
-      price: 500,
-      features: ["Ocean View", "King Bed", "Mini Bar"],
-      rating: 4.8,
-    },
-    {
-      id: "family",
-      name: "Family Room",
-      price: 650,
-      features: ["Two Queen Beds", "Living Area", "Kitchenette"],
-      rating: 4.9,
-    },
-    {
-      id: "suite",
-      name: "Luxury Suite",
-      price: 900,
-      features: ["Separate Living Room", "Ocean View", "Private Terrace"],
-      rating: 5.0,
-    },
-  ];
+  const rooms = useMemo(() => {
+    if (Array.isArray(hotel?.room) && hotel.room.length > 0) {
+      return hotel.room.map((r) => ({
+        id: r?.id || r?._id || r?.hotelRoomType,
+        name: r?.hotelRoomType || "Room",
+        price: Number(r?.hotelRoomPriceNight) || Number(hotel?.averagePrice) || 0,
+        discount: Number(r?.discount) || 0,
+        features: [
+          r?.hotelRoomCapacity ? String(r.hotelRoomCapacity) : undefined,
+          r?.category ? String(r.category) : undefined,
+        ].filter(Boolean),
+        rating: Number(r?.hotelRating) || Number(hotel?.averageRating) || 0,
+      }));
+    }
+    return [{
+      id: "default",
+      name: hotel?.hotelName || "Standard Room",
+      price: Number(hotel?.averagePrice) || 0,
+      discount: 0,
+      features: [hotel?.hotelAccommodationType].filter(Boolean),
+      rating: Number(hotel?.averageRating) || 0,
+    }];
+  }, [hotel]);
+
+  // Initialize selected room to first option
+  useEffect(() => {
+    if (!selectedRoom && rooms.length > 0) {
+      setSelectedRoom(rooms[0].id);
+    }
+  }, [rooms, selectedRoom]);
 
   const selectedRoomData =
     rooms.find((room) => room.id === selectedRoom) || rooms[0];
+  const nightlyBase = Number(selectedRoomData?.price || 0);
+  const nightlyDiscountPct = Number(selectedRoomData?.discount || 0);
+  const nightlyPrice = Math.max(0, Math.round((nightlyBase * (100 - nightlyDiscountPct)) / 100));
+  const roomsCount = Math.max(1, Number(bookingData?.guests?.rooms || 1));
 
   // Calculate nights from dateRange
   const nights =
@@ -80,7 +91,6 @@ export default function BookingForm() {
         )
       : 1;
 
-  const total = selectedRoomData.price * nights;
 
   const handleBooking = (e) => {
     e.preventDefault();
@@ -101,12 +111,12 @@ export default function BookingForm() {
           roomType:
             rooms.find((room) => room.id === selectedRoom)?.name ||
             "Deluxe Room",
-          roomPrice: selectedRoomData.price,
+          roomPrice: nightlyPrice,
           nights: nights,
-          subtotal: selectedRoomData.price * nights,
-          total: Math.round(selectedRoomData.price * 1.22 * nights),
-          hotelName: "Luxury Beach Resort & Spa",
-          location: "Maldives",
+          subtotal: nightlyPrice * nights * roomsCount,
+          total: Math.round(nightlyPrice * 1.22 * nights * roomsCount),
+          hotelName: hotel?.hotelName || hotel?.hotelBusinessName || "Hotel",
+          location: `${hotel?.hotelCity || ""}${hotel?.hotelCity && hotel?.hotelCountry ? ", " : ""}${hotel?.hotelCountry || ""}`,
           specialRequest: specialRequest,
         },
       },
@@ -119,15 +129,25 @@ export default function BookingForm() {
     <div className="bg-white rounded-2xl shadow-xl p-5 sticky top-5">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-2xl font-bold text-gray-900">
-            ${selectedRoomData.price}
-          </span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-gray-900">
+              ${nightlyPrice * roomsCount}
+            </span>
+            {selectedRoomData?.discount > 0 && (
+              <>
+                <span className="text-sm text-gray-400 line-through">${nightlyBase * roomsCount}</span>
+                <span className="text-xs bg-red-100 text-red-700 font-medium px-2 py-0.5 rounded">
+                  -{Math.round(Number(selectedRoomData.discount))}%
+                </span>
+              </>
+            )}
+          </div>
           {/* <div className="flex items-center text-sm text-gray-600">
             <Star className="w-4 h-4 text-yellow-400 mr-1" />
             <span>{selectedRoomData.rating}</span>
           </div> */}
         </div>
-        <span className="text-gray-600">per night</span>
+        <span className="text-gray-600">per night{roomsCount > 1 ? ` · for ${roomsCount} rooms` : ''}</span>
       </div>
 
       <form onSubmit={handleBooking} className="space-y-4">
@@ -310,8 +330,14 @@ export default function BookingForm() {
                   </div>
                   <div className="text-right">
                     <div className="font-semibold text-gray-900">
-                      ${room.price}
+                      ${Math.max(0, Math.round((Number(room.price || 0) * (100 - Number(room.discount || 0))) / 100))}
                     </div>
+                    {Number(room.discount || 0) > 0 && (
+                      <div className="text-xs text-gray-400 line-through">${Number(room.price || 0)}</div>
+                    )}
+                    {Number(room.discount || 0) > 0 && (
+                      <div className="text-[10px] text-red-700 bg-red-100 inline-block mt-0.5 px-1.5 py-0.5 rounded">-{Math.round(Number(room.discount))}%</div>
+                    )}
                     <div className="text-xs text-gray-500">per night</div>
                   </div>
                 </div>
@@ -341,20 +367,20 @@ export default function BookingForm() {
         <div className="border-t pt-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span>
-              ${selectedRoomData.price} × {nights}{" "}
-              {nights === 1 ? "night" : "nights"}
+              ${nightlyPrice} × {nights} {nights === 1 ? "night" : "nights"}
+              {roomsCount > 1 ? ` × ${roomsCount} rooms` : ''}
             </span>
-            <span>${selectedRoomData.price * nights}</span>
+            <span>${nightlyPrice * nights * roomsCount}</span>
           </div>
 
           <div className="flex justify-between text-sm">
             <span>VAT</span>
-            <span>${Math.round(total * 0.12)}</span>
+            <span>${Math.round((nightlyPrice * nights * roomsCount) * 0.12)}</span>
           </div>
           <div className="border-t pt-2">
             <div className="flex justify-between font-semibold text-lg">
               <span>Total</span>
-              <span>${Math.round(total * 1.22)}</span>
+              <span>${Math.round(nightlyPrice * nights * roomsCount * 1.22)}</span>
             </div>
           </div>
         </div>

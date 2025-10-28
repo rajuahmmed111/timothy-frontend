@@ -1,61 +1,20 @@
-import React, { useState } from "react";
+import React from "react";
 import { MapPin, Star, ExternalLink } from "lucide-react";
-export default function HotelHeader({ hotel }) {
-  const [hoveredMarker, setHoveredMarker] = useState(null);
+export default function HotelHeader({ hotel, reviewAverage, reviewCount }) {
+
+  const lat = typeof hotel?.hotelLate === 'number' ? hotel.hotelLate : undefined;
+  const lng = typeof hotel?.hotelLong === 'number' ? hotel.hotelLong : undefined;
+  const addressParts = [hotel?.hotelAddress, hotel?.hotelCity, hotel?.hotelCountry].filter(Boolean);
+  const addressQuery = addressParts.join(', ');
+  const mapQuery = lat !== undefined && lng !== undefined ? `${lat},${lng}` : addressQuery;
+  const encodedQuery = encodeURIComponent(mapQuery || '');
 
   const openFullMap = () => {
-    // Open Google Maps with hotel location
-    const lat = 7.8731;
-    const lng = 98.3952;
-    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=Azure+Oasis+Hotel`;
+    const url = mapQuery
+      ? `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`
+      : `https://www.google.com/maps`; 
     window.open(url, "_blank");
   };
-
-  const hotels = [
-    {
-      id: 1,
-      name: "Beachfront Resort",
-      position: { top: 12, left: 16 },
-      rating: 4,
-      price: 180,
-    },
-    {
-      id: 2,
-      name: "City Center Hotel",
-      position: { top: 20, left: 24 },
-      rating: 3,
-      price: 120,
-    },
-    {
-      id: 3,
-      name: "Mountain Lodge",
-      position: { top: 28, left: 32 },
-      rating: 5,
-      price: 250,
-    },
-    {
-      id: 4,
-      name: "Spa Resort",
-      position: { top: 16, left: 40 },
-      rating: 4,
-      price: 200,
-    },
-    {
-      id: 5,
-      name: "Budget Inn",
-      position: { top: 24, left: 48 },
-      rating: 3,
-      price: 80,
-    },
-    {
-      id: 6,
-      name: "Azure Oasis",
-      position: { top: 20, left: 36 },
-      rating: 5,
-      price: 300,
-      isMain: true,
-    },
-  ];
 
   return (
     <header>
@@ -64,13 +23,17 @@ export default function HotelHeader({ hotel }) {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold text-gray-900">{hotel?.hotelName || ""}</h1>
-              <div className="flex items-center">
-                {[1, 2, 3, 4, 5].map((star) => (
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((s, i) => (
                   <Star
-                    key={star}
-                    className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                    key={s}
+                    className={`w-5 h-5 ${i < Math.round(Number((reviewAverage ?? hotel?.averageRating) || 0)) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
                   />
                 ))}
+                <span className="text-sm text-gray-700">
+                  {Number((reviewAverage ?? hotel?.averageRating) || 0).toFixed(1)}
+                  {typeof reviewCount === 'number' ? ` • ${reviewCount} reviews` : ''}
+                </span>
               </div>
             </div>
             <div className="flex items-center mt-2 text-gray-600">
@@ -84,7 +47,7 @@ export default function HotelHeader({ hotel }) {
             {/* Real Map Container */}
             <div className="relative h-40">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15830.234567890123!2d98.3952!3d7.8731!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zN8KwNTInMjMuMiJOIDk4wrAyMycwNi43IkU!5e0!3m2!1sen!2sth!4v1234567890123!5m2!1sen!2sth"
+                src={mapQuery ? `https://www.google.com/maps?q=${encodedQuery}&output=embed` : undefined}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -101,10 +64,10 @@ export default function HotelHeader({ hotel }) {
                   <div>
                     <h5 className="font-semibold text-xs text-gray-900">{hotel?.hotelName || ""}</h5>
                     <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
+                      {[1, 2, 3, 4, 5].map((star, i) => (
                         <Star
                           key={star}
-                          className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400"
+                          className={`w-2.5 h-2.5 ${i < Math.round(Number((reviewAverage ?? hotel?.averageRating) || 0)) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
                         />
                       ))}
                     </div>
@@ -112,33 +75,7 @@ export default function HotelHeader({ hotel }) {
                 </div>
               </div>
 
-              {/* Map Controls */}
-              <div className="absolute bottom-2 right-2 flex flex-col gap-1">
-                <button
-                  onClick={() => {
-                    const iframe = document.querySelector("iframe");
-                    if (iframe) {
-                      iframe.src = iframe.src; // Refresh map
-                    }
-                  }}
-                  className="bg-white/90 backdrop-blur-sm rounded p-1.5 shadow-sm hover:bg-white transition-colors"
-                  title="Refresh Map"
-                >
-                  <svg
-                    className="w-3 h-3 text-gray-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                </button>
-              </div>
+              {/* Map Controls removed to avoid cross-origin reload issues */}
             </div>
 
             {/* View in full map link */}

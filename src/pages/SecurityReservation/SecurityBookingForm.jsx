@@ -217,7 +217,7 @@ export default function SecurityBookingForm({ guardId, guardName, pricePerDay, p
                             : 'hover:bg-blue-700'
                     }`}
                 >
-                    {isBooking ? 'Processing...' : 'Continue to Checkout'}
+                    {isBooking ? 'Processing...' : 'Continue to Booking'}
                 </button>
             </form>
         </div>

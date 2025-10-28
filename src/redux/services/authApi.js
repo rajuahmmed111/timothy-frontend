@@ -16,6 +16,13 @@ export const authApi = baseApi.injectEndpoints({
         body: credentials,
       }),
     }),
+    loginWebsite: builder.mutation({
+      query: (credentials) => ({
+        url: '/auth/login-website',
+        method: 'POST',
+        body: credentials,
+      }),
+    }),
     getMyProfile: builder.query({
       query: () => ({
         url: '/users/my-profile',
@@ -26,4 +33,4 @@ export const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useRegisterUserMutation, useLoginMutation, useGetMyProfileQuery } = authApi;
+export const { useRegisterUserMutation, useLoginMutation, useLoginWebsiteMutation, useGetMyProfileQuery } = authApi;

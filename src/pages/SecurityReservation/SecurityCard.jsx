@@ -2,10 +2,11 @@ import React from "react";
 import { Star, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function SecurityCard({ securityProvider }) {
+export default function SecurityCard({ securityProvider, to }) {
+  const linkTo = to || `/security-service-details/${securityProvider?.id}`;
 
   return (
-      <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <Link to={linkTo} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block">
         {/* Hotel Image */}
         <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
           <img
@@ -68,7 +69,7 @@ export default function SecurityCard({ securityProvider }) {
                     </Link>
                 </div> */}
         </div>
-      </div>
+      </Link>
     
   );
 }

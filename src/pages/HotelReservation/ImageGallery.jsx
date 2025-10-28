@@ -1,10 +1,15 @@
 import React from 'react';
 export default function ImageGallery({ hotel }) {
     const primary = hotel?.businessLogo || hotel?.coverImage || "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=800";
-    const secondary = [
-        "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=400",
-        "https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg?auto=compress&cs=tinysrgb&w=400",
-    ];
+    const roomImages = Array.isArray(hotel?.room)
+        ? hotel.room.flatMap(r => (r?.hotelRoomImages && r.hotelRoomImages.length ? r.hotelRoomImages : (r?.hotelImages || [])))
+        : [];
+    const secondary = roomImages.length > 0
+        ? roomImages.slice(0, 2)
+        : [
+            "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=400",
+            "https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg?auto=compress&cs=tinysrgb&w=400",
+        ];
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
             <div className="col-span-2 row-span-2">

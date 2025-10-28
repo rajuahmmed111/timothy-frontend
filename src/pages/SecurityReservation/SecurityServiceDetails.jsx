@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import SecurityBookingForm from "./SecurityBookingForm";
 import { Spin } from "antd";
-import { useGetSecurityGuardByIdQuery } from "../../redux/api/security/getAllSecurityApi";
+import { useGetSecurityProtocolByIdQuery } from "../../redux/api/security/securityApi";
 
 export default function SecurityServiceDetails() {
   const { id } = useParams();
@@ -22,23 +22,24 @@ export default function SecurityServiceDetails() {
   const fromDateQuery = sp.get('fromDate') || '';
   const toDateQuery = sp.get('toDate') || '';
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const { data, isLoading, isFetching, isError } = useGetSecurityGuardByIdQuery(id, {
+  const { data, isLoading, isFetching, isError } = useGetSecurityProtocolByIdQuery(id, {
     refetchOnMountOrArgChange: true,
   });
 
   const guard = useMemo(() => data?.data || data, [data]);
   const service = useMemo(() => {
-    const images = Array.isArray(guard?.securityImages) && guard.securityImages.length > 0
+    const imageList = Array.isArray(guard?.securityImages) && guard.securityImages.length > 0
       ? guard.securityImages
-      : ["/SecurityProviders/1.png"]; 
+      : [guard?.businessLogo].filter(Boolean);
+    const images = imageList.length > 0 ? imageList : ["/SecurityProviders/1.png"];
     return {
       id: guard?.id || guard?._id || id,
-      name: guard?.securityGuardName || "",
+      name: guard?.securityGuardName || guard?.securityName || guard?.securityBusinessName || "",
       location: [guard?.securityCity, guard?.securityCountry].filter(Boolean).join(", "),
       images,
       price: guard?.securityPriceDay || 0,
       rating: Number(guard?.securityRating) || 0,
-      description: guard?.securityGuardDescription || "",
+      description: guard?.securityGuardDescription || guard?.securityProtocolDescription || "",
       services: Array.isArray(guard?.securityServicesOffered) ? guard.securityServicesOffered : [],
       experience: guard?.experience != null ? `${guard.experience}+ years` : "",
       languages: Array.isArray(guard?.languages) ? guard.languages : [],
