@@ -59,9 +59,9 @@ export const carApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["security"],
     }),
-    getSecurityPartner: builder.mutation({
+    getCarPartner: builder.mutation({
       query: ({ page, limit }) => ({
-        url: `/security-protocols/partner`,
+        url: `/car-rentals`,
         method: "GET",
         params: {
           page,
@@ -112,8 +112,6 @@ export const carApi = baseApi.injectEndpoints({
         body: credentials,
       }),
     }),
-
-    
   }),
 });
 
@@ -124,7 +122,7 @@ export const {
   useDeleteCarMutation,
   useAddSecurityGuardMutation,
   useGetAvailableCarQuery,
-  useGetSecurityPartnerMutation,
+  useGetCarPartnerMutation,
   useUpdateSecurityBusinessMutation,
   useAddSecurityBusinessMutation,
   useCreateCarBookingMutation,
