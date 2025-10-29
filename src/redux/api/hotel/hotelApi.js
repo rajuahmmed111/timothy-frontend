@@ -103,6 +103,21 @@ export const hotelApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+    guestLogin: builder.mutation({
+      query: (guestData) => ({
+        url: "/auth/login-website",
+        method: "POST",
+        body: guestData,
+      }),
+    }),
+    createHotelBooking: builder.mutation({
+      query: ({ bookingId, bookingData }) => ({
+        url: `/hotel-booking/${bookingId}`,
+        method: 'POST',
+        body: bookingData,
+      }),
+      invalidatesTags: ['HotelBookings'],
+    }),
   }),
 });
 
@@ -119,4 +134,6 @@ export const {
   useUpdateHotelBusinessMutation,
   useGetPopularHotelsQuery,
   useGetHotelDetailsQuery,
+  useCreateHotelBookingMutation,
+  useGuestLoginMutation,
 } = hotelApi;
