@@ -1,14 +1,37 @@
 import React, { useEffect, useState } from "react";
-import { Card, Button, Row, Col, Typography, Skeleton, Pagination, Divider, message } from "antd";
-import { PhoneOutlined, MailOutlined, EnvironmentOutlined } from "@ant-design/icons";
+import {
+  Card,
+  Button,
+  Row,
+  Col,
+  Typography,
+  Skeleton,
+  Pagination,
+  Divider,
+  message,
+} from "antd";
+import {
+  PhoneOutlined,
+  MailOutlined,
+  EnvironmentOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 import { useGetCarPartnerMutation } from "../../redux/api/car/carApi";
+import CarBusinessEdit from "./CarBusinessEdit";
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function ReviewCarBusiness() {
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
+  const [editingCar, setEditingCar] = useState(null);
+  const [isEditVisible, setIsEditVisible] = useState(false);
 
-  const [getCarPartner, { data, isLoading, isError, error }] = useGetCarPartnerMutation();
+  const [getCarPartner, { data, isLoading, isError, error }] =
+    useGetCarPartnerMutation();
 
   useEffect(() => {
     getCarPartner({ page: pagination.current, limit: pagination.pageSize });
@@ -42,32 +65,63 @@ export default function ReviewCarBusiness() {
       {list.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🚗</div>
-          <Title level={3} className="mb-2">No Cars Found</Title>
-          <Text type="secondary" className="mb-6 block">You haven't added any car businesses yet.</Text>
-          <Button type="primary" onClick={() => (window.location.href = "/")}>Go to Home</Button>
+          <Title level={3} className="mb-2">
+            No Cars Found
+          </Title>
+          <Text type="secondary" className="mb-6 block">
+            You haven't added any car businesses yet.
+          </Text>
+          <Button type="primary" onClick={() => (window.location.href = "/")}>
+            Go to Home
+          </Button>
         </div>
       ) : (
         <>
           <div className="!space-y-5 gap-2">
             {list.map((item) => {
               const rental = item?.car_Rental || item;
-              const title = rental?.carBusinessName || rental?.carName || "Car Business";
+              const title =
+                rental?.carBusinessName || rental?.carName || "Car Business";
               const type = rental?.carBusinessType || item?.carType;
-              const logo = rental?.businessLogo || item?.carImages?.[0] || "https://via.placeholder.com/400x250?text=No+Image";
-              const about = rental?.carRentalDescription || item?.carDescription;
+              const logo =
+                rental?.businessLogo ||
+                item?.carImages?.[0] ||
+                "https://via.placeholder.com/400x250?text=No+Image";
+              const about =
+                rental?.carRentalDescription || item?.carDescription;
               const phone = rental?.carPhone || item?.carPhone;
               const email = rental?.carEmail || item?.carEmail;
               const regNum = rental?.carRegNum || item?.carRegNum;
               const regDate = rental?.carRegDate || item?.carRegDate;
-              const address = [rental?.officeAddress, rental?.carCity, rental?.carCountry].filter(Boolean).join(", ");
+              const address = [
+                rental?.officeAddress,
+                rental?.carCity,
+                rental?.carCountry,
+              ]
+                .filter(Boolean)
+                .join(", ");
 
               return (
                 <Card
                   key={item?.id}
                   title={
                     <div className="flex justify-between items-center !mt-2">
-                      <Title level={4} className="mb-0">{title}</Title>
-                      <span className="text-sm text-gray-500">{type}</span>
+                      <Title level={4} className="mb-0">
+                        {title}
+                      </Title>
+                      <div className="flex justify-end items-center gap-2">
+                        <p className="text-sm text-gray-500">{type}</p>
+                        <Button
+                          type="primary"
+                          icon={<EditOutlined />}
+                          onClick={() => {
+                            setEditingCar(rental);
+                            setIsEditVisible(true);
+                          }}
+                        >
+                          Manage Business
+                        </Button>
+                      </div>
                     </div>
                   }
                   className="mb-6"
@@ -84,14 +138,18 @@ export default function ReviewCarBusiness() {
                     <div className="flex-1">
                       {about && (
                         <div className="mb-4">
-                          <Title level={5} className="mb-2">About</Title>
+                          <Title level={5} className="mb-2">
+                            About
+                          </Title>
                           <Paragraph>{about}</Paragraph>
                         </div>
                       )}
 
                       <Divider />
 
-                      <Title level={5} className="mb-3">Contact Information</Title>
+                      <Title level={5} className="mb-3">
+                        Contact Information
+                      </Title>
                       <Row gutter={[16, 16]}>
                         <Col xs={24} md={12}>
                           {phone && (
@@ -116,7 +174,10 @@ export default function ReviewCarBusiness() {
                           )}
                           {regDate && (
                             <div className="flex items-center">
-                              <Text type="secondary">Established: {new Date(regDate).toLocaleDateString()}</Text>
+                              <Text type="secondary">
+                                Established:{" "}
+                                {new Date(regDate).toLocaleDateString()}
+                              </Text>
                             </div>
                           )}
                           {address && (
@@ -129,17 +190,22 @@ export default function ReviewCarBusiness() {
 
                       <Divider />
 
-                      {(rental?.carBookingCondition || rental?.carCancelationPolicy) && (
+                      {(rental?.carBookingCondition ||
+                        rental?.carCancelationPolicy) && (
                         <Row gutter={[16, 16]}>
                           {rental?.carBookingCondition && (
                             <Col span={24} md={12}>
-                              <Title level={5} className="mb-2">Booking Conditions</Title>
+                              <Title level={5} className="mb-2">
+                                Booking Conditions
+                              </Title>
                               <Text>{rental?.carBookingCondition}</Text>
                             </Col>
                           )}
                           {rental?.carCancelationPolicy && (
                             <Col span={24} md={12}>
-                              <Title level={5} className="mb-2">Cancellation Policy</Title>
+                              <Title level={5} className="mb-2">
+                                Cancellation Policy
+                              </Title>
                               <Text>{rental?.carCancelationPolicy}</Text>
                             </Col>
                           )}
@@ -163,6 +229,25 @@ export default function ReviewCarBusiness() {
             />
           </div>
         </>
+      )}
+      {editingCar && (
+        <CarBusinessEdit
+          visible={isEditVisible}
+          car={editingCar}
+          onClose={() => {
+            setIsEditVisible(false);
+            setEditingCar(null);
+          }}
+          onSuccess={() => {
+            // refetch current page
+            getCarPartner({
+              page: pagination.current,
+              limit: pagination.pageSize,
+            });
+            setIsEditVisible(false);
+            setEditingCar(null);
+          }}
+        />
       )}
     </div>
   );

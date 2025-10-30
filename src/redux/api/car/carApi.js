@@ -51,13 +51,13 @@ export const carApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["security"],
     }),
-    addSecurityBusiness: builder.mutation({
+    addCarBusiness: builder.mutation({
       query: (businessData) => ({
-        url: "/security-protocols",
+        url: "/car-rentals",
         method: "POST",
         body: businessData,
       }),
-      invalidatesTags: ["security"],
+      invalidatesTags: ["car"],
     }),
     getCarPartner: builder.mutation({
       query: ({ page, limit }) => ({
@@ -68,15 +68,15 @@ export const carApi = baseApi.injectEndpoints({
           limit,
         },
       }),
-      invalidatesTags: ["security"],
+      invalidatesTags: ["car"],
     }),
-    updateSecurityBusiness: builder.mutation({
+    updateCarBusiness: builder.mutation({
       query: ({ id, data }) => ({
-        url: `/security-protocols/${id}`,
+        url: `/car-rentals/${id}`,
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: ["security"],
+      invalidatesTags: ["car"],
     }),
     createCarBooking: builder.mutation({
       query: ({ carId, data }) => ({
@@ -123,7 +123,7 @@ export const {
   useAddSecurityGuardMutation,
   useGetAvailableCarQuery,
   useGetCarPartnerMutation,
-  useUpdateSecurityBusinessMutation,
+  useUpdateCarBusinessMutation,
   useAddSecurityBusinessMutation,
   useCreateCarBookingMutation,
   useGetCarBookingByIdQuery,
