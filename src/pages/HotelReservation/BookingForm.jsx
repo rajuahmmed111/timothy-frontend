@@ -18,18 +18,22 @@ export default function BookingForm({ hotel }) {
 
   const handleGuestsChange = (type, value) => {
     updateGuests({
-      [type]: value
+      [type]: value,
     });
   };
 
   const handleDateChange = (dates) => {
     updateBookingData({
-      dateRange: dates
+      dateRange: dates,
     });
   };
 
   const validateForm = () => {
-    if (!bookingData.dateRange || !bookingData.dateRange[0] || !bookingData.dateRange[1]) {
+    if (
+      !bookingData.dateRange ||
+      !bookingData.dateRange[0] ||
+      !bookingData.dateRange[1]
+    ) {
       alert("Please select check-in and check-out dates");
       return false;
     }
@@ -47,9 +51,10 @@ export default function BookingForm({ hotel }) {
   const rooms = useMemo(() => {
     if (Array.isArray(hotel?.room) && hotel.room.length > 0) {
       return hotel.room.map((r) => ({
-        id: r?.id || r?._id || r?.hotelRoomType,
+        id: r?._id || r?.id || r?.roomId || r?.hotelRoomType,
         name: r?.hotelRoomType || "Room",
-        price: Number(r?.hotelRoomPriceNight) || Number(hotel?.averagePrice) || 0,
+        price:
+          Number(r?.hotelRoomPriceNight) || Number(hotel?.averagePrice) || 0,
         discount: Number(r?.discount) || 0,
         features: [
           r?.hotelRoomCapacity ? String(r.hotelRoomCapacity) : undefined,
@@ -58,14 +63,16 @@ export default function BookingForm({ hotel }) {
         rating: Number(r?.hotelRating) || Number(hotel?.averageRating) || 0,
       }));
     }
-    return [{
-      id: "default",
-      name: hotel?.hotelName || "Standard Room",
-      price: Number(hotel?.averagePrice) || 0,
-      discount: 0,
-      features: [hotel?.hotelAccommodationType].filter(Boolean),
-      rating: Number(hotel?.averageRating) || 0,
-    }];
+    return [
+      {
+        id: "default",
+        name: hotel?.hotelName || "Standard Room",
+        price: Number(hotel?.averagePrice) || 0,
+        discount: 0,
+        features: [hotel?.hotelAccommodationType].filter(Boolean),
+        rating: Number(hotel?.averageRating) || 0,
+      },
+    ];
   }, [hotel]);
 
   // Initialize selected room to first option
@@ -79,18 +86,23 @@ export default function BookingForm({ hotel }) {
     rooms.find((room) => room.id === selectedRoom) || rooms[0];
   const nightlyBase = Number(selectedRoomData?.price || 0);
   const nightlyDiscountPct = Number(selectedRoomData?.discount || 0);
-  const nightlyPrice = Math.max(0, Math.round((nightlyBase * (100 - nightlyDiscountPct)) / 100));
+  const nightlyPrice = Math.max(
+    0,
+    Math.round((nightlyBase * (100 - nightlyDiscountPct)) / 100)
+  );
   const roomsCount = Math.max(1, Number(bookingData?.guests?.rooms || 1));
 
   // Calculate nights from dateRange
   const nights =
-    bookingData.dateRange && bookingData.dateRange[0] && bookingData.dateRange[1]
+    bookingData.dateRange &&
+    bookingData.dateRange[0] &&
+    bookingData.dateRange[1]
       ? Math.ceil(
-          (bookingData.dateRange[1].toDate().getTime() - bookingData.dateRange[0].toDate().getTime()) /
+          (bookingData.dateRange[1].toDate().getTime() -
+            bookingData.dateRange[0].toDate().getTime()) /
             (1000 * 3600 * 24)
         )
       : 1;
-
 
   const handleBooking = (e) => {
     e.preventDefault();
@@ -100,29 +112,41 @@ export default function BookingForm({ hotel }) {
     }
 
     setIsBooking(true);
+    try {
+      const checkInDate = bookingData?.dateRange?.[0]?.toDate?.() || null;
+      const checkOutDate = bookingData?.dateRange?.[1]?.toDate?.() || null;
 
-    // Navigate to checkout page with booking data
-    navigate("/hotel/checkout", {
-      state: {
-        bookingData: {
-          checkIn: bookingData.dateRange[0].format("YYYY-MM-DD"),
-          checkOut: bookingData.dateRange[1].format("YYYY-MM-DD"),
-          guests: bookingData.guests,
-          roomType:
-            rooms.find((room) => room.id === selectedRoom)?.name ||
-            "Deluxe Room",
-          roomPrice: nightlyPrice,
-          nights: nights,
-          subtotal: nightlyPrice * nights * roomsCount,
-          total: Math.round(nightlyPrice * 1.22 * nights * roomsCount),
-          hotelName: hotel?.hotelName || hotel?.hotelBusinessName || "Hotel",
-          location: `${hotel?.hotelCity || ""}${hotel?.hotelCity && hotel?.hotelCountry ? ", " : ""}${hotel?.hotelCountry || ""}`,
-          specialRequest: specialRequest,
-        },
-      },
-    });
+      const bookedFromDate = checkInDate ? checkInDate.toISOString() : null;
+      const bookedToDate = checkOutDate ? checkOutDate.toISOString() : null;
 
-    setIsBooking(false);
+      const subtotal = Math.round(nightlyPrice * nights * roomsCount);
+      const vat = Math.round(subtotal * 0.12);
+      const total = subtotal + vat;
+
+      const payload = {
+        hotelId: hotel?._id ?? hotel?.id ?? hotel?.hotelId ?? null,
+        roomId: selectedRoomData?.id ?? null,
+        hotelName: hotel?.hotelName ?? hotel?.name ?? "",
+        location: hotel?.location ?? hotel?.hotelAddress ?? hotel?.address ?? "",
+        roomType: selectedRoomData?.name ?? "",
+        roomPrice: nightlyPrice,
+        nights,
+        rooms: roomsCount,
+        adults: Number(bookingData?.guests?.adults ?? 1),
+        children: Number(bookingData?.guests?.children ?? 0),
+        subtotal,
+        total,
+        vat,
+        bookedFromDate,
+        bookedToDate,
+        checkIn: bookedFromDate,
+        checkOut: bookedToDate,
+      };
+
+      navigate("/hotel/checkout", { state: { bookingData: payload } });
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   return (
@@ -135,7 +159,9 @@ export default function BookingForm({ hotel }) {
             </span>
             {selectedRoomData?.discount > 0 && (
               <>
-                <span className="text-sm text-gray-400 line-through">${nightlyBase * roomsCount}</span>
+                <span className="text-sm text-gray-400 line-through">
+                  ${nightlyBase * roomsCount}
+                </span>
                 <span className="text-xs bg-red-100 text-red-700 font-medium px-2 py-0.5 rounded">
                   -{Math.round(Number(selectedRoomData.discount))}%
                 </span>
@@ -147,7 +173,9 @@ export default function BookingForm({ hotel }) {
             <span>{selectedRoomData.rating}</span>
           </div> */}
         </div>
-        <span className="text-gray-600">per night{roomsCount > 1 ? ` · for ${roomsCount} rooms` : ''}</span>
+        <span className="text-gray-600">
+          per night{roomsCount > 1 ? ` · for ${roomsCount} rooms` : ""}
+        </span>
       </div>
 
       <form onSubmit={handleBooking} className="space-y-4">
@@ -175,9 +203,7 @@ export default function BookingForm({ hotel }) {
             Guests and Rooms
           </label>
           <Select
-            value={bookingData.guests.adults > 0 || bookingData.guests.children > 0 || bookingData.guests.rooms > 0 ? 
-                `${bookingData.guests.adults} ${bookingData.guests.adults !== 1 ? 'adults' : 'adult'} · ${bookingData.guests.children} ${bookingData.guests.children !== 1 ? 'children' : 'child'} · ${bookingData.guests.rooms} ${bookingData.guests.rooms !== 1 ? 'rooms' : 'room'}` : 
-                undefined}
+            value="guests"
             placeholder="0 adults · 0 children · 0 rooms"
             className="w-full h-full [&>div]:h-full [&>div]:py-2.5 [&>div]:px-3 [&_.ant-select-selection-placeholder]:text-gray-400 focus:outline-none focus:border-[#0064D2]"
             style={{ height: "100%" }}
@@ -203,10 +229,15 @@ export default function BookingForm({ hotel }) {
                     >
                       -
                     </Button>
-                    <span className="w-8 text-center">{bookingData.guests.adults}</span>
+                    <span className="w-8 text-center">
+                      {bookingData.guests.adults}
+                    </span>
                     <Button
                       onClick={() =>
-                        handleGuestsChange("adults", bookingData.guests.adults + 1)
+                        handleGuestsChange(
+                          "adults",
+                          bookingData.guests.adults + 1
+                        )
                       }
                       disabled={bookingData.guests.adults >= 8}
                       className="flex items-center justify-center w-8 h-8"
@@ -235,10 +266,15 @@ export default function BookingForm({ hotel }) {
                     >
                       -
                     </Button>
-                    <span className="w-8 text-center">{bookingData.guests.children}</span>
+                    <span className="w-8 text-center">
+                      {bookingData.guests.children}
+                    </span>
                     <Button
                       onClick={() =>
-                        handleGuestsChange("children", bookingData.guests.children + 1)
+                        handleGuestsChange(
+                          "children",
+                          bookingData.guests.children + 1
+                        )
                       }
                       disabled={bookingData.guests.children >= 4}
                       className="flex items-center justify-center w-8 h-8"
@@ -267,10 +303,15 @@ export default function BookingForm({ hotel }) {
                     >
                       -
                     </Button>
-                    <span className="w-8 text-center">{bookingData.guests.rooms}</span>
+                    <span className="w-8 text-center">
+                      {bookingData.guests.rooms}
+                    </span>
                     <Button
                       onClick={() =>
-                        handleGuestsChange("rooms", bookingData.guests.rooms + 1)
+                        handleGuestsChange(
+                          "rooms",
+                          bookingData.guests.rooms + 1
+                        )
                       }
                       disabled={bookingData.guests.rooms >= 5}
                       className="flex items-center justify-center w-8 h-8"
@@ -287,7 +328,9 @@ export default function BookingForm({ hotel }) {
                 bookingData.guests.adults !== 1 ? "adults" : "adult"
               } · ${bookingData.guests.children} ${
                 bookingData.guests.children !== 1 ? "children" : "child"
-              } · ${bookingData.guests.rooms} ${bookingData.guests.rooms !== 1 ? "rooms" : "room"}`}
+              } · ${bookingData.guests.rooms} ${
+                bookingData.guests.rooms !== 1 ? "rooms" : "room"
+              }`}
             </Option>
           </Select>
         </div>
@@ -330,13 +373,25 @@ export default function BookingForm({ hotel }) {
                   </div>
                   <div className="text-right">
                     <div className="font-semibold text-gray-900">
-                      ${Math.max(0, Math.round((Number(room.price || 0) * (100 - Number(room.discount || 0))) / 100))}
+                      $
+                      {Math.max(
+                        0,
+                        Math.round(
+                          (Number(room.price || 0) *
+                            (100 - Number(room.discount || 0))) /
+                            100
+                        )
+                      )}
                     </div>
                     {Number(room.discount || 0) > 0 && (
-                      <div className="text-xs text-gray-400 line-through">${Number(room.price || 0)}</div>
+                      <div className="text-xs text-gray-400 line-through">
+                        ${Number(room.price || 0)}
+                      </div>
                     )}
                     {Number(room.discount || 0) > 0 && (
-                      <div className="text-[10px] text-red-700 bg-red-100 inline-block mt-0.5 px-1.5 py-0.5 rounded">-{Math.round(Number(room.discount))}%</div>
+                      <div className="text-[10px] text-red-700 bg-red-100 inline-block mt-0.5 px-1.5 py-0.5 rounded">
+                        -{Math.round(Number(room.discount))}%
+                      </div>
                     )}
                     <div className="text-xs text-gray-500">per night</div>
                   </div>
@@ -359,7 +414,8 @@ export default function BookingForm({ hotel }) {
             className="w-full"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Cannot be guaranteed but the property will do its best to meet your needs.
+            Cannot be guaranteed but the property will do its best to meet your
+            needs.
           </p>
         </div>
 
@@ -368,19 +424,23 @@ export default function BookingForm({ hotel }) {
           <div className="flex justify-between text-sm">
             <span>
               ${nightlyPrice} × {nights} {nights === 1 ? "night" : "nights"}
-              {roomsCount > 1 ? ` × ${roomsCount} rooms` : ''}
+              {roomsCount > 1 ? ` × ${roomsCount} rooms` : ""}
             </span>
             <span>${nightlyPrice * nights * roomsCount}</span>
           </div>
 
           <div className="flex justify-between text-sm">
             <span>VAT</span>
-            <span>${Math.round((nightlyPrice * nights * roomsCount) * 0.12)}</span>
+            <span>
+              ${Math.round(nightlyPrice * nights * roomsCount * 0.12)}
+            </span>
           </div>
           <div className="border-t pt-2">
             <div className="flex justify-between font-semibold text-lg">
               <span>Total</span>
-              <span>${Math.round(nightlyPrice * nights * roomsCount * 1.22)}</span>
+              <span>
+                ${Math.round(nightlyPrice * nights * roomsCount * 1.22)}
+              </span>
             </div>
           </div>
         </div>

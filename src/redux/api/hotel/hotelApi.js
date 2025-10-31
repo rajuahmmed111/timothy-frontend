@@ -111,12 +111,26 @@ export const hotelApi = baseApi.injectEndpoints({
       }),
     }),
     createHotelBooking: builder.mutation({
-      query: ({ bookingId, bookingData }) => ({
+      query: ({ bookingId, data }) => ({
         url: `/hotel-booking/${bookingId}`,
         method: 'POST',
-        body: bookingData,
+        body: data,
       }),
       invalidatesTags: ['HotelBookings'],
+    }),
+    createHotelPaystackCheckoutSession: builder.mutation({
+      query: ({ bookingId, body }) => ({
+        url: `/payments/create-checkout-session-paystack/hotel/${bookingId}`,
+        method: 'POST',
+        body,
+      }),
+    }),
+    createHotelStripeCheckoutSessionWebsite: builder.mutation({
+      query: ({ bookingId, body }) => ({
+        url: `/payments/create-stripe-checkout-session-website/hotel/${bookingId}`,
+        method: 'POST',
+        body,
+      }),
     }),
   }),
 });
@@ -135,5 +149,7 @@ export const {
   useGetPopularHotelsQuery,
   useGetHotelDetailsQuery,
   useCreateHotelBookingMutation,
+  useCreateHotelPaystackCheckoutSessionMutation,
+  useCreateHotelStripeCheckoutSessionWebsiteMutation,
   useGuestLoginMutation,
 } = hotelApi;

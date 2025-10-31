@@ -5,17 +5,24 @@ import {
   Calendar,
   Users,
   MapPin,
-  Star,
   ChevronDown,
+  CreditCard,
 } from "lucide-react";
 import { useGuestLoginMutation } from "../../redux/api/hotel/hotelApi";
-import { useSelector } from "react-redux";
+import { useCreateHotelBookingMutation } from "../../redux/api/hotel/hotelApi";
+import { useCreateHotelPaystackCheckoutSessionMutation } from "../../redux/api/hotel/hotelApi";
+import { useCreateHotelStripeCheckoutSessionWebsiteMutation } from "../../redux/api/hotel/hotelApi";
+
+import { setCredentials } from "../../redux/features/auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { Modal, message } from "antd";
+import { toast } from "react-toastify";
 
 export default function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { bookingData } = location.state || {};
-  const { user } = useSelector((state) => state.auth) || {};
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state?.auth?.user);
   const [isProcessing, setIsProcessing] = useState(false);
   const [guestInfo, setGuestInfo] = useState({
     fullName: "",
@@ -29,9 +36,17 @@ export default function Checkout() {
     password: "",
   });
 
-  const [loginWebsite, { isLoading: isLoginLoading }] = useGuestLoginMutation();
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
-  const [isCountrySelectOpen, setIsCountrySelectOpen] = useState(false);
+  const [loginWebsite, { isLoading: isLoginLoading }] = useGuestLoginMutation();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [createHotelBooking, { isLoading: isCreatingBooking }] =
+    useCreateHotelBookingMutation();
+  const [createdBookingId, setCreatedBookingId] = useState(null);
+  const [createHotelPaystackSession, { isLoading: isCreatingPayment }] =
+    useCreateHotelPaystackCheckoutSessionMutation();
+  const [createHotelStripeSession, { isLoading: isCreatingStripe }] =
+    useCreateHotelStripeCheckoutSessionWebsiteMutation();
+  const [serverTotal, setServerTotal] = useState(null);
 
   // Common country codes
   const countryCodes = [
@@ -57,15 +72,46 @@ export default function Checkout() {
     { code: "+234", country: "NG", flag: "🇳🇬" },
   ];
 
-  // Comprehensive list of countries
+  const bookingData = location.state?.bookingData;
 
-  if (!bookingData) {
-    navigate("/");
-    return null;
-  }
-  console.log("bookingData", bookingData);
+  const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const days = Math.max(
+    1,
+    Math.floor(
+      (new Date(bookingData.checkOut) - new Date(bookingData.checkIn)) /
+        msPerDay
+    )
+  );
 
-  const safeGuests = bookingData.guests || { adults: 1, children: 0, rooms: 1 };
+  const safeGuests = bookingData?.guests || {
+    adults: 1,
+    children: 0,
+    rooms: 1,
+  };
+  const hotelPrice = round2(bookingData.total / days);
+  const taxes = round2(bookingData.total * 0.05);
+  const finalTotal = round2(bookingData.total + taxes);
+  const displayFinalTotal = serverTotal ?? finalTotal;
+  const displayVat = serverTotal
+    ? round2(displayFinalTotal - round2(displayFinalTotal / 1.05))
+    : taxes;
+  const displaySubtotal = serverTotal
+    ? round2(displayFinalTotal / 1.05)
+    : bookingData.total;
+  const displayUnit = round2(displaySubtotal / days);
+
+  const africanPrefix = "+2"; // Most African countries start with +2
+  const userCountry = user?.country || "";
+  const phoneCode = guestInfo?.countryCode || "";
+  const isAfricaByPhone =
+    typeof phoneCode === "string" && phoneCode.startsWith(africanPrefix);
+  const isAfricaByCountry =
+    typeof userCountry === "string" &&
+    /\b(Algeria|Angola|Benin|Botswana|Burkina|Burundi|Cameroon|Cape Verde|Central African Republic|Chad|Comoros|Congo|DRC|Cote d'Ivoire|Ivory Coast|Djibouti|Egypt|Equatorial Guinea|Eritrea|Eswatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Kenya|Lesotho|Liberia|Libya|Madagascar|Malawi|Mali|Mauritania|Mauritius|Morocco|Mozambique|Namibia|Niger|Nigeria|Rwanda|Sao Tome|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Tanzania|Togo|Tunisia|Uganda|Zambia|Zimbabwe)\b/i.test(
+      userCountry
+    );
+  const shouldUsePaystack = isAfricaByCountry || isAfricaByPhone;
 
   const handleGuestInfoChange = (field, value) => {
     setGuestInfo((prev) => ({
@@ -79,48 +125,102 @@ export default function Checkout() {
     setIsCountryDropdownOpen(false);
   };
 
-  const handleCountryChange = (country) => {
-    handleGuestInfoChange("country", country);
-    setIsCountrySelectOpen(false);
+  const selectedCountry = countryCodes.find(
+    (c) => c.code === guestInfo.countryCode
+  );
+
+  const handleProceedToPayment = () => {
+    setIsProcessing(true);
+
+    setIsProcessing(false);
   };
+
   const handleProceedClick = async () => {
     if (!user) return;
     setIsProcessing(true);
     try {
-      const carId = bookingDetails?.carId;
-      if (carId && bookingDetails?.pickupDate && bookingDetails?.returnDate) {
-        const res = await createCarBooking({
-          carId,
-          data: {
-            carBookedFromDate: bookingDetails.pickupDate,
-            carBookedToDate: bookingDetails.returnDate,
-            vat: taxes,
-            totalPrice: finalTotal,
-            days,
-            unitPrice: displayUnit,
-            // promo_code: 'CAR28',
-          },
-        }).unwrap();
-        const created = res?.data || res;
-        if (created?.id) setCreatedBookingId(created.id);
-        if (typeof created?.totalPrice === "number")
-          setServerTotal(round2(created.totalPrice));
+      const roomId = bookingData?.roomId;
+      const toYMD = (d) => new Date(d).toISOString().slice(0, 10);
+
+      if (!roomId) {
+        message.error("Room not selected.");
+        return;
+      }
+
+      const res = await createHotelBooking({
+        bookingId: roomId,
+        data: {
+          rooms: Number(bookingData?.rooms ?? 1),
+          adults: Number(bookingData?.adults ?? 1),
+          children: Number(bookingData?.children ?? 0),
+          bookedFromDate: toYMD(
+            bookingData?.bookedFromDate || bookingData?.checkIn
+          ),
+          bookedToDate: toYMD(
+            bookingData?.bookedToDate || bookingData?.checkOut
+          ),
+        },
+      }).unwrap();
+
+      const created = res?.data || res;
+      if (created?.id) {
+        setCreatedBookingId(created.id);
+      }
+      if (typeof created?.totalPrice === "number") {
+        setServerTotal(round2(created.totalPrice));
       }
       setIsConfirmOpen(true);
+
+      
     } catch (e) {
       const msg = e?.data?.message || e?.message || "Failed to create booking";
-      try {
+      const lc = typeof msg === "string" ? msg.toLowerCase() : "";
+      if (lc.includes("already booked") || lc.includes("already booked for the selected dates")) {
+        toast.error("This hotel is already booked for the selected dates");
+      } else {
         message.error(msg);
-      } catch {}
+      }
       setIsConfirmOpen(false);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const selectedCountry = countryCodes.find(
-    (c) => c.code === guestInfo.countryCode
-  );
+  const handleBackToBooking = () => {
+    navigate(-1);
+  };
+
+  const handleGuestLoginThenProceed = async () => {
+    if (
+      !guestInfo.fullName ||
+      !guestInfo.email ||
+      !guestInfo.password ||
+      !guestInfo.phone ||
+      !guestInfo.country
+    ) {
+      return;
+    }
+    try {
+      const res = await loginWebsite({
+        fullName: guestInfo.fullName,
+        email: guestInfo.email,
+        password: guestInfo.password,
+        contactNumber: guestInfo.phone,
+        country: guestInfo.country,
+      }).unwrap();
+
+      const accessToken = res?.data?.accessToken || res?.accessToken;
+      const authUser = res?.data?.user || res?.user;
+      if (accessToken) {
+        try {
+          localStorage.setItem("accessToken", accessToken);
+        } catch {}
+        dispatch(setCredentials({ accessToken, user: authUser }));
+      }
+    } catch (e) {
+      // silently fail; you can add toast here if desired
+    }
+  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -137,7 +237,7 @@ export default function Checkout() {
         {/* Header */}
         <div className="flex items-center mb-4 md:mb-6">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBackToBooking}
             className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-6 h-6 md:w-8 md:h-8 mr-2" />
@@ -171,8 +271,8 @@ export default function Checkout() {
                   <Calendar className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-gray-900">
-                      {formatDate(bookingData.checkIn)} -{" "}
-                      {formatDate(bookingData.checkOut)}
+                      {formatDate(bookingData.bookedFromDate)} -{" "}
+                      {formatDate(bookingData.bookedToDate)}
                     </p>
                     <p className="text-gray-600">{bookingData.nights} nights</p>
                   </div>
@@ -392,20 +492,104 @@ export default function Checkout() {
                 </div>
               </div>
 
-              <Link to="/hotel/payment">
-                <button
-                  type="submit"
-                  // onClick={handleSubmit}
-                  disabled={isProcessing}
-                  className={`w-full mt-4 md:mt-6 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-semibold text-sm md:text-base transition-colors ${
-                    isProcessing
-                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                      : "bg-[#0064D2] text-white hover:bg-[#0052A3]"
+              <button
+                onClick={handleProceedClick}
+                disabled={isProcessing || !user}
+                className={`w-full mt-6 bg-[#0064D2] text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center {
+                    isProcessing || !user ? "opacity-70 cursor-not-allowed" : ""
                   }`}
-                >
-                  {isProcessing ? "Processing..." : "Continue to Booking"}
-                </button>
-              </Link>
+              >
+                {isProcessing ? (
+                  "Processing..."
+                ) : (
+                  <>
+                    <CreditCard className="w-5 h-5 mr-2" />
+                    Proceed to Checkout
+                  </>
+                )}
+              </button>
+
+              <Modal
+                open={isConfirmOpen}
+                onOk={async () => {
+                  if (!createdBookingId) {
+                    try {
+                      message.error("No booking id to pay for");
+                    } catch {}
+                    return;
+                  }
+                  try {
+                    if (shouldUsePaystack) {
+                      const res = await createHotelPaystackSession({
+                        bookingId: createdBookingId,
+                        body: {},
+                      }).unwrap();
+                      const url =
+                        res?.data?.checkoutUrl ||
+                        res?.data?.url ||
+                        res?.data?.authorization_url ||
+                        res?.url;
+                      const ref = res?.data?.reference;
+                      try {
+                        console.log("Paystack URL:", url);
+                        if (ref) console.log("Paystack Reference:", ref);
+                      } catch {}
+                      if (url) {
+                        window.open(url, "_blank");
+                      } else {
+                        try {
+                          message.error("Payment URL not received");
+                        } catch {}
+                      }
+                    } else {
+                      const res = await createHotelStripeSession({
+                        bookingId: createdBookingId,
+                        body: {},
+                      }).unwrap();
+                      const url = res?.data?.checkoutUrl || res?.url;
+                      const ref = res?.data?.checkoutSessionId || res?.data?.id;
+                      try {
+                        console.log("Stripe URL:", url);
+                        if (ref) console.log("Stripe Reference:", ref);
+                      } catch {}
+                      if (url) {
+                        window.location.assign(url);
+                        console.log("Checkout Session ID:", ref);
+                      } else {
+                        try {
+                          message.error("Payment URL not received");
+                        } catch {}
+                      }
+                    }
+                  } catch (e) {
+                    const msg =
+                      e?.data?.message ||
+                      e?.message ||
+                      "Failed to start payment";
+                    try {
+                      message.error(msg);
+                    } catch {}
+                  } finally {
+                    setIsConfirmOpen(false);
+                  }
+                }}
+                onCancel={() => setIsConfirmOpen(false)}
+                okText={
+                  shouldUsePaystack ? "Pay with Paystack" : "Pay with Stripe"
+                }
+                cancelText="Later"
+                centered
+              >
+                <div className="space-y-2">
+                  <div className="text-lg font-semibold text-gray-900">
+                    Ready to pay?
+                  </div>
+                  <div className="text-gray-600">
+                    Choose Pay Now to continue to payment, or Later to stay on
+                    this page.
+                  </div>
+                </div>
+              </Modal>
             </div>
           </div>
         </div>
