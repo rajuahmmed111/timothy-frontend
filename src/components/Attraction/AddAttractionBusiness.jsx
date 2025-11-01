@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Building2, Upload, X, FileText } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useAddAttractionBusinessMutation } from '../../../redux/api/attraction/addAttractionBusinessApi';
+import { Upload, X, FileText } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { useAddAttractionBusinessMutation } from '../../redux/api/attraction/attractionApi';
 
 export default function AddAttractionBusiness() {
     const [formData, setFormData] = useState({
