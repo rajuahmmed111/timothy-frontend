@@ -82,7 +82,7 @@ export default function CarListings() {
     {
       title: "No",
       key: "no",
-      render: (_, __, index) => index + 1,
+      render: (_, __, index) => (page - 1) * pageSize + index + 1,
     },
     {
       title: "Image",
@@ -164,10 +164,7 @@ export default function CarListings() {
   const filtered = search
     ? carsData.filter((c) => {
         const q = search.toLowerCase();
-        return (
-          (c.name || "").toLowerCase().includes(q) ||
-          (c.location || "").toLowerCase().includes(q)
-        );
+        return (c.name || "").toLowerCase().includes(q);
       })
     : carsData;
 
@@ -177,7 +174,7 @@ export default function CarListings() {
         <div className="space-y-2 w-[400px]">
           <input
             type="text"
-            placeholder="Search cars by name or location"
+            placeholder="Search cars by name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
