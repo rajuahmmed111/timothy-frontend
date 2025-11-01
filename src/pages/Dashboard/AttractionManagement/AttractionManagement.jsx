@@ -1,4 +1,10 @@
 import React, { useState } from "react";
+import AttractionDashboard from "../../../components/Attraction/AttractionDashboard";
+import AttractionBooking from "../../../components/Attraction/AttractionBooking";
+import AttractionListings from "../../../components/Attraction/AttractionListings";
+import AddAttractionBusiness from "../../../components/Attraction/AddAttractionBusiness";
+import ReviewAttractionBusiness from "../../../components/Attraction/ReviewAttractionBusiness";
+import AvailableAttractionListing from "../../../components/Attraction/AvailableAttractionListing";
 
 
 export default function AttractionManagement() {
@@ -34,22 +40,22 @@ export default function AttractionManagement() {
             {/* Content */}
             <div className="mt-6">
                 {activeTab === "dashboard" && (
-                    "dashboard"
+                    <AttractionDashboard />
                 )}
                 {activeTab === "booking" && (
-                    "booking"
+                    <AttractionBooking />
                 )}
                 {activeTab === "listings" && (
-                    "listings"
+                    <AttractionListings />
                 )}
                 {activeTab === "addBusiness" && (
-                    "addBusiness"
+                    <AddAttractionBusiness />
                 )}
                 {activeTab === "reviewBusiness" && (
-                    "reviewBusiness"
+                    <ReviewAttractionBusiness />
                 )}
                 {activeTab === "availableListing" && (
-                    "availableListing"
+                    <AvailableAttractionListing />
                 )}
             </div>
         </div>
