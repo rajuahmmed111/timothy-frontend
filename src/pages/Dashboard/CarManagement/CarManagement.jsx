@@ -4,6 +4,7 @@ import AddCarBusiness from "../../../components/Car/AddCarBusiness";
 import CarListings from "../../../components/Car/CarListings";
 import AvailableCarListing from "../../../components/Car/AvailableCarListing";
 import CarBookings from "../../../components/Car/CarBookings";
+import ReviewCarBusiness from "../../../components/Car/ReviewCarBusiness";
 
 export default function CarManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -42,7 +43,7 @@ export default function CarManagement() {
         {activeTab === "booking" && <CarBookings />}
         {activeTab === "listings" && <CarListings />}
         {activeTab === "addBusiness" && <AddCarBusiness />}
-        {activeTab === "reviewBusiness" && "Review Car Business"}
+        {activeTab === "reviewBusiness" && <ReviewCarBusiness />}
         {activeTab === "availableListing" && <AvailableCarListing />}
       </div>
     </div>

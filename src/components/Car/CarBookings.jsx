@@ -1,18 +1,15 @@
 import React, { useMemo, useState } from "react";
-import { Table, ConfigProvider, Modal, Button, Input, Space, Tag } from "antd";
+import { Table, ConfigProvider, Modal, Button, Input, Tag } from "antd";
 import {
-  SearchOutlined,
   EyeOutlined,
-  CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useGetCarBookingsQuery } from "../../redux/api/car/carApi";
-
-const { Search } = Input;
 
 const CarBookings = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [search, setSearch] = useState("");
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   const { data, isLoading } = useGetCarBookingsQuery();
 
@@ -39,12 +36,7 @@ const CarBookings = () => {
   const filtered = useMemo(() => {
     if (!search) return rows;
     const q = search.toLowerCase();
-    return rows.filter(
-      (r) =>
-        (r.bookingId || "").toLowerCase().includes(q) ||
-        (r.customer || "").toLowerCase().includes(q) ||
-        (r.carModel || "").toLowerCase().includes(q)
-    );
+    return rows.filter((r) => (r.name || "").toLowerCase().includes(q));
   }, [rows, search]);
 
   const showViewModal = (booking) => {
@@ -56,7 +48,8 @@ const CarBookings = () => {
     {
       title: "No",
       key: "no",
-      render: (_, __, index) => index + 1,
+      render: (_, __, index) =>
+        (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: "Name",
@@ -117,7 +110,7 @@ const CarBookings = () => {
         <div className="space-y-2 w-[400px]">
           <input
             type="text"
-            placeholder="Search by booking ID, customer or car name"
+            placeholder="Search by customer"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
@@ -144,7 +137,14 @@ const CarBookings = () => {
           dataSource={filtered}
           columns={columns}
           loading={isLoading}
-          pagination={{ pageSize: 10 }}
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: filtered.length,
+          }}
+          onChange={(pag) =>
+            setPagination({ current: pag.current, pageSize: pag.pageSize })
+          }
         />
       </ConfigProvider>
 
