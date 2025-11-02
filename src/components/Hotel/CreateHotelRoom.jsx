@@ -197,7 +197,8 @@ export default function CreateHotelRoom() {
               >
                 {hotels.map((h) => (
                   <option key={h.id} value={h.id}>
-                    {h.hotelName || h.hotelBusinessName || h.id}
+                    {h.hotelBusinessName}
+                    
                   </option>
                 ))}
               </select>

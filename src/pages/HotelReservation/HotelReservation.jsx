@@ -659,6 +659,7 @@ rating: ratingNum,
 raw: hotel,
 };
 return <HotelCard key={index} hotel={cardModel} />
+
 })}
 </div>
 
