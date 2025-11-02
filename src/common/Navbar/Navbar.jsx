@@ -202,9 +202,7 @@ export default function Navbar() {
             </div>
 
             {/* Cart - Hidden on mobile */}
-            <button className="hidden sm:block p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <ShoppingCart className="w-8 h-8 text-gray-600" />
-            </button>
+      
 
             {/* Auth/Profile Area */}
             {accessToken ? (
@@ -386,10 +384,7 @@ export default function Navbar() {
 
               {/* Mobile Actions */}
               <div className="border-t border-gray-200 pt-3 space-y-2">
-                <button className="w-full flex items-center space-x-2 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                  <ShoppingCart className="w-5 h-5 text-gray-600" />
-                  <span>Cart</span>
-                </button>
+            
                 {accessToken ? (
                   <>
                     <button onClick={() => navigate("/dashboard/profile")} className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
