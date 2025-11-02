@@ -64,6 +64,7 @@ import HumanRightsStatement from "../pages/Legal/HumanRightsStatement";
 import PrivateRoute from "./guards/PrivateRoute";
 import RoleRoute from "./guards/RoleRoute";
 import AddSecurityBusiness from "../components/Security/AddSecurityBusiness";
+import HotelAllImage from "../pages/HotelReservation/HotelAllImage";
 
 export const routes = createBrowserRouter([
   {
@@ -145,6 +146,10 @@ export const routes = createBrowserRouter([
       {
         path: "/hotel-details/:id",
         element: <HotelDetails />,
+      },
+      {
+        path: "/hotel-details/images",
+        element: <HotelAllImage />,
       },
       {
         path: "/hotel-details/selectedhotel",

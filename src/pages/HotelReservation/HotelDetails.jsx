@@ -13,27 +13,6 @@ export default function HotelDetails() {
   const location = useLocation();
   const { id: routeId } = useParams();
   const hotel = location.state?.hotel;
-
-  const lat =
-    typeof hotel?.hotelLate === "number" ? hotel.hotelLate : undefined;
-  const lng =
-    typeof hotel?.hotelLong === "number" ? hotel.hotelLong : undefined;
-  const addressParts = [
-    hotel?.hotelAddress,
-    hotel?.hotelCity,
-    hotel?.hotelCountry,
-  ].filter(Boolean);
-  const addressQuery = addressParts.join(", ");
-  const mapQuery =
-    lat !== undefined && lng !== undefined ? `${lat},${lng}` : addressQuery;
-  const encodedQuery = encodeURIComponent(mapQuery || "");
-
-  const openFullMap = () => {
-    const url = mapQuery
-      ? `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`
-      : `https://www.google.com/maps`;
-    window.open(url, "_blank");
-  };
   const hotelId = hotel?._id ?? hotel?.id ?? routeId;
   const { data: reviews, isFetching: isReviewsFetching } =
     useGetHotelReviewsQuery(hotelId, { skip: !hotelId });
@@ -43,6 +22,30 @@ export default function HotelDetails() {
   const hotelFromApi = hotelDetails?.data ?? hotelDetails;
   const hotelData = hotel || hotelFromApi;
 
+  // Build complete address for accurate location
+  const fullAddress = [
+    hotelData?.hotelName,
+    hotelData?.hotelAddress,
+    hotelData?.hotelPostalCode,
+    hotelData?.hotelCity,
+    hotelData?.hotelCountry,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const encodedQuery = encodeURIComponent(fullAddress);
+
+  const openFullMap = () => {
+    if (fullAddress) {
+      // Using place search for more accurate results
+      const url = `https://www.google.com/maps/search/${encodedQuery}`;
+      window.open(url, "_blank");
+    } else {
+      window.open("https://www.google.com/maps", "_blank");
+    }
+  };
+
+  console.log("hoteldata", hotelData);
   const reviewArray = Array.isArray(reviews?.data) ? reviews.data : [];
   const reviewCount = reviewArray.length;
   const reviewAverage = reviewCount
@@ -131,76 +134,73 @@ export default function HotelDetails() {
               </section>
             </div>
 
-            <div className="gap-5">
-              <div className="lg:col-span-1">
-                <div className="flex items-center justify-between mb-4 w-full">
-                  {/* Interactive Map Component */}
-                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden w-full h-48">
-                    {/* Real Map Container */}
-                    <div className="relative h-40">
-                      <iframe
-                        src={
-                          mapQuery
-                            ? `https://www.google.com/maps?q=${encodedQuery}&output=embed`
-                            : undefined
-                        }
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        allowFullScreen=""
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        title="Hotel Location Map"
-                      ></iframe>
+            <div className="lg:sticky lg:top-4 space-y-4">
+              {/* Interactive Map Component */}
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div className="relative h-[300px]">
+                  <iframe
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                      ` ${hotelData?.hotelAddress}`
+                    )}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                    width="100%"
+                    height="100%"
+                    className="absolute inset-0"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Hotel Location Map"
+                  ></iframe>
 
-                      {/* Map Overlay with Hotel Info */}
-                      <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-md p-2 max-w-xs">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-red-500" />
-                          <div>
-                            <h5 className="font-semibold text-xs text-gray-900">
-                              {hotel?.hotelName || ""}
-                            </h5>
-                            <div className="flex items-center gap-1">
-                              {[1, 2, 3, 4, 5].map((star, i) => (
-                                <Star
-                                  key={star}
-                                  className={`w-2.5 h-2.5 ${
-                                    i <
-                                    Math.round(
-                                      Number(
-                                        (reviewAverage ??
-                                          hotel?.averageRating) ||
-                                          0
-                                      )
-                                    )
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "text-gray-300"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
+                  {/* Map Overlay with Hotel Info */}
+                  <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-md p-2 max-w-xs">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-red-500 mt-0.5" />
+                      <div>
+                        <h5 className="font-semibold text-xs text-gray-900">
+                          {hotelData?.hotelName || ""}
+                        </h5>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          {[
+                            hotelData?.hotelAddress,
+                            hotelData?.hotelPostalCode,
+                            hotelData?.hotelCity,
+                            hotelData?.hotelCountry,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                        <div className="flex items-center gap-1 mt-1">
+                          {[1, 2, 3, 4, 5].map((star, i) => (
+                            <Star
+                              key={star}
+                              className={`w-2.5 h-2.5 ${
+                                i < Math.round(Number(reviewAverage || 0))
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
                         </div>
                       </div>
-
-                      {/* Map Controls removed to avoid cross-origin reload issues */}
-                    </div>
-
-                    {/* View in full map link */}
-                    <div className="bg-white border-t border-gray-100">
-                      <button
-                        onClick={openFullMap}
-                        className="flex items-center justify-center w-full text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-1" />
-                        View in full map
-                      </button>
                     </div>
                   </div>
                 </div>
-                <BookingForm hotel={hotelData} />
+
+                {/* View in full map link */}
+                <div className="bg-white border-t border-gray-100 p-2">
+                  <button
+                    onClick={openFullMap}
+                    className="flex items-center justify-center w-full text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors py-1"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    View in full map
+                  </button>
+                </div>
               </div>
+
+              {/* Booking Form */}
+              <BookingForm hotel={hotelData} />
             </div>
           </div>
         </main>
