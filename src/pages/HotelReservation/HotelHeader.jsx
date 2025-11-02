@@ -18,7 +18,7 @@ export default function HotelHeader({ hotel, reviewAverage, reviewCount }) {
 
   return (
     <header>
-      <div className="container mx-auto px-5 lg:px-0 py-16">
+      <div className="container mx-auto py-5 mt-5">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">

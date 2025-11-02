@@ -194,7 +194,6 @@ export default function Checkout() {
     if (
       !guestInfo.fullName ||
       !guestInfo.email ||
-      !guestInfo.password ||
       !guestInfo.phone ||
       !guestInfo.country
     ) {
@@ -204,7 +203,6 @@ export default function Checkout() {
       const res = await loginWebsite({
         fullName: guestInfo.fullName,
         email: guestInfo.email,
-        password: guestInfo.password,
         contactNumber: guestInfo.phone,
         country: guestInfo.country,
       }).unwrap();
