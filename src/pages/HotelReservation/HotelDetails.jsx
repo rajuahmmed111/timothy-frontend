@@ -40,9 +40,10 @@ export default function HotelDetails() {
   const { data: hotelDetails, isFetching: isHotelFetching } =
     useGetHotelDetailsQuery(routeId, { skip: !!hotel });
 
+
   const hotelFromApi = hotelDetails?.data ?? hotelDetails;
   const hotelData = hotel || hotelFromApi;
-
+console.log("hoteldata",hotelData)
   const reviewArray = Array.isArray(reviews?.data) ? reviews.data : [];
   const reviewCount = reviewArray.length;
   const reviewAverage = reviewCount
