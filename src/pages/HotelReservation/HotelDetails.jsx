@@ -155,7 +155,7 @@ export default function HotelDetails() {
                   {/* Map Overlay with Hotel Info */}
                   <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-md p-2 max-w-xs">
                     <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 text-red-500 mt-0.5" />
+                      <MapPin className="w-5 h-8 text-red-500 mt-0.5" />
                       <div>
                         <h5 className="font-semibold text-xs text-gray-900">
                           {hotelData?.hotelName || ""}
