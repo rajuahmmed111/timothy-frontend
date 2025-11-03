@@ -5,6 +5,7 @@ export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
+
     prepareHeaders: (headers, { getState }) => {
       const token = getState()?.auth?.accessToken;
       if (token) headers.set("Authorization", `${token}`);
@@ -12,5 +13,12 @@ export const baseApi = createApi({
     },
   }),
   endpoints: () => ({}),
-  tagTypes: ["Security", "SecurityBooking", "hotel", "HotelRoom", "security", "car"],
+  tagTypes: [
+    "Security",
+    "SecurityBooking",
+    "hotel",
+    "HotelRoom",
+    "security",
+    "car",
+  ],
 });

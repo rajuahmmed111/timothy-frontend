@@ -49,7 +49,6 @@ export default function HotelDetails() {
   const reviewArray = Array.isArray(hotelData.averageReviewCount)
     ? hotelData.averageReviewCount
     : reviews?.data || [];
-  console.log("review",reviewArray)
   const reviewCount = reviewArray.length;
   const reviewAverage = reviewCount
     ? reviewArray.reduce((sum, r) => sum + Number(r?.rating || 0), 0) /
