@@ -194,19 +194,19 @@ export default function Checkout() {
     if (
       !guestInfo.fullName ||
       !guestInfo.email ||
-      !guestInfo.password ||
       !guestInfo.phone ||
       !guestInfo.country
     ) {
       return;
     }
     try {
+      const contactNumber = `${guestInfo.countryCode || ""}${guestInfo.phone}`;
       const res = await loginWebsite({
         fullName: guestInfo.fullName,
         email: guestInfo.email,
-        password: guestInfo.password,
-        contactNumber: guestInfo.phone,
+        contactNumber,
         country: guestInfo.country,
+        role: "USER",
       }).unwrap();
 
       const accessToken = res?.data?.accessToken || res?.accessToken;

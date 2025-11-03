@@ -46,7 +46,10 @@ export default function HotelDetails() {
   };
 
   console.log("hoteldata", hotelData);
-  const reviewArray = Array.isArray(reviews?.data) ? reviews.data : [];
+  const reviewArray = Array.isArray(hotelData.averageReviewCount)
+    ? hotelData.averageReviewCount
+    : reviews?.data || [];
+  console.log("review",reviewArray)
   const reviewCount = reviewArray.length;
   const reviewAverage = reviewCount
     ? reviewArray.reduce((sum, r) => sum + Number(r?.rating || 0), 0) /
@@ -89,7 +92,7 @@ export default function HotelDetails() {
             <div className="lg:col-span-2">
               <ImageGallery hotel={hotelData} />
               <PropertyDetails hotel={hotelData} />
-              <section className="my-6 bg-white border border-gray-200 rounded-lg p-4">
+              {/* <section className="my-6 bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-lg font-semibold text-gray-900">
                     Reviews
@@ -131,13 +134,13 @@ export default function HotelDetails() {
                     ))}
                   </ul>
                 )}
-              </section>
+              </section> */}
             </div>
 
             <div className="lg:sticky lg:top-4 space-y-4">
               {/* Interactive Map Component */}
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                <div className="relative h-[300px]">
+                <div className="relative h-[200px]">
                   <iframe
                     src={`https://maps.google.com/maps?q=${encodeURIComponent(
                       ` ${hotelData?.hotelAddress}`

@@ -5,6 +5,7 @@ import { Select, Space, Button, Input } from "antd";
 import { UserOutlined, TeamOutlined, HomeOutlined } from "@ant-design/icons";
 import { DatePicker } from "antd";
 import { useBooking } from "../../context/BookingContext";
+import GuastLogin from "./GuastLogin";
 
 export default function BookingForm({ hotel }) {
   const navigate = useNavigate();
@@ -127,7 +128,8 @@ export default function BookingForm({ hotel }) {
         hotelId: hotel?._id ?? hotel?.id ?? hotel?.hotelId ?? null,
         roomId: selectedRoomData?.id ?? null,
         hotelName: hotel?.hotelName ?? hotel?.name ?? "",
-        location: hotel?.location ?? hotel?.hotelAddress ?? hotel?.address ?? "",
+        location:
+          hotel?.location ?? hotel?.hotelAddress ?? hotel?.address ?? "",
         roomType: selectedRoomData?.name ?? "",
         roomPrice: nightlyPrice,
         nights,
@@ -143,7 +145,21 @@ export default function BookingForm({ hotel }) {
         checkOut: bookedToDate,
       };
 
-      navigate("/hotel/checkout", { state: { bookingData: payload } });
+      // Get the token from localStorage to check if user is logged in
+      const token = localStorage.getItem("token");
+
+      if (token) {
+        // If user is logged in, navigate to checkout
+        navigate("/hotel/checkout", { state: { bookingData: payload } });
+      } else {
+        // If user is not logged in, navigate to guest login with booking data
+        navigate("/hotel/guest-login", {
+          state: {
+            bookingData: payload,
+            returnUrl: "/hotel/checkout",
+          },
+        });
+      }
     } finally {
       setIsBooking(false);
     }
