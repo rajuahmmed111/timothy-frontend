@@ -5,17 +5,36 @@ import { Select, Space, Button, Input } from "antd";
 import { UserOutlined, TeamOutlined, HomeOutlined } from "@ant-design/icons";
 import { DatePicker } from "antd";
 import { useBooking } from "../../context/BookingContext";
+import { jwtDecode } from "jwt-decode";
+
+import { useSelector, useDispatch } from "react-redux";
 
 export default function BookingForm({ hotel }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { bookingData, updateBookingData, updateGuests } = useBooking();
   const [selectedRoom, setSelectedRoom] = useState("");
   const [isBooking, setIsBooking] = useState(false);
   const [specialRequest, setSpecialRequest] = useState("");
   const { Option } = Select;
-
   const { RangePicker } = DatePicker;
-
+  const user = useSelector((state) => state?.auth?.user);
+  const accessToken = useSelector((state) => state?.auth?.accessToken);
+  const userInfo = useMemo(() => {
+    if (!accessToken) return null;
+    try {
+      const decoded = jwtDecode(accessToken);
+      return {
+        ...user,
+        ...decoded,
+        token: accessToken,
+      };
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  }, [accessToken, user]);
+  console.log("fdasf", userInfo);
   const handleGuestsChange = (type, value) => {
     updateGuests({
       [type]: value,
@@ -127,13 +146,15 @@ export default function BookingForm({ hotel }) {
         hotelId: hotel?._id ?? hotel?.id ?? hotel?.hotelId ?? null,
         roomId: selectedRoomData?.id ?? null,
         hotelName: hotel?.hotelName ?? hotel?.name ?? "",
-        location: hotel?.location ?? hotel?.hotelAddress ?? hotel?.address ?? "",
+        location:
+          hotel?.location ?? hotel?.hotelAddress ?? hotel?.address ?? "",
         roomType: selectedRoomData?.name ?? "",
         roomPrice: nightlyPrice,
         nights,
         rooms: roomsCount,
         adults: Number(bookingData?.guests?.adults ?? 1),
         children: Number(bookingData?.guests?.children ?? 0),
+        user: userInfo,
         subtotal,
         total,
         vat,
@@ -143,7 +164,18 @@ export default function BookingForm({ hotel }) {
         checkOut: bookedToDate,
       };
 
-      navigate("/hotel/checkout", { state: { bookingData: payload } });
+      if (accessToken) {
+        // If user is logged in, navigate to checkout
+        navigate("/hotel/checkout", { state: { bookingData: payload } });
+      } else {
+        // If user is not logged in, navigate to guest login with booking data
+        navigate("/hotel/guest-login", {
+          state: {
+            bookingData: payload,
+            returnUrl: "/hotel/checkout",
+          },
+        });
+      }
     } finally {
       setIsBooking(false);
     }
@@ -450,7 +482,7 @@ export default function BookingForm({ hotel }) {
           disabled={isBooking}
           className="w-full bg-[#0064D2] text-white px-4 py-2 rounded-lg text-sm font-bold"
         >
-          {isBooking ? "Processing..." : "Continue to Checkout"}
+          {isBooking ? "Processing..." : "Reserve"}
         </button>
       </form>
     </div>

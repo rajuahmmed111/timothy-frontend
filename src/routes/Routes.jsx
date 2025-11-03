@@ -65,6 +65,7 @@ import PrivateRoute from "./guards/PrivateRoute";
 import RoleRoute from "./guards/RoleRoute";
 import AddSecurityBusiness from "../components/Security/AddSecurityBusiness";
 import HotelAllImage from "../pages/HotelReservation/HotelAllImage";
+import GuastLogin from "../pages/HotelReservation/GuastLogin";
 
 export const routes = createBrowserRouter([
   {
@@ -154,6 +155,10 @@ export const routes = createBrowserRouter([
       {
         path: "/hotel-details/selectedhotel",
         element: <HotelDetails />,
+      },
+      {
+        path: "/hotel/guest-login",
+        element: <GuastLogin />,
       },
       {
         path: "/reserv-details",
