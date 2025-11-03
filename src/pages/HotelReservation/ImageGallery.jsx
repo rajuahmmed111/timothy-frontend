@@ -2,10 +2,7 @@ import React, { useState } from "react";
 export default function ImageGallery({ hotel }) {
   const defaultPrimary = hotel?.businessLogo;
   const [primaryImage, setPrimaryImage] = useState(defaultPrimary);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalIndex, setModalIndex] = useState(0);
 
-  // Get all room images
   const roomImages = Array.isArray(hotel?.room)
     ? hotel.room.flatMap((r) =>
         r?.hotelRoomImages && r.hotelRoomImages.length
@@ -14,14 +11,9 @@ export default function ImageGallery({ hotel }) {
       )
     : [];
 
-  // Get all unique images including primary image
   const allImages = [primaryImage, ...roomImages].filter(Boolean);
+  const secondaryImages = allImages.filter((src) => src !== primaryImage);
 
-  // Get secondary images (showing up to 4 secondary images)
-  const secondary = allImages.length > 1 ? allImages.slice(1, 5) : [];
-
-  // Calculate remaining images count
-  const remainingImages = allImages.length > 5 ? allImages.length - 5 : 0;
   return (
     <div className="flex gap-4 mb-8">
       {/* Left side - Main large image */}
@@ -36,12 +28,12 @@ export default function ImageGallery({ hotel }) {
         </div>
       </div>
 
-      {/* Right side - Grid of secondary images */}
-      <div className="w-1/3 grid grid-cols-2 gap-2 max-h-[600px] overflow-y-auto">
+      {/* Right side - List of all images (including primary) */}
+      <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto">
         {allImages.map((src, index) => (
           <div
             key={index}
-            className="relative group cursor-pointer"
+            className="relative  cursor-pointer"
             onClick={() => {
               setPrimaryImage(src);
             }}

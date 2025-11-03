@@ -1,22 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
+import { Country } from "country-state-city";
 
-import { Country } from 'country-state-city';
-import { useDispatch } from 'react-redux';
-import { setCredentials } from "../../redux/features/auth/authSlice";
-import { useGuestLoginMutation } from "../../redux/api/hotel/hotelApi";
+// Get all countries and format them for our use
+const getFormattedCountries = () => {
+  return Country.getAllCountries().map((country) => ({
+    name: country.name,
+    isoCode: country.isoCode,
+    code: `+${country.phonecode}`,
+    flag: country.flag || getFlagEmoji(country.isoCode),
+    phonecode: country.phonecode,
+  }));
+};
 
-
-// Using country-state-city package for countries and phone codes
+// Helper function to get flag emoji from country code
+const getFlagEmoji = (isoCode) => {
+  const codePoints = isoCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt());
+  return String.fromCodePoint(...codePoints);
+};
 
 export default function GuestLogin() {
-
   const navigate = useNavigate();
   const location = useLocation();
   const bookingData = location.state?.bookingData;
   const returnUrl = location.state?.returnUrl || "/hotel/checkout";
 
+  const countries = useMemo(() => getFormattedCountries(), []);
   const [guestInfo, setGuestInfo] = useState({
     fullName: "",
     email: "",
@@ -25,12 +38,10 @@ export default function GuestLogin() {
   });
   const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
-  const countries = Country.getAllCountries();
   const [selectedCountry, setSelectedCountry] = useState(
-    countries && countries.length > 0 ? countries[0] : null
+    // Default to Bangladesh or first country in list
+    countries.find((c) => c.isoCode === "BD") || countries[0]
   );
-  const dispatch = useDispatch();
-  const [loginWebsite] = useGuestLoginMutation();
 
   const handleGuestInfoChange = (field, value) => {
     setGuestInfo((prev) => ({
@@ -38,24 +49,12 @@ export default function GuestLogin() {
       [field]: value,
     }));
   };
-  const isoToFlag = (isoCode) => {
-    if (!isoCode) return "";
-    try {
-      const codePoints = isoCode
-        .toUpperCase()
-        .split("")
-        .map((char) => 127397 + char.charCodeAt(0));
-      return String.fromCodePoint(...codePoints);
-    } catch {
-      return "";
-    }
-  };
 
-  const handleCountrySelect = (isoCode) => {
-    const country = countries.find((c) => c.isoCode === isoCode);
+  const handleCountrySelect = (code) => {
+    const country = countries.find((c) => c.code === code);
+    setSelectedCountry(country);
     if (country) {
-      setSelectedCountry(country);
-      setGuestInfo((prev) => ({ ...prev, country: country.name }));
+      handleGuestInfoChange("country", country.name);
     }
     setIsCountryDropdownOpen(false);
   };
@@ -68,45 +67,32 @@ export default function GuestLogin() {
 
     setIsLoginLoading(true);
     try {
-      const contactNumber = `${selectedCountry?.phonecode ? `+${selectedCountry.phonecode}` : ""}${guestInfo.phone}`;
-      const payload = {
-        fullName: guestInfo.fullName,
-        email: guestInfo.email,
-        contactNumber,
-        country: guestInfo.country,
-        role: "USER",
-      };
-
-      const res = await loginWebsite(payload).unwrap();
-      const accessToken = res?.data?.accessToken || res?.accessToken;
-      const authUser = res?.data?.user || res?.user;
-      if (accessToken) {
-        try {
-          localStorage.setItem("accessToken", accessToken);
-        } catch {}
-        dispatch(setCredentials({ accessToken, user: authUser }));
-      }
       // Store guest info in localStorage
       localStorage.setItem(
         "guestInfo",
         JSON.stringify({
           ...guestInfo,
-          countryCode: selectedCountry?.phonecode
-            ? `+${selectedCountry.phonecode}`
-            : "",
+          countryCode: selectedCountry.code,
         })
       );
 
-      // Navigate to the return URL with the booking data
+      // Prepare updated booking data with guest user information
+      const updatedBookingData = {
+        ...bookingData,
+        user: {
+          fullName: guestInfo.fullName,
+          email: guestInfo.email,
+          phone: guestInfo.phone,
+          country: guestInfo.country,
+          countryCode: selectedCountry.code,
+          isGuest: true,
+        },
+      };
+
+      // Navigate to the return URL with the updated booking data
       navigate(returnUrl, {
         state: {
-          bookingData,
-          guestInfo: {
-            ...guestInfo,
-            countryCode: selectedCountry?.phonecode
-              ? `+${selectedCountry.phonecode}`
-              : "",
-          },
+          bookingData: updatedBookingData,
         },
       });
     } catch (error) {
@@ -116,32 +102,29 @@ export default function GuestLogin() {
       setIsLoginLoading(false);
     }
   };
-
   return (
     <div>
       <div className="min-h-screen items-center flex justify-between bg-gray-50 py-8">
         <div className="container mx-auto px-4 lg:max-w-[500px]">
           <div className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Guest</h2>
 
             <form className="space-y-6">
-             
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={guestInfo.fullName}
-                    onChange={(e) =>
-                      handleGuestInfoChange("fullName", e.target.value)
-                    }
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                    placeholder="Enter your first name"
-                  />
-                </div>
-             
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  value={guestInfo.fullName}
+                  onChange={(e) =>
+                    handleGuestInfoChange("fullName", e.target.value)
+                  }
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                  placeholder="Enter your first name"
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -170,12 +153,12 @@ export default function GuestLogin() {
                       onClick={() =>
                         setIsCountryDropdownOpen(!isCountryDropdownOpen)
                       }
-                      className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white hover:bg-gray-50 min-w-[160px]"
+                      className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white hover:bg-gray-50 min-w-[130px]"
                     >
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg">{isoToFlag(selectedCountry?.isoCode)}</span>
+                        <span className="text-lg">{selectedCountry?.flag}</span>
                         <span className="text-sm font-medium">
-                          {selectedCountry?.phonecode ? `+${selectedCountry.phonecode}` : ""}
+                          {selectedCountry?.code}
                         </span>
                       </div>
                       <ChevronDown
@@ -191,15 +174,15 @@ export default function GuestLogin() {
                           <button
                             key={country.isoCode}
                             type="button"
-                            onClick={() => handleCountrySelect(country.isoCode)}
+                            onClick={() => handleCountrySelect(country.code)}
                             className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
                           >
-                            <span className="text-lg">{isoToFlag(country.isoCode)}</span>
+                            <span className="text-lg">{country.flag}</span>
                             <span className="text-sm font-medium">
-                              {country.phonecode ? `+${country.phonecode}` : ""}
+                              {country.code}
                             </span>
                             <span className="text-sm text-gray-500">
-                              {country.flag}
+                              {country.name}
                             </span>
                           </button>
                         ))}
@@ -223,14 +206,23 @@ export default function GuestLogin() {
                   Country *
                 </label>
                 <select
-                  value={selectedCountry?.isoCode || ""}
-                  onChange={(e) => handleCountrySelect(e.target.value)}
+                  value={guestInfo.country}
+                  onChange={(e) => {
+                    const selectedCountryData = countries.find(
+                      (c) => c.name === e.target.value
+                    );
+                    handleGuestInfoChange("country", e.target.value);
+                    if (selectedCountryData) {
+                      setSelectedCountry(selectedCountryData);
+                    }
+                  }}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
                 >
-                  {countries.map((c) => (
-                    <option key={c.isoCode} value={c.isoCode}>
-                      {c.name}
+                  <option value="">Select your country</option>
+                  {countries.map((country) => (
+                    <option key={country.isoCode} value={country.name}>
+                      {country.flag} {country.name}
                     </option>
                   ))}
                 </select>
@@ -246,7 +238,7 @@ export default function GuestLogin() {
                             : "hover:bg-gray-900"
                         }`}
                 >
-                  {isLoginLoading ? "Logging in..." : "Continue"}
+                  {isLoginLoading ? "Logging in..." : "Login & Continue"}
                 </button>
               </div>
             </form>
