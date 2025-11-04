@@ -114,17 +114,6 @@ export default function FAQ() {
               </div>
             ))}
           </div>
-
-          <div className="text-center mt-12">
-            <p className="text-gray-600 mb-4">
-              Still have questions? We're here to help!
-            </p>
-            <button
-            onClick={() => navigate("/contact-us")}
-            className="bg-[#0064D2] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#0052A3] transition-colors">
-              Contact Support
-            </button>
-          </div>
         </div>
       </div>
     </section>

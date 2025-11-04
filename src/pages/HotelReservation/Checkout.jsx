@@ -43,6 +43,36 @@ export default function Checkout() {
     navigate("/hotel");
   };
 
+  const handleGuestLoginThenProceed = async () => {
+    if (
+      !guestInfo.fullName ||
+      !guestInfo.email ||
+      !guestInfo.phone ||
+      !guestInfo.country
+    ) {
+      return;
+    }
+    try {
+      const res = await loginWebsite({
+        fullName: guestInfo.fullName,
+        email: guestInfo.email,
+        contactNumber: guestInfo.phone,
+        country: guestInfo.country,
+      }).unwrap();
+
+      const accessToken = res?.data?.accessToken || res?.accessToken;
+      const authUser = res?.data?.user || res?.user;
+      if (accessToken) {
+        try {
+          localStorage.setItem("accessToken", accessToken);
+        } catch {}
+        dispatch(setCredentials({ accessToken, user: authUser }));
+      }
+    } catch (e) {
+      // silently fail; you can add toast here if desired
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "short",

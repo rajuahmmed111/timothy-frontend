@@ -50,7 +50,6 @@ import HotelManagement from "../pages/Dashboard/HotelManagement/HotelManagement"
 import CreateHotelRoom from "../components/Hotel/CreateHotelRoom";
 
 import MyVouchers from "../pages/Dashboard/MyVouchers/MyVouchers";
-import PaymentMethods from "../pages/Dashboard/PaymentMethods/PaymentMethods";
 import LogIn from "../pages/Auth/LogIn";
 import ForgetPassword from "../pages/Auth/ForgetPassword";
 import VerificationCode from "../pages/Auth/Otp";
@@ -318,14 +317,6 @@ export const routes = createBrowserRouter([
           </RoleRoute>
         ),
       },
-      //     {
-      //   path: "add-security-listing",
-      //   element: (
-      //     <RoleRoute allowed={["BUSINESS_PARTNER"]}>
-      //       <AddNewSecurity />
-      //     </RoleRoute>
-      //   ),
-      // },
       {
         path: "security-management",
         element: (
@@ -362,10 +353,6 @@ export const routes = createBrowserRouter([
       {
         path: "my-vouchers",
         element: <MyVouchers />,
-      },
-      {
-        path: "payment-methods",
-        element: <PaymentMethods />,
       },
       {
         path: "my-bookings",

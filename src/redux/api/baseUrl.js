@@ -20,5 +20,6 @@ export const baseApi = createApi({
     "HotelRoom",
     "security",
     "car",
+    "voucher",
   ],
 });
