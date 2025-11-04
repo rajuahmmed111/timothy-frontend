@@ -143,7 +143,7 @@ export default function Checkout() {
                       <div>
                         <p className="text-sm text-gray-600">Name</p>
                         <p className="text-gray-900">
-                          {userInfo.fullName || "Guest"}
+                          {userInfo.fullName }
                         </p>
                       </div>
                     </div>
@@ -152,7 +152,7 @@ export default function Checkout() {
                       <div>
                         <p className="text-sm text-gray-600">Email</p>
                         <p className="text-gray-900">
-                          {userInfo.email || "Not provided"}
+                          {userInfo.email }
                         </p>
                       </div>
                     </div>
@@ -161,7 +161,7 @@ export default function Checkout() {
                       <div>
                         <p className="text-sm text-gray-600">Phone</p>
                         <p className="text-gray-900">
-                          {userInfo.contactNumber || "Not provided"}
+                          {userInfo.contactNumber }
                         </p>
                       </div>
                     </div>
@@ -362,7 +362,7 @@ export default function Checkout() {
                           }}
                           disabled={isProcessing}
                         >
-                          {isProcessing ? 'Processing...' : `Confirm & Pay $${bookingData.total}`}
+                          {isProcessing ? 'Processing...' : `Continue & Pay $${bookingData.total}`}
                         </button>
                       </div>
                     )}
