@@ -4,6 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { DatePicker, Select, Button, Space } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useSelector } from "react-redux";
+import { useMemo } from "react";
+import { jwtDecode } from "jwt-decode";
+import { useBooking } from "../../context/BookingContext";
 
 export default function SecurityBookingForm({
   guardId,
@@ -14,13 +18,35 @@ export default function SecurityBookingForm({
   toDate,
 }) {
   const navigate = useNavigate();
+  const { bookingData, updateBookingData, updateGuests } = useBooking();
   const [serviceType, setServiceType] = useState("personal");
-  const [isBooking] = useState(false);
   const [dateRange, setDateRange] = useState(null);
+  const [isBooking, setIsBooking] = useState(false);
   const [personnelCount, setPersonnelCount] = useState(1);
 
   const { RangePicker } = DatePicker;
-
+  const user = useSelector((state) => state?.auth?.user);
+  const accessToken = useSelector((state) => state?.auth?.accessToken);
+  const userInfo = useMemo(() => {
+    if (!accessToken) return null;
+    try {
+      const decoded = jwtDecode(accessToken);
+      return {
+        ...user,
+        ...decoded,
+        token: accessToken,
+      };
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  }, [accessToken, user]);
+  console.log("fdasf", userInfo);
+  const handleGuestsChange = (type, value) => {
+    updateGuests({
+      [type]: value,
+    });
+  };
   const unitPrice = Number(pricePerDay) || 500;
   const serviceTypes = [
     {
@@ -63,22 +89,31 @@ export default function SecurityBookingForm({
     e.preventDefault();
     if (!dateRange || !dateRange[0] || !dateRange[1]) return;
 
-    const bookingDetails = {
-      bookingId: "SEC" + Math.floor(10000000 + Math.random() * 90000000),
+    const payload = {
       startDate: dateRange[0].format("YYYY-MM-DD"),
       endDate: dateRange[1].format("YYYY-MM-DD"),
       serviceType: selectedService.name,
       personnelCount: personnelCount,
       total: calculateTotal(),
       serviceDescription: selectedService.description,
-      guardId:guardId,
+      guardId: guardId,
       guardName,
       pricePerDay: unitPrice,
       photo,
     };
-console.log("bookingDetails",bookingDetails.guardId)
-    // Navigate to security checkout page with booking details
-    navigate("/security/checkout", { state: { bookingDetails } });
+    if (accessToken) {
+      // If user is logged in, navigate to checkout
+      navigate("/security/checkout", { state: { payload } });
+    } else {
+      // If user is not logged in, navigate to guest login with booking data
+      navigate("/security/guest-login", {
+        state: {
+          bookingDetails: payload,
+          returnUrl: "/security/checkout",
+        },
+      });
+    }
+    setIsBooking(false);
   };
 
   // Prefill date range from props (URL query)
@@ -251,7 +286,7 @@ console.log("bookingDetails",bookingDetails.guardId)
               : "hover:bg-blue-700"
           }`}
         >
-          {isBooking ? "Processing..." : "Continue to Booking"}
+          {isBooking ? "Processing..." : "Reserve Now"}
         </button>
       </form>
     </div>

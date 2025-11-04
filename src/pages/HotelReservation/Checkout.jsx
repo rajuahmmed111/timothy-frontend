@@ -72,12 +72,18 @@ export default function Checkout() {
           ),
         },
       }).unwrap();
-
+      navigate("/hotel/payment-confirm", {
+        state: {
+          bookingDetails: bookingData,
+          createdBookingId: res?.data?.id,
+        },
+      });
       const created = res?.data || res;
       if (created?.id) {
         setCreatedBookingId(created.id);
         setIsReserved(true); // Show payment button after successful reservation
       }
+    
     } catch (e) {
       const msg = e?.data?.message || e?.message || "Failed to create booking";
       const lc = typeof msg === "string" ? msg.toLowerCase() : "";
@@ -271,10 +277,10 @@ export default function Checkout() {
                     </p>
                   </div>
                   <div className="mt-6 space-y-4">
-                    {!isReserved ? (
+                   
                       <button
                         onClick={handleReserveConfirm}
-                        disabled={isProcessing || isLoading}
+                    
                         className={`w-full py-3 text-white rounded-lg font-medium transition-all ${
                           isProcessing || isLoading
                             ? "bg-blue-400 cursor-not-allowed"
@@ -283,89 +289,9 @@ export default function Checkout() {
                       >
                         {isProcessing || isLoading
                           ? "Processing..."
-                          : "Confirm Reserve"}
+                          : "Booked And Pay"}
                       </button>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                          <p className="text-green-800 text-sm">
-                            ✓ Room reserved successfully! Please proceed with
-                            payment to confirm your booking.
-                          </p>
-                        </div>
-                        <button
-                          className={`w-full py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium ${
-                            isProcessing ? 'opacity-75 cursor-not-allowed' : ''
-                          }`}
-                          onClick={async () => {
-                            if (!createdBookingId || !bookingData?.user) {
-                              handleError('Booking information is incomplete');
-                              return;
-                            }
-
-                            setIsProcessing(true);
-                            
-                            try {
-                              const userEmail = bookingData.user.email;
-                              const userName = bookingData.user.name || 'Customer';
-                              
-                              if (isAfricaByCountry(bookingData.user.country)) {
-                                // Handle African countries with Paystack
-                                const result = await createPaystackCheckout({
-                                  bookingId: createdBookingId,
-                                  body: {
-                                    email: userEmail,
-                                    amount: Math.round(bookingData.total * 100), // Convert to kobo/pesewas
-                                    currency: 'NGN',
-                                    metadata: {
-                                      bookingId: createdBookingId,
-                                      customerName: userName,
-                                    }
-                                  }
-                                }).unwrap();
-
-                                if (result?.data?.checkoutUrl) {
-                                  window.location.href = result.data.checkoutUrl;
-                                } else {
-                                  handleError('Failed to initialize payment. Please try again.');
-                                }
-                              } else {
-                                // Handle Global countries with Stripe
-                                const result = await createStripeCheckout({
-                                  bookingId: createdBookingId,
-                                  body: {
-                                    email: userEmail,
-                                    name: userName,
-                                    amount: Math.round(bookingData.total * 100), // Convert to cents
-                                    currency: 'USD', // Default currency for global payments
-                                    metadata: {
-                                      bookingId: createdBookingId,
-                                      customerName: userName,
-                                    },
-                                    success_url: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-                                    cancel_url: `${window.location.origin}/booking/cancel`
-                                  }
-                                }).unwrap();
-
-                                if (result?.data?.checkoutUrl) {
-                                  window.location.href = result.data.checkoutUrl;
-                                } else {
-                                  handleError('Failed to initialize payment. Please try again.');
-                                }
-                              }
-                            } catch (error) {
-                              console.error('Payment error:', error);
-                              handleError('Failed to process payment. Please try again.');
-                            } finally {
-                              setIsProcessing(false);
-                            }
-                          }}
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? 'Processing...' : `Continue & Pay $${bookingData.total}`}
-                        </button>
-                      </div>
-                    )}
+                  
                   </div>
                 </div>
               </div>
