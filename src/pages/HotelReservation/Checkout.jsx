@@ -9,6 +9,8 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
+import { useCreateHotelBookingMutation } from "../../redux/api/hotel/hotelApi";
+import { toast } from "react-hot-toast";
 
 export default function Checkout() {
   const location = useLocation();
@@ -16,6 +18,7 @@ export default function Checkout() {
   const bookingData = location.state?.bookingData;
   const [isReserved, setIsReserved] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [createHotelBooking, { isLoading }] = useCreateHotelBookingMutation();
   console.log("bookingData", bookingData);
 
   const safeGuests = {
@@ -27,13 +30,54 @@ export default function Checkout() {
   const userInfo = bookingData?.user || {};
 
   const handleReserveConfirm = async () => {
+    console.log('Booking data:', bookingData); // Debug log
+    
+    if (!bookingData?.roomId) {
+      toast.error("Room information is missing");
+      return;
+    }
+
+    if (!bookingData?.hotelId) {
+      toast.error("Hotel information is missing");
+      return;
+    }
+
     setIsProcessing(true);
     try {
-      // Here you would typically make an API call to create a temporary reservation
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulating API call
-      setIsReserved(true);
+      // Create the booking payload with room ID
+      const bookingPayload = {
+        roomId: bookingData.roomId,
+        rooms: safeGuests.rooms,
+        adults: safeGuests.adults,
+        children: safeGuests.children,
+        bookedFromDate: bookingData.checkIn,
+        bookedToDate: bookingData.checkOut,
+        totalPrice: bookingData.total,
+        specialRequest: bookingData.specialRequest || null,
+        bookingStatus: "PENDING",
+        category: bookingData.roomType,
+        hotelId: bookingData.hotelId,
+        userId: bookingData.user?.id || bookingData.user?._id,
+        partnerId: bookingData.partnerId // Make sure this is passed from the booking data
+      };
+
+      console.log('Sending booking payload:', bookingPayload);
+
+      // Make the API call with the room ID in the URL
+      const result = await createHotelBooking({
+        bookingId: bookingData.roomId, // Using room ID for the booking
+        data: bookingPayload
+      }).unwrap();
+
+      console.log('Booking response:', result); // Debug log
+
+      if (result) {
+        setIsReserved(true);
+        toast.success("Room reserved successfully!");
+      }
     } catch (error) {
       console.error("Reservation failed:", error);
+      toast.error(error?.data?.message || "Failed to reserve room. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -119,7 +163,7 @@ export default function Checkout() {
                       <div>
                         <p className="text-sm text-gray-600">Name</p>
                         <p className="text-gray-900">
-                          {userInfo.fullName || userInfo.name || "Guest"}
+                          {userInfo.fullName || "Guest"}
                         </p>
                       </div>
                     </div>
@@ -137,8 +181,7 @@ export default function Checkout() {
                       <div>
                         <p className="text-sm text-gray-600">Phone</p>
                         <p className="text-gray-900">
-                          {userInfo.phone || "Not provided"}
-                           
+                          {userInfo.contactNumber || "Not provided"}
                         </p>
                       </div>
                     </div>
@@ -251,14 +294,14 @@ export default function Checkout() {
                     {!isReserved ? (
                       <button
                         onClick={handleReserveConfirm}
-                        disabled={isProcessing}
+                        disabled={isProcessing || isLoading}
                         className={`w-full py-3 text-white rounded-lg font-medium transition-all ${
-                          isProcessing
+                          isProcessing || isLoading
                             ? "bg-blue-400 cursor-not-allowed"
                             : "bg-blue-700 hover:bg-blue-800"
                         }`}
                       >
-                        {isProcessing ? "Processing..." : "Confirm Reserve"}
+                        {isProcessing || isLoading ? "Processing..." : "Confirm Reserve"}
                       </button>
                     ) : (
                       <div className="space-y-4">
