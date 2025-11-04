@@ -92,12 +92,26 @@ export default function GuestLogin() {
       const res = await loginWebsite(payload).unwrap();
       const accessToken = res?.data?.accessToken || res?.accessToken;
       const authUser = res?.data?.user || res?.user;
+      
       if (accessToken) {
         try {
           localStorage.setItem("accessToken", accessToken);
         } catch {}
         dispatch(setCredentials({ accessToken, user: authUser }));
       }
+
+      // Create updated booking data with user information
+      const updatedBookingData = {
+        ...bookingData,
+        user: {
+          _id: authUser?._id || 'guest',
+          name: guestInfo.fullName,
+          email: guestInfo.email,
+          phone: contactNumber,
+          country: guestInfo.country
+        }
+      };
+
       // Store guest info in localStorage
       localStorage.setItem(
         "guestInfo",
@@ -109,16 +123,17 @@ export default function GuestLogin() {
         })
       );
 
-      // Navigate to the return URL with the booking data
+      // Navigate to the return URL with the updated booking data
       navigate(returnUrl, {
         state: {
-          bookingData,
+          bookingData: updatedBookingData,
           guestInfo: {
             ...guestInfo,
             countryCode: selectedCountry?.phonecode
               ? `+${selectedCountry.phonecode}`
               : "",
           },
+          userType: authUser?._id ? 'registered' : 'guest'
         },
       });
     } catch (error) {

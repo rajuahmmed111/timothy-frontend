@@ -107,9 +107,8 @@ export default function Checkout() {
                       <div>
                         <p className="text-sm text-gray-600">Phone</p>
                         <p className="text-gray-900">
-                          {userInfo.countryCode + " " + userInfo.phone ||
-                            userInfo.contactNumber ||
-                            "Not provided"}
+                          {userInfo.phone || "Not provided"}
+                           
                         </p>
                       </div>
                     </div>
