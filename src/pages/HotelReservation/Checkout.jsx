@@ -11,7 +11,11 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import { useCreateHotelBookingMutation } from "../../redux/api/hotel/hotelApi";
+import { 
+  useCreateHotelBookingMutation,
+  useCreateHotelPaystackCheckoutSessionMutation,
+  useCreateHotelStripeCheckoutSessionWebsiteMutation 
+} from "../../redux/api/hotel/hotelApi";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { useSelector } from "react-redux";
 import { handleError } from "../../../toast";
@@ -24,6 +28,8 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [createdBookingId, setCreatedBookingId] = useState(null);
   const [createHotelBooking, { isLoading }] = useCreateHotelBookingMutation();
+  const [createPaystackCheckout] = useCreateHotelPaystackCheckoutSessionMutation();
+  const [createStripeCheckout] = useCreateHotelStripeCheckoutSessionWebsiteMutation();
   const dispatch = useDispatch();
   const user = useSelector((state) => state?.auth?.user);
   console.log("BookingData", bookingData);
@@ -34,6 +40,11 @@ export default function Checkout() {
   };
 
   const userInfo = bookingData?.user || {};
+  
+  // Check if user's country is in Africa
+  const isAfricaByCountry = (country) => {
+    return country && /\b(Algeria|Angola|Benin|Botswana|Burkina|Burundi|Cameroon|Cape Verde|Central African Republic|Chad|Comoros|Congo|DRC|Cote d'Ivoire|Ivory Coast|Djibouti|Egypt|Equatorial Guinea|Eritrea|Eswatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Kenya|Lesotho|Liberia|Libya|Madagascar|Malawi|Mali|Mauritania|Mauritius|Morocco|Mozambique|Namibia|Niger|Nigeria|Rwanda|Sao Tome|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Tanzania|Togo|Tunisia|Uganda|Zambia|Zimbabwe)\b/i.test(country);
+  };
 
   const handleReserveConfirm = async () => {
     if (!user) return;
@@ -77,7 +88,6 @@ export default function Checkout() {
         handleError("This hotel is already booked for the selected dates");
       } else {
       }
-      
     } finally {
       setIsProcessing(false);
     }
@@ -283,14 +293,76 @@ export default function Checkout() {
                             payment to confirm your booking.
                           </p>
                         </div>
-                        <button 
-                          className="w-full py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium"
-                          onClick={() => {
-                            // Add your payment processing logic here
-                            console.log("Proceeding to payment for booking:", createdBookingId);
+                        <button
+                          className={`w-full py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium ${
+                            isProcessing ? 'opacity-75 cursor-not-allowed' : ''
+                          }`}
+                          onClick={async () => {
+                            if (!createdBookingId || !bookingData?.user) {
+                              handleError('Booking information is incomplete');
+                              return;
+                            }
+
+                            setIsProcessing(true);
+                            
+                            try {
+                              const userEmail = bookingData.user.email;
+                              const userName = bookingData.user.name || 'Customer';
+                              
+                              if (isAfricaByCountry(bookingData.user.country)) {
+                                // Handle African countries with Paystack
+                                const result = await createPaystackCheckout({
+                                  bookingId: createdBookingId,
+                                  body: {
+                                    email: userEmail,
+                                    amount: Math.round(bookingData.total * 100), // Convert to kobo/pesewas
+                                    currency: 'NGN',
+                                    metadata: {
+                                      bookingId: createdBookingId,
+                                      customerName: userName,
+                                    }
+                                  }
+                                }).unwrap();
+
+                                if (result?.data?.checkoutUrl) {
+                                  window.location.href = result.data.checkoutUrl;
+                                } else {
+                                  handleError('Failed to initialize payment. Please try again.');
+                                }
+                              } else {
+                                // Handle Global countries with Stripe
+                                const result = await createStripeCheckout({
+                                  bookingId: createdBookingId,
+                                  body: {
+                                    email: userEmail,
+                                    name: userName,
+                                    amount: Math.round(bookingData.total * 100), // Convert to cents
+                                    currency: 'USD', // Default currency for global payments
+                                    metadata: {
+                                      bookingId: createdBookingId,
+                                      customerName: userName,
+                                    },
+                                    success_url: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+                                    cancel_url: `${window.location.origin}/booking/cancel`
+                                  }
+                                }).unwrap();
+
+                                if (result?.data?.checkoutUrl) {
+                                  window.location.href = result.data.checkoutUrl;
+                                } else {
+                                  handleError('Failed to initialize payment. Please try again.');
+                                }
+                              }
+                            } catch (error) {
+                              console.error('Payment error:', error);
+                              handleError('Failed to process payment. Please try again.');
+                            } finally {
+                              setIsProcessing(false);
+                            }
                           }}
+                          disabled={isProcessing}
                         >
-                          Confirm & Pay ${bookingData.total}
+                          {isProcessing ? 'Processing...' : `Confirm & Pay $${bookingData.total}`}
                         </button>
                       </div>
                     )}
