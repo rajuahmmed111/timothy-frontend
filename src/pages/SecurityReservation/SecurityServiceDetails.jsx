@@ -7,8 +7,6 @@ import {
   Clock,
   Users,
   CheckCircle,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import SecurityBookingForm from "./SecurityBookingForm";
 import { Spin } from "antd";
@@ -16,6 +14,7 @@ import {
   useGetSecurityProtocolByIdQuery,
   useGetAllSecurityProtocolsQuery,
 } from "../../redux/api/security/securityApi";
+import ImageGallery from "./ImageGallery";
 
 export default function SecurityServiceDetails() {
   const { id } = useParams();
@@ -30,6 +29,7 @@ export default function SecurityServiceDetails() {
     useGetSecurityProtocolByIdQuery(id, {
       refetchOnMountOrArgChange: true,
     });
+  console.log("asdfads", data);
 
   const guard = useMemo(() => data?.data || data, [data]);
   const service = useMemo(() => {
@@ -105,6 +105,12 @@ export default function SecurityServiceDetails() {
     const images = Array.isArray(g?.securityImages) && g.securityImages.length > 0
       ? g.securityImages
       : ["/SecurityProviders/1.png"];
+    
+    // Prepare images for the gallery
+    const galleryImages = [
+      g?.businessLogo ? g.businessLogo : null,
+      ...(Array.isArray(images) ? images : [])
+    ].filter(Boolean);
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4">
@@ -114,19 +120,22 @@ export default function SecurityServiceDetails() {
               <div className="p-6 md:p-8 md:w-2/3">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold text-gray-900">{g?.securityGuardName}</h1>
+                </div>
                   <div className="flex items-center">
                     {[1,2,3,4,5].map((s) => (
                       <Star key={s} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
-                </div>
-                <div className="flex items-center text-gray-600 mb-6">
+                <div className="flex items-center mt-2 text-gray-600 mb-6">
                   <MapPin className="w-5 h-5 mr-1 text-sky-600" />
                   <span>{[g?.securityCity, g?.securityCountry].filter(Boolean).join(', ')}</span>
                 </div>
-                {/* Image */}
+                {/* Image Gallery */}
                 <div className="mb-6">
-                  <img src={images[0]} alt={g?.securityGuardName} className="w-full h-96 object-cover rounded-lg" />
+                  <ImageGallery 
+                    images={galleryImages} 
+                    alt={g?.securityGuardName || 'Security Guard'} 
+                  />
                 </div>
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold">About</h2>

@@ -66,6 +66,8 @@ import RoleRoute from "./guards/RoleRoute";
 import AddSecurityBusiness from "../components/Security/AddSecurityBusiness";
 import HotelAllImage from "../pages/HotelReservation/HotelAllImage";
 import GuastLogin from "../pages/HotelReservation/GuastLogin";
+import SecurityGuestLogin from "../pages/SecurityReservation/SecurityGuestLogin";
+import PaymentConfirm from "../pages/HotelReservation/PaymentConfirm";
 
 export const routes = createBrowserRouter([
   {
@@ -173,6 +175,10 @@ export const routes = createBrowserRouter([
         element: <Checkout />,
       },
       {
+        path: "/hotel/payment-confirm",
+        element: <PaymentConfirm />,
+      },
+      {
         path: "/hotel/payment",
         element: <HotelPaymentPage />,
       },
@@ -192,6 +198,10 @@ export const routes = createBrowserRouter([
       {
         path: "/security-details",
         element: <SecurityDetails />,
+      },
+      {
+        path: "/security/guest-login",
+        element: <SecurityGuestLogin />,
       },
       {
         path: "/security-service-details/:id",

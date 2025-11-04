@@ -35,9 +35,9 @@ export const securiBookingtyApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { 
-  useGetSecurityBookingQuery, 
-  useCreateSecurityBookingMutation, 
+export const {
+  useGetSecurityBookingQuery,
+  useCreateSecurityBookingMutation,
   useCreateSecurityStripeCheckoutSessionMutation,
-  useCreateSecurityPaystackCheckoutSessionMutation 
+  useCreateSecurityPaystackCheckoutSessionMutation,
 } = securiBookingtyApi;

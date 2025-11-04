@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Calendar,
-  Shield,
-  CreditCard,
-  ArrowLeft,
-  ChevronDown,
-} from "lucide-react";
+import { Shield, CreditCard, ArrowLeft, Check, Calendar } from "lucide-react";
 import {
   useCreateSecurityBookingMutation,
   useCreateSecurityStripeCheckoutSessionMutation,
@@ -15,120 +9,151 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Modal, message } from "antd";
+import { UserOutlined } from "@ant-design/icons";
+
+const AFRICAN_COUNTRIES = [
+  "Algeria",
+  "Angola",
+  "Benin",
+  "Botswana",
+  "Burkina Faso",
+  "Burundi",
+  "Cabo Verde",
+  "Cameroon",
+  "Central African Republic",
+  "Chad",
+  "Comoros",
+  "Congo",
+  "Democratic Republic of the Congo",
+  "Djibouti",
+  "Egypt",
+  "Equatorial Guinea",
+  "Eritrea",
+  "Eswatini",
+  "Ethiopia",
+  "Gabon",
+  "Gambia",
+  "Ghana",
+  "Guinea",
+  "Guinea-Bissau",
+  "Ivory Coast",
+  "Kenya",
+  "Lesotho",
+  "Liberia",
+  "Libya",
+  "Madagascar",
+  "Malawi",
+  "Mali",
+  "Mauritania",
+  "Mauritius",
+  "Morocco",
+  "Mozambique",
+  "Namibia",
+  "Niger",
+  "Nigeria",
+  "Rwanda",
+  "Sao Tome and Principe",
+  "Senegal",
+  "Seychelles",
+  "Sierra Leone",
+  "Somalia",
+  "South Africa",
+  "South Sudan",
+  "Sudan",
+  "Tanzania",
+  "Togo",
+  "Tunisia",
+  "Uganda",
+  "Zambia",
+  "Zimbabwe",
+];
 
 export default function SecurityCheckout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const [showPaymentChoiceModal, setShowPaymentChoiceModal] = useState(false);
+  // State
+  const [isReserved, setIsReserved] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [createdBooking, setCreatedBooking] = useState(null);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(null); // null, 'processing', 'success', 'error'
-  const [shouldUsePaystack, setShouldUsePaystack] = useState(false);
+  const [createdBookingId, setCreatedBookingId] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("stripe"); // 'stripe' or 'paystack'
+  const [showPaymentChoiceModal, setShowPaymentChoiceModal] = useState(false);
+
+  // API Mutations
   const [createBooking, { isLoading: isCreating }] =
     useCreateSecurityBookingMutation();
-  const [createStripeSession, { isLoading: isCreatingStripe }] =
+  const [createStripeCheckout] =
     useCreateSecurityStripeCheckoutSessionMutation();
-  const [createPaystackSession, { isLoading: isCreatingPaystack }] =
+  const [createPaystackCheckout] =
     useCreateSecurityPaystackCheckoutSessionMutation();
-  const [guestInfo, setGuestInfo] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    countryCode: "+1",
-    street: "",
-    city: "",
-    postcode: "",
-    country: "",
-  });
 
-  // Get booking details from navigation state
   const bookingDetails = location.state?.bookingDetails || {};
 
-  // Determine payment provider by user location (Africa => Paystack, otherwise Stripe)
-  const AFRICAN_COUNTRIES = [
-    "Algeria",
-    "Angola",
-    "Benin",
-    "Botswana",
-    "Burkina Faso",
-    "Burundi",
-    "Cabo Verde",
-    "Cameroon",
-    "Central African Republic",
-    "Chad",
-    "Comoros",
-    "Congo",
-    "Democratic Republic of the Congo",
-    "Djibouti",
-    "Egypt",
-    "Equatorial Guinea",
-    "Eritrea",
-    "Eswatini",
-    "Ethiopia",
-    "Gabon",
-    "Gambia",
-    "Ghana",
-    "Guinea",
-    "Guinea-Bissau",
-    "Ivory Coast",
-    "Kenya",
-    "Lesotho",
-    "Liberia",
-    "Libya",
-    "Madagascar",
-    "Malawi",
-    "Mali",
-    "Mauritania",
-    "Mauritius",
-    "Morocco",
-    "Mozambique",
-    "Namibia",
-    "Niger",
-    "Nigeria",
-    "Rwanda",
-    "Sao Tome and Principe",
-    "Senegal",
-    "Seychelles",
-    "Sierra Leone",
-    "Somalia",
-    "South Africa",
-    "South Sudan",
-    "Sudan",
-    "Tanzania",
-    "Togo",
-    "Tunisia",
-    "Uganda",
-    "Zambia",
-    "Zimbabwe",
-  ];
+  console.log("Booking Details11111111111111", bookingDetails);
+
+  // Check if user is in Africa (for payment method selection)
+  const isAfricaByCountry = (country) => {
+    const africanCountries = [
+      "Nigeria",
+      "Ghana",
+      "Kenya",
+      "South Africa",
+      "Egypt",
+      "Morocco",
+      "Ethiopia",
+      "Tanzania",
+      "Uganda",
+      "Zimbabwe",
+      "Zambia",
+      "Rwanda",
+      "Senegal",
+      "Tunisia",
+    ];
+    return country && africanCountries.includes(country);
+  };
+
+  // Get user country from booking details or localStorage
   const storedUserRaw =
     typeof window !== "undefined"
       ? localStorage.getItem("user") || localStorage.getItem("profile") || null
       : null;
-  let userCountry = "";
-  try {
-    const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
-    userCountry =
-      storedUser?.country ||
-      storedUser?.address?.country ||
-      storedUser?.profile?.country ||
-      storedUser?.location?.country ||
-      "";
-  } catch (e) {
-    userCountry = "";
+
+  let userCountry = bookingDetails.user?.country || "";
+
+  if (!userCountry && storedUserRaw) {
+    try {
+      const storedUser = JSON.parse(storedUserRaw);
+      userCountry =
+        storedUser?.country ||
+        storedUser?.address?.country ||
+        storedUser?.profile?.country ||
+        storedUser?.location?.country ||
+        "";
+    } catch (e) {
+      console.error("Error parsing user data:", e);
+    }
   }
+
   const isAfricanUser = AFRICAN_COUNTRIES.some(
     (c) => c.toLowerCase() === String(userCountry).toLowerCase()
   );
 
-  // Calculate total price for display
-  const totalPrice = bookingDetails?.total || 0;
+  // Calculate booking details
+  const days =
+    Math.ceil(
+      (new Date(bookingDetails.endDate) - new Date(bookingDetails.startDate)) /
+        (1000 * 60 * 60 * 24)
+    ) || 1;
 
+  const servicePrice = bookingDetails.pricePerDay || 0;
+  const subtotal = servicePrice * days;
+  const taxRate = 0.05; // 5% tax
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
+  const shouldUsePaystack = isAfricaByCountry(userCountry);
+
+  // Check if user is logged in
   const isLoggedIn = Boolean(
     typeof window !== "undefined" &&
       (localStorage.getItem("accessToken") ||
@@ -136,27 +161,24 @@ export default function SecurityCheckout() {
         localStorage.getItem("user"))
   );
 
-  // Detect 401 errors passed via navigation state and open modal
+  // Handle API errors
   const apiError = location.state?.error || location.state?.apiError || null;
   useEffect(() => {
-    const statusCode =
-      apiError?.statusCode || apiError?.status || apiError?.err?.statusCode;
-    const message = apiError?.message || apiError?.errorMessages?.[0]?.message;
-    if (statusCode === 401 || /not authorized/i.test(message || "")) {
-      setShowAuthModal(true);
+    if (apiError) {
+      const statusCode =
+        apiError?.statusCode || apiError?.status || apiError?.err?.statusCode;
+      const errorMessage =
+        apiError?.message || apiError?.errorMessages?.[0]?.message;
+
+      if (statusCode === 401 || /not authorized/i.test(errorMessage || "")) {
+        setShowAuthModal(true);
+      }
+
+      if (errorMessage) {
+        message.error(errorMessage);
+      }
     }
   }, [apiError]);
-
-  console.log("booking", bookingDetails);
-  // Calculate additional details
-  const days =
-    Math.ceil(
-      (new Date(bookingDetails.endDate) - new Date(bookingDetails.startDate)) /
-        (1000 * 60 * 60 * 24)
-    ) || 1;
-  const servicePrice = bookingDetails.total / days;
-  const taxes = Math.round(bookingDetails.total * 0.08);
-  const finalTotal = bookingDetails.total + taxes;
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -167,23 +189,34 @@ export default function SecurityCheckout() {
     });
   };
 
-  const handleProceedToPayment = async () => {
+  const handleProceedToBooking = async () => {
     try {
       setIsProcessing(true);
       const id = bookingDetails?.guardId;
+      const days = bookingDetails?.days || 1;
+      const total =
+        bookingDetails?.total || (bookingDetails?.pricePerDay || 0) * days;
       const body = {
-        number_of_security: 1,
+        number_of_security: bookingDetails?.personnelCount || 1,
         securityBookedFromDate: bookingDetails?.startDate,
         securityBookedToDate: bookingDetails?.endDate,
-        totalPrice: finalTotal,
+        totalPrice: total,
+        guardId: bookingDetails?.guardId,
+        serviceType: bookingDetails?.serviceType || "Security",
+        status: "pending",
+        paymentStatus: "pending",
+        guardName: bookingDetails?.guardName,
+        pricePerDay: bookingDetails?.pricePerDay,
+        serviceDescription: bookingDetails?.serviceDescription,
       };
       console.log("Creating booking with:", { id, body });
       const resp = await createBooking({ id, body }).unwrap();
       console.log("Create booking response:", resp);
-      const booking = resp?.data || resp;
-      setCreatedBooking(booking);
-      setPaymentStatus(null);
-      setIsPaymentModalOpen(true);
+      const bookingData = resp?.data || resp;
+      setCreatedBooking(bookingData);
+      setCreatedBookingId(bookingData?._id || bookingData?.id);
+      setIsReserved(true);
+      setShowPaymentChoiceModal(true);
     } catch (err) {
       console.error("Create booking failed:", err);
       const statusCode =
@@ -211,61 +244,77 @@ export default function SecurityCheckout() {
     }
   };
 
-  const handleLoginRedirect = () => {
-    const redirectTo = encodeURIComponent(
-      window.location.pathname + window.location.search
-    );
-    navigate(`/login?redirect=${redirectTo}`);
+  const handleProceedToPayment = async () => {
+    if (!createdBookingId || !bookingDetails.user) {
+      message.error("Booking information is incomplete");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const userEmail = bookingDetails.user.email;
+      const userName = bookingDetails.user.name || "Customer";
+
+      if (shouldUsePaystack) {
+        // Handle Paystack payment
+        const result = await createPaystackCheckout({
+          bookingId: createdBookingId,
+          body: {
+            email: userEmail,
+            amount: Math.round(total * 100), // Convert to kobo/pesewas
+            currency: "NGN",
+            metadata: {
+              bookingId: createdBookingId,
+              customerName: userName,
+            },
+          },
+        }).unwrap();
+
+        if (result?.data?.checkoutUrl) {
+          window.location.href = result.data.checkoutUrl;
+        } else {
+          message.error("Failed to initialize payment. Please try again.");
+        }
+      } else {
+        // Handle Stripe payment
+        const result = await createStripeCheckout({
+          bookingId: createdBookingId,
+          body: {
+            email: userEmail,
+            name: userName,
+            amount: Math.round(total * 100), // Convert to cents
+            currency: "USD",
+            metadata: {
+              bookingId: createdBookingId,
+              customerName: userName,
+            },
+            success_url: `${window.location.origin}/payment/success`,
+            cancel_url: `${window.location.origin}/booking/cancel`,
+          },
+        }).unwrap();
+
+        if (result?.data?.checkoutUrl) {
+          window.location.href = result.data.checkoutUrl;
+        } else {
+          message.error("Failed to initialize payment. Please try again.");
+        }
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      message.error("Failed to process payment. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleGoBack = () => {
     navigate(-1);
   };
 
-  const handleGuestInfoChange = (field, value) => {
-    setGuestInfo((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleCountrySelect = (countryCode) => {
-    handleGuestInfoChange("countryCode", countryCode);
-    setIsCountryDropdownOpen(false);
-  };
-  // Common country codes
-  const countryCodes = [
-    { code: "+1", country: "US/CA", flag: "🇺🇸" },
-    { code: "+44", country: "UK", flag: "🇬🇧" },
-    { code: "+91", country: "IN", flag: "🇮🇳" },
-    { code: "+86", country: "CN", flag: "🇨🇳" },
-    { code: "+81", country: "JP", flag: "🇯🇵" },
-    { code: "+49", country: "DE", flag: "🇩🇪" },
-    { code: "+33", country: "FR", flag: "🇫🇷" },
-    { code: "+39", country: "IT", flag: "🇮🇹" },
-    { code: "+34", country: "ES", flag: "🇪🇸" },
-    { code: "+61", country: "AU", flag: "🇦🇺" },
-    { code: "+55", country: "BR", flag: "🇧🇷" },
-    { code: "+52", country: "MX", flag: "🇲🇽" },
-    { code: "+7", country: "RU", flag: "🇷🇺" },
-    { code: "+82", country: "KR", flag: "🇰🇷" },
-    { code: "+65", country: "SG", flag: "🇸🇬" },
-    { code: "+971", country: "AE", flag: "🇦🇪" },
-    { code: "+966", country: "SA", flag: "🇸🇦" },
-    { code: "+20", country: "EG", flag: "🇪🇬" },
-    { code: "+27", country: "ZA", flag: "🇿🇦" },
-    { code: "+234", country: "NG", flag: "🇳🇬" },
-  ];
-
-  const selectedCountry = countryCodes.find(
-    (c) => c.code === guestInfo.countryCode
-  );
-  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-8xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <button
@@ -286,6 +335,42 @@ export default function SecurityCheckout() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Booking Details */}
             <div className="lg:col-span-2 space-y-6">
+              {/* User Information Card */}
+              <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div className="flex items-center mb-4">
+                  <UserOutlined className="w-6 h-6 text-blue-600 mr-3" />
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Your Information
+                  </h2>
+                </div>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Full Name</p>
+                      <p className="font-medium">{bookingDetails.user?.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="font-medium">
+                        {bookingDetails.user?.email}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Phone</p>
+                      <p className="font-medium">
+                        {bookingDetails.user?.phone}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Country</p>
+                      <p className="font-medium">
+                        {bookingDetails.user?.country}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Booking Summary Card */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center mb-4">
@@ -303,14 +388,6 @@ export default function SecurityCheckout() {
                       {bookingDetails.bookingId}
                     </span>
                   </div>
-
-                  {/* Service Type */}
-                  {/* <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                    <span className="text-gray-600">Service Type</span>
-                    <span className="font-medium text-gray-900">
-                      {bookingDetails.serviceType}
-                    </span>
-                  </div> */}
 
                   {/* Service Description */}
                   <div className="py-3 border-b border-gray-100">
@@ -353,148 +430,6 @@ export default function SecurityCheckout() {
                   </div>
                 </div>
               </div>
-
-              {/* Guest Information Form (hidden if logged in) */}
-              {!isLoggedIn && (
-                <div className="bg-white rounded-2xl shadow-sm p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                    Guest
-                  </h2>
-
-                  <form className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          First Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={guestInfo.firstName}
-                          onChange={(e) =>
-                            handleGuestInfoChange("firstName", e.target.value)
-                          }
-                          required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                          placeholder="Enter your first name"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Last Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={guestInfo.lastName}
-                          onChange={(e) =>
-                            handleGuestInfoChange("lastName", e.target.value)
-                          }
-                          required
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                          placeholder="Enter your last name"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        value={guestInfo.email}
-                        onChange={(e) =>
-                          handleGuestInfoChange("email", e.target.value)
-                        }
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        placeholder="Enter your email address"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number *
-                      </label>
-                      <div className="flex">
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setIsCountryDropdownOpen(!isCountryDropdownOpen)
-                            }
-                            className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors bg-white hover:bg-gray-50 min-w-[130px]"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <span className="text-lg">
-                                {selectedCountry?.flag}
-                              </span>
-                              <span className="text-sm font-medium">
-                                {selectedCountry?.code}
-                              </span>
-                            </div>
-                            <ChevronDown
-                              className={`w-4 h-4 text-gray-400 transition-transform ${
-                                isCountryDropdownOpen ? "rotate-180" : ""
-                              }`}
-                            />
-                          </button>
-
-                          {isCountryDropdownOpen && (
-                            <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                              {countryCodes.map((country) => (
-                                <button
-                                  key={country.code}
-                                  type="button"
-                                  onClick={() =>
-                                    handleCountrySelect(country.code)
-                                  }
-                                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
-                                >
-                                  <span className="text-lg">
-                                    {country.flag}
-                                  </span>
-                                  <span className="text-sm font-medium">
-                                    {country.code}
-                                  </span>
-                                  <span className="text-sm text-gray-500">
-                                    {country.country}
-                                  </span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <input
-                          type="tel"
-                          value={guestInfo.phone}
-                          onChange={(e) =>
-                            handleGuestInfoChange("phone", e.target.value)
-                          }
-                          required
-                          className="flex-1 px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                          placeholder="Enter your phone number"
-                        />
-                      </div>
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Country *
-                      </label>
-                      <input
-                        type="text"
-                        value={guestInfo.country}
-                        onChange={(e) =>
-                          handleGuestInfoChange("country", e.target.value)
-                        }
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                        placeholder="Enter your country"
-                      />
-                    </div>
-                  </form>
-                </div>
-              )}
             </div>
 
             {/* Right Column - Price Summary */}
@@ -514,9 +449,9 @@ export default function SecurityCheckout() {
                     </span>
                   </div>
 
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">VAT (5%)</span>
-                    <span className="text-gray-900">{taxes}</span>
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-600">Taxes & Fees</span>
+                    <span className="font-medium">${tax.toFixed(2)}</span>
                   </div>
 
                   <div className="border-t border-gray-200 pt-3">
@@ -525,122 +460,49 @@ export default function SecurityCheckout() {
                         Total
                       </span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {finalTotal}
+                        ${total.toFixed(2)}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Proceed to Booking Button (visible only if logged in) */}
-                {isLoggedIn && (
-                  <button
-                    onClick={handleProceedToPayment}
-                    disabled={isProcessing || isCreating}
-                    className="w-full mt-6 bg-[#0064D2] cursor-pointer text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center"
-                  >
-                    {isProcessing || isCreating ? (
-                      "Processing..."
-                    ) : (
-                      <>
-                        <CreditCard className="w-5 h-5 mr-2" />
-                        Proceed to Booking
-                      </>
-                    )}
-                  </button>
-                )}
-
-                {/* Payment Modal */}
-                <Modal
-                 
-                  open={isPaymentModalOpen}
-                  onOk={async () => {
-                    if (!createdBooking?.id) {
-                      message.error("No booking ID found to process payment");
-                      return;
-                    }
-                    
-                    setIsProcessingPayment(true);
-                    
-                    try {
-                      if (shouldUsePaystack) {
-                        // Process Paystack payment
-                        const res = await createPaystackSession(createdBooking.id).unwrap();
-                        const url = res?.data?.checkoutUrl || 
-                                  res?.data?.url || 
-                                  res?.data?.authorization_url || 
-                                  res?.url;
-                        
-                        if (url) {
-                          window.location.href = url; // Use location.href for full page redirect
-                        } else {
-                          throw new Error("Payment URL not received from Paystack");
-                        }
-                      } else {
-                        // Process Stripe payment
-                        const res = await createStripeSession(createdBooking.id).unwrap();
-                        const url = res?.data?.checkoutUrl || 
-                                  res?.data?.url || 
-                                  res?.url;
-                        
-                        if (url) {
-                          window.location.href = url; // Use location.href for full page redirect
-                        } else {
-                          throw new Error("Payment URL not received from Stripe");
-                        }
-                      }
-                    } catch (error) {
-                      console.error("Payment error:", error);
-                      message.error(error?.message || "Failed to process payment");
-                      setIsPaymentModalOpen(false);
-                    } finally {
-                      setIsProcessingPayment(false);
-                    }
-                  }}
-                  onCancel={() => !isProcessingPayment && setIsPaymentModalOpen(false)}
-                  okButtonProps={{ loading: isProcessingPayment }}
-                  okText={shouldUsePaystack ? "Pay with Paystack" : "Pay with Stripe"}
-                  cancelText="Cancel"
-                  confirmLoading={isProcessingPayment}
-                  closable={!isProcessingPayment}
-                  centered
-                >
-                  <div className="space-y-4 p-4">
-                    <div className="text-lg font-semibold text-gray-900">
-                      Ready to pay?
-                    </div>
-                    <div className="text-gray-600 mb-4">
-                      You will be redirected to {shouldUsePaystack ? 'Paystack' : 'Stripe'} to complete your payment.
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex items-center">
-                        <input
-                          type="radio"
-                          id="stripe"
-                          name="paymentMethod"
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                          checked={!shouldUsePaystack}
-                          onChange={() => setShouldUsePaystack(false)}
-                        />
-                        <label htmlFor="stripe" className="ml-2 block text-sm font-medium text-gray-700">
-                          Pay with Stripe (International Cards)
-                        </label>
+                <div className="mt-6 space-y-4">
+                  {!isReserved ? (
+                    <button
+                      onClick={handleProceedToBooking}
+                      disabled={isProcessing}
+                      className={`w-full py-3 text-white rounded-lg font-medium transition-all ${
+                        isProcessing
+                          ? "bg-blue-400 cursor-not-allowed"
+                          : "bg-blue-700 hover:bg-blue-800"
+                      }`}
+                    >
+                      {isProcessing ? "Processing..." : "Confirm Reservation"}
+                    </button>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p className="text-green-800 text-sm flex items-center">
+                          <Check className="w-4 h-4 mr-2" />
+                          Security service reserved successfully! Please proceed
+                          with payment to confirm your booking.
+                        </p>
                       </div>
-                      <div className="flex items-center">
-                        <input
-                          type="radio"
-                          id="paystack"
-                          name="paymentMethod"
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                          checked={shouldUsePaystack}
-                          onChange={() => setShouldUsePaystack(true)}
-                        />
-                        <label htmlFor="paystack" className="ml-2 block text-sm font-medium text-gray-700">
-                          Pay with Paystack (African Cards)
-                        </label>
-                      </div>
+                      <button
+                        onClick={handleProceedToPayment}
+                        disabled={isProcessing}
+                        className="w-full py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium flex items-center justify-center"
+                      >
+                        {isProcessing
+                          ? "Processing..."
+                          : `Pay $${total.toFixed(2)}`}
+                        {!isProcessing && (
+                          <CreditCard className="ml-2 w-5 h-5" />
+                        )}
+                      </button>
                     </div>
-                  </div>
-                </Modal>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -658,43 +520,6 @@ export default function SecurityCheckout() {
         draggable
         pauseOnHover
       />
-
-      {/* Unauthorized Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setShowAuthModal(false)}
-          />
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
-            <div className="flex items-start">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  You are not authorized
-                </h3>
-                <p className="mt-2 text-sm text-gray-600">
-                  Please log in to continue with your booking. Your current
-                  selection will be preserved after login.
-                </p>
-              </div>
-            </div>
-            <div className="mt-6 flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowAuthModal(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Not now
-              </button>
-              <button
-                onClick={handleLoginRedirect}
-                className="px-4 py-2 rounded-lg bg-[#0064D2] text-white hover:bg-[#0052ad]"
-              >
-                Login
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
