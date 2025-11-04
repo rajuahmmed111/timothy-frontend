@@ -43,7 +43,6 @@ export default function Checkout() {
     navigate(-1);
   };
 
-<<<<<<< HEAD
   const handleGuestLoginThenProceed = async () => {
     if (
       !guestInfo.fullName ||
@@ -74,8 +73,6 @@ export default function Checkout() {
     }
   };
 
-=======
->>>>>>> 86b9fe0ee161a9a1ad7a9c97cbf42a2a810a9536
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "short",
