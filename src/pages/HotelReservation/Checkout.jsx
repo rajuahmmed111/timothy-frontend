@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+
 import {
   ArrowLeft,
   Calendar,
@@ -9,8 +11,14 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import { useCreateHotelBookingMutation } from "../../redux/api/hotel/hotelApi";
-import { toast } from "react-hot-toast";
+import { 
+  useCreateHotelBookingMutation,
+  useCreateHotelPaystackCheckoutSessionMutation,
+  useCreateHotelStripeCheckoutSessionWebsiteMutation 
+} from "../../redux/api/hotel/hotelApi";
+import { setCredentials } from "../../redux/features/auth/authSlice";
+import { useSelector } from "react-redux";
+import { handleError } from "../../../toast";
 
 export default function Checkout() {
   const location = useLocation();
@@ -18,9 +26,13 @@ export default function Checkout() {
   const bookingData = location.state?.bookingData;
   const [isReserved, setIsReserved] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [createdBookingId, setCreatedBookingId] = useState(null);
   const [createHotelBooking, { isLoading }] = useCreateHotelBookingMutation();
-  console.log("bookingData", bookingData);
-
+  const [createPaystackCheckout] = useCreateHotelPaystackCheckoutSessionMutation();
+  const [createStripeCheckout] = useCreateHotelStripeCheckoutSessionWebsiteMutation();
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state?.auth?.user);
+  console.log("BookingData", bookingData);
   const safeGuests = {
     adults: bookingData?.adults || 1,
     children: bookingData?.children || 0,
@@ -28,56 +40,54 @@ export default function Checkout() {
   };
 
   const userInfo = bookingData?.user || {};
+  
+  // Check if user's country is in Africa
+  const isAfricaByCountry = (country) => {
+    return country && /\b(Algeria|Angola|Benin|Botswana|Burkina|Burundi|Cameroon|Cape Verde|Central African Republic|Chad|Comoros|Congo|DRC|Cote d'Ivoire|Ivory Coast|Djibouti|Egypt|Equatorial Guinea|Eritrea|Eswatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Kenya|Lesotho|Liberia|Libya|Madagascar|Malawi|Mali|Mauritania|Mauritius|Morocco|Mozambique|Namibia|Niger|Nigeria|Rwanda|Sao Tome|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Tanzania|Togo|Tunisia|Uganda|Zambia|Zimbabwe)\b/i.test(country);
+  };
 
   const handleReserveConfirm = async () => {
-    console.log('Booking data:', bookingData); // Debug log
-    
-    if (!bookingData?.roomId) {
-      toast.error("Room information is missing");
-      return;
-    }
-
-    if (!bookingData?.hotelId) {
-      toast.error("Hotel information is missing");
-      return;
-    }
-
+    if (!user) return;
     setIsProcessing(true);
     try {
-      // Create the booking payload with room ID
-      const bookingPayload = {
-        roomId: bookingData.roomId,
-        rooms: safeGuests.rooms,
-        adults: safeGuests.adults,
-        children: safeGuests.children,
-        bookedFromDate: bookingData.checkIn,
-        bookedToDate: bookingData.checkOut,
-        totalPrice: bookingData.total,
-        specialRequest: bookingData.specialRequest || null,
-        bookingStatus: "PENDING",
-        category: bookingData.roomType,
-        hotelId: bookingData.hotelId,
-        userId: bookingData.user?.id || bookingData.user?._id,
-        partnerId: bookingData.partnerId // Make sure this is passed from the booking data
-      };
+      const roomId = bookingData?.roomId;
+      const toYMD = (d) => new Date(d).toISOString().slice(0, 10);
 
-      console.log('Sending booking payload:', bookingPayload);
+      if (!roomId) {
+        message.error("Room not selected.");
+        return;
+      }
 
-      // Make the API call with the room ID in the URL
-      const result = await createHotelBooking({
-        bookingId: bookingData.roomId, // Using room ID for the booking
-        data: bookingPayload
+      const res = await createHotelBooking({
+        bookingId: roomId,
+        data: {
+          rooms: Number(bookingData?.rooms ?? 1),
+          adults: Number(bookingData?.adults ?? 1),
+          children: Number(bookingData?.children ?? 0),
+          bookedFromDate: toYMD(
+            bookingData?.bookedFromDate || bookingData?.checkIn
+          ),
+          bookedToDate: toYMD(
+            bookingData?.bookedToDate || bookingData?.checkOut
+          ),
+        },
       }).unwrap();
 
-      console.log('Booking response:', result); // Debug log
-
-      if (result) {
-        setIsReserved(true);
-        toast.success("Room reserved successfully!");
+      const created = res?.data || res;
+      if (created?.id) {
+        setCreatedBookingId(created.id);
+        setIsReserved(true); // Show payment button after successful reservation
       }
-    } catch (error) {
-      console.error("Reservation failed:", error);
-      toast.error(error?.data?.message || "Failed to reserve room. Please try again.");
+    } catch (e) {
+      const msg = e?.data?.message || e?.message || "Failed to create booking";
+      const lc = typeof msg === "string" ? msg.toLowerCase() : "";
+      if (
+        lc.includes("already booked") ||
+        lc.includes("already booked for the selected dates")
+      ) {
+        handleError("This hotel is already booked for the selected dates");
+      } else {
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -85,36 +95,6 @@ export default function Checkout() {
 
   const handleBackToBooking = () => {
     navigate("/hotel");
-  };
-
-  const handleGuestLoginThenProceed = async () => {
-    if (
-      !guestInfo.fullName ||
-      !guestInfo.email ||
-      !guestInfo.phone ||
-      !guestInfo.country
-    ) {
-      return;
-    }
-    try {
-      const res = await loginWebsite({
-        fullName: guestInfo.fullName,
-        email: guestInfo.email,
-        contactNumber: guestInfo.phone,
-        country: guestInfo.country,
-      }).unwrap();
-
-      const accessToken = res?.data?.accessToken || res?.accessToken;
-      const authUser = res?.data?.user || res?.user;
-      if (accessToken) {
-        try {
-          localStorage.setItem("accessToken", accessToken);
-        } catch {}
-        dispatch(setCredentials({ accessToken, user: authUser }));
-      }
-    } catch (e) {
-      // silently fail; you can add toast here if desired
-    }
   };
 
   const formatDate = (dateString) => {
@@ -163,7 +143,7 @@ export default function Checkout() {
                       <div>
                         <p className="text-sm text-gray-600">Name</p>
                         <p className="text-gray-900">
-                          {userInfo.fullName || "Guest"}
+                          {userInfo.fullName }
                         </p>
                       </div>
                     </div>
@@ -172,7 +152,7 @@ export default function Checkout() {
                       <div>
                         <p className="text-sm text-gray-600">Email</p>
                         <p className="text-gray-900">
-                          {userInfo.email || "Not provided"}
+                          {userInfo.email }
                         </p>
                       </div>
                     </div>
@@ -181,7 +161,7 @@ export default function Checkout() {
                       <div>
                         <p className="text-sm text-gray-600">Phone</p>
                         <p className="text-gray-900">
-                          {userInfo.contactNumber || "Not provided"}
+                          {userInfo.contactNumber }
                         </p>
                       </div>
                     </div>
@@ -301,7 +281,9 @@ export default function Checkout() {
                             : "bg-blue-700 hover:bg-blue-800"
                         }`}
                       >
-                        {isProcessing || isLoading ? "Processing..." : "Confirm Reserve"}
+                        {isProcessing || isLoading
+                          ? "Processing..."
+                          : "Confirm Reserve"}
                       </button>
                     ) : (
                       <div className="space-y-4">
@@ -311,8 +293,76 @@ export default function Checkout() {
                             payment to confirm your booking.
                           </p>
                         </div>
-                        <button className="w-full py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium">
-                          Confirm & Pay ${bookingData.total}
+                        <button
+                          className={`w-full py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium ${
+                            isProcessing ? 'opacity-75 cursor-not-allowed' : ''
+                          }`}
+                          onClick={async () => {
+                            if (!createdBookingId || !bookingData?.user) {
+                              handleError('Booking information is incomplete');
+                              return;
+                            }
+
+                            setIsProcessing(true);
+                            
+                            try {
+                              const userEmail = bookingData.user.email;
+                              const userName = bookingData.user.name || 'Customer';
+                              
+                              if (isAfricaByCountry(bookingData.user.country)) {
+                                // Handle African countries with Paystack
+                                const result = await createPaystackCheckout({
+                                  bookingId: createdBookingId,
+                                  body: {
+                                    email: userEmail,
+                                    amount: Math.round(bookingData.total * 100), // Convert to kobo/pesewas
+                                    currency: 'NGN',
+                                    metadata: {
+                                      bookingId: createdBookingId,
+                                      customerName: userName,
+                                    }
+                                  }
+                                }).unwrap();
+
+                                if (result?.data?.checkoutUrl) {
+                                  window.location.href = result.data.checkoutUrl;
+                                } else {
+                                  handleError('Failed to initialize payment. Please try again.');
+                                }
+                              } else {
+                                // Handle Global countries with Stripe
+                                const result = await createStripeCheckout({
+                                  bookingId: createdBookingId,
+                                  body: {
+                                    email: userEmail,
+                                    name: userName,
+                                    amount: Math.round(bookingData.total * 100), // Convert to cents
+                                    currency: 'USD', // Default currency for global payments
+                                    metadata: {
+                                      bookingId: createdBookingId,
+                                      customerName: userName,
+                                    },
+                                    success_url: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+                                    cancel_url: `${window.location.origin}/booking/cancel`
+                                  }
+                                }).unwrap();
+
+                                if (result?.data?.checkoutUrl) {
+                                  window.location.href = result.data.checkoutUrl;
+                                } else {
+                                  handleError('Failed to initialize payment. Please try again.');
+                                }
+                              }
+                            } catch (error) {
+                              console.error('Payment error:', error);
+                              handleError('Failed to process payment. Please try again.');
+                            } finally {
+                              setIsProcessing(false);
+                            }
+                          }}
+                          disabled={isProcessing}
+                        >
+                          {isProcessing ? 'Processing...' : `Continue & Pay $${bookingData.total}`}
                         </button>
                       </div>
                     )}

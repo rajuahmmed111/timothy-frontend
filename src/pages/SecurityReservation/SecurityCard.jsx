@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 export default function SecurityCard({ securityProvider, to }) {
   const linkTo = to || `/security-service-details/${securityProvider?.id}`;
+  console.log("securityProvider", securityProvider);
 
   return (
       <Link to={linkTo} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block">
