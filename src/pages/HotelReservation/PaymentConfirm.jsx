@@ -1,5 +1,79 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+// Import the payment mutations from your API slice
+import {
+  useCreateHotelPaystackCheckoutSessionMutation,
+  useCreateHotelStripeCheckoutSessionWebsiteMutation,
+} from "../../redux/api/hotel/hotelApi";
+
+// Helper function to check if a country is in Africa
+const isAfricanCountry = (country) => {
+  if (!country) return false;
+  const africanCountries = [
+    "nigeria",
+    "ghana",
+    "kenya",
+    "south africa",
+    "algeria",
+    "angola",
+    "benin",
+    "botswana",
+    "burkina faso",
+    "burundi",
+    "cameroon",
+    "cape verde",
+    "central african republic",
+    "chad",
+    "comoros",
+    "congo",
+    "democratic republic of the congo",
+    "cote d'ivoire",
+    "ivory coast",
+    "djibouti",
+    "egypt",
+    "equatorial guinea",
+    "eritrea",
+    "eswatini",
+    "ethiopia",
+    "gabon",
+    "gambia",
+    "ghana",
+    "guinea",
+    "guinea-bissau",
+    "kenya",
+    "lesotho",
+    "liberia",
+    "libya",
+    "madagascar",
+    "malawi",
+    "mali",
+    "mauritania",
+    "mauritius",
+    "morocco",
+    "mozambique",
+    "namibia",
+    "niger",
+    "nigeria",
+    "rwanda",
+    "sao tome and principe",
+    "senegal",
+    "seychelles",
+    "sierra leone",
+    "somalia",
+    "south africa",
+    "south sudan",
+    "sudan",
+    "tanzania",
+    "togo",
+    "tunisia",
+    "uganda",
+    "zambia",
+    "zimbabwe",
+  ];
+  return africanCountries.includes(country.toLowerCase().trim());
+};
+
 import {
   Calendar,
   CreditCard,
@@ -17,14 +91,21 @@ export default function PaymentConfirm() {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("card");
   const bookingDetails = location.state?.bookingDetails;
+
+  // Payment mutations
+  const [createPaystackSession] =
+    useCreateHotelPaystackCheckoutSessionMutation();
+  const [createStripeSession] =
+    useCreateHotelStripeCheckoutSessionWebsiteMutation();
   console.log("dsfd", bookingDetails);
 
   const calculateTotal = () => {
-    const price = Number(bookingDetails?.roomPrice) * Number(bookingDetails?.rooms) || 0;
+    const price =
+      Number(bookingDetails?.roomPrice) * Number(bookingDetails?.rooms) || 0;
     const subtotal = price;
     const vatAmount = Math.round((subtotal * (bookingDetails?.vat || 0)) / 100);
     const total = subtotal + vatAmount;
-    
+
     return {
       subtotal,
       vatAmount,
@@ -33,23 +114,176 @@ export default function PaymentConfirm() {
   };
 
   const { subtotal, vatAmount, total } = calculateTotal();
-  
+
   // Format date to be more readable
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    if (!dateString) return "";
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("en-US", options);
   };
 
   const handlePayment = async () => {
+    // Validate required fields
+    if (
+      !bookingDetails?.user?.id ||
+      !bookingDetails?.hotelId ||
+      !bookingDetails?.roomId
+    ) {
+      toast.error("Invalid booking details. Please try again.");
+      return;
+    }
+
+    // Check if we have a valid booking ID from location state
+    const bookingId = location.state?.createdBookingId;
+    if (!bookingId) {
+      toast.error(
+        "Booking reference not found. Please start the booking process again."
+      );
+      return;
+    }
+
     setIsLoading(true);
+
     try {
-      // Handle payment processing here
-      // await processPayment({ ...bookingDetails, paymentMethod });
-      // navigate('/booking-confirmation');
-      console.log("Processing payment...");
+      const baseUrl = window.location.origin;
+      const successUrl = `${baseUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}`;
+      const cancelUrl = `${baseUrl}/hotel/checkout`;
+
+      const paymentData = {
+        amount: Math.round(total * 100), // Convert to smallest currency unit
+        email: bookingDetails.user.email,
+        name:
+          bookingDetails.user.fullName ||
+          bookingDetails.user.name ||
+          "Customer",
+        phone:
+          bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
+        currency: "USD",
+        hotelId: bookingDetails.hotelId,
+        roomId: bookingDetails.roomId,
+        userId: bookingDetails.user.id,
+        successUrl: successUrl,
+        cancelUrl: cancelUrl,
+        // Add any additional required fields here
+        metadata: {
+          bookingId: bookingId,
+          hotelId: bookingDetails.hotelId,
+          roomId: bookingDetails.roomId,
+          userId: bookingDetails.user.id,
+        },
+      };
+
+      console.log("Payment data:", paymentData);
+
+      // For testing - force Paystack
+      const forcePaystack = true; // Set to false to use country-based detection
+      const userCountry = (bookingDetails.user?.country || "").toLowerCase();
+      const isAfrican = forcePaystack || isAfricanCountry(userCountry);
+
+      console.log("Payment method selection:", { userCountry, isAfrican });
+
+      if (isAfrican) {
+        // Process Paystack payment
+        console.log("Initiating Paystack payment...");
+
+        try {
+          const response = await createPaystackSession({
+            bookingId: bookingId,
+            body: {
+              email: paymentData.email,
+              amount: paymentData.amount,
+              currency: "NGN", // Force Naira for Paystack
+              callback_url: paymentData.successUrl,
+              metadata: {
+                bookingId: bookingId,
+                hotelId: bookingDetails.hotelId,
+                roomId: bookingDetails.roomId,
+                userId: bookingDetails.user.id,
+              },
+            },
+          }).unwrap();
+
+          console.log("Paystack response:", response);
+
+          // Handle different response formats
+          const checkoutUrl =
+            response?.data?.checkoutUrl ||
+            response?.checkoutUrl ||
+            response?.data?.authorization_url ||
+            response?.authorization_url;
+
+          if (checkoutUrl) {
+            console.log("Redirecting to Paystack checkout:", checkoutUrl);
+            window.location.href = checkoutUrl;
+            return; // Important: Stop execution after redirect
+          } else {
+            throw new Error("No valid checkout URL found in Paystack response");
+          }
+        } catch (error) {
+          console.error("Paystack API error:", error);
+          const errorMessage =
+            error?.data?.message ||
+            error?.message ||
+            "Failed to initialize Paystack payment";
+          console.error("Payment error details:", { error });
+          throw new Error(`Paystack Error: ${errorMessage}`);
+        }
+      } else {
+        // Process Stripe payment
+        console.log("Initiating Stripe payment...");
+        result = await createStripeSession({
+          bookingId: bookingId,
+          body: {
+            ...paymentData,
+            // Ensure required fields for Stripe
+            line_items: [
+              {
+                price_data: {
+                  currency: "usd",
+                  product_data: {
+                    name: `Hotel Booking - ${
+                      bookingDetails.hotelName || "Hotel"
+                    }`,
+                    description: `Room Type: ${
+                      bookingDetails.roomType || "Standard"
+                    }`,
+                  },
+                  unit_amount: Math.round(total * 100),
+                },
+                quantity: 1,
+              },
+            ],
+            mode: "payment",
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            metadata: {
+              bookingId: bookingId,
+              hotelId: bookingDetails.hotelId,
+              roomId: bookingDetails.roomId,
+              userId: bookingDetails.user.id,
+            },
+          },
+        }).unwrap();
+
+        console.log("Stripe response:", result);
+
+        // Handle different response formats
+        const checkoutUrl =
+          result?.data?.checkoutUrl || result?.data?.url || result?.url;
+        if (checkoutUrl) {
+          window.location.href = checkoutUrl;
+        } else {
+          throw new Error("Could not retrieve Stripe checkout URL");
+        }
+      }
     } catch (error) {
-      console.error("Payment failed:", error);
+      console.error("Payment error:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.error ||
+        error?.message ||
+        "Payment processing failed. Please try again.";
+      toast.error(`Payment Error: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -74,15 +308,18 @@ export default function PaymentConfirm() {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-medium">
-                      {bookingDetails?.hotelName || 'Hotel Name Not Available'}
+                      {bookingDetails?.hotelName || "Hotel Name Not Available"}
                     </h3>
                     <div className="flex items-center text-gray-600 mt-1">
                       <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <p className="text-sm">{bookingDetails?.location || 'Location not specified'}</p>
+                      <p className="text-sm">
+                        {bookingDetails?.location || "Location not specified"}
+                      </p>
                     </div>
                     <div className="mt-2">
                       <p className="text-sm text-gray-600">
-                        {bookingDetails?.roomType && `Room Type: ${bookingDetails.roomType}`}
+                        {bookingDetails?.roomType &&
+                          `Room Type: ${bookingDetails.roomType}`}
                       </p>
                     </div>
                   </div>
@@ -92,21 +329,30 @@ export default function PaymentConfirm() {
                       <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                       <div>
                         <p className="text-sm text-gray-500">Check-in</p>
-                        <p>{formatDate(bookingDetails?.checkIn) || 'Not specified'}</p>
+                        <p>
+                          {formatDate(bookingDetails?.checkIn) ||
+                            "Not specified"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center">
                       <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                       <div>
                         <p className="text-sm text-gray-500">Check-out</p>
-                        <p>{formatDate(bookingDetails?.checkOut) || 'Not specified'}</p>
+                        <p>
+                          {formatDate(bookingDetails?.checkOut) ||
+                            "Not specified"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center">
                       <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                       <div>
                         <p className="text-sm text-gray-500">Nights</p>
-                        <p>{bookingDetails?.nights || '1'} night{bookingDetails?.nights !== 1 ? 's' : ''}</p>
+                        <p>
+                          {bookingDetails?.nights || "1"} night
+                          {bookingDetails?.nights !== 1 ? "s" : ""}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center">
@@ -114,8 +360,15 @@ export default function PaymentConfirm() {
                       <div>
                         <p className="text-sm text-gray-500">Guests</p>
                         <p>
-                          {bookingDetails?.adults || 1} {bookingDetails?.adults === 1 ? 'Adult' : 'Adults'}
-                          {bookingDetails?.children ? `, ${bookingDetails.children} ${bookingDetails.children === 1 ? 'Child' : 'Children'}` : ''}
+                          {bookingDetails?.adults || 1}{" "}
+                          {bookingDetails?.adults === 1 ? "Adult" : "Adults"}
+                          {bookingDetails?.children
+                            ? `, ${bookingDetails.children} ${
+                                bookingDetails.children === 1
+                                  ? "Child"
+                                  : "Children"
+                              }`
+                            : ""}
                         </p>
                       </div>
                     </div>
@@ -155,9 +408,11 @@ export default function PaymentConfirm() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Price per night</span>
-                    <span>${(bookingDetails?.roomPrice || 0).toLocaleString()}</span>
+                    <span>
+                      ${(bookingDetails?.roomPrice || 0).toLocaleString()}
+                    </span>
                   </div>
-               
+
                   <div className="flex justify-between">
                     <span>Subtotal</span>
                     <span>${(subtotal || 0).toLocaleString()}</span>
@@ -178,7 +433,7 @@ export default function PaymentConfirm() {
                   <button
                     onClick={handlePayment}
                     disabled={isLoading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center disabled:opacity-70"
+                    className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center disabled:opacity-70"
                   >
                     {isLoading ? "Processing..." : "Continue to Pay"}
                   </button>
