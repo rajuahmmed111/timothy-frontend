@@ -136,6 +136,49 @@ export default function PaymentConfirm() {
 
     setIsLoading(true);
     try {
+      // Prepare booking data to pass to confirmation page
+      // Prepare user information
+      const userInfo = bookingDetails.user
+        ? {
+            id: bookingDetails.user.id,
+            email: bookingDetails.user.email,
+            fullName: bookingDetails.user.fullName || bookingDetails.user.name,
+            phone:
+              bookingDetails.user.contactNumber || bookingDetails.user.phone,
+            country: bookingDetails.user.country,
+            // Include any other user fields you need
+          }
+        : {};
+      console.log("UserInfo", userInfo);
+      const bookingConfirmationData = {
+        bookingId: bookingId,
+        hotelName: bookingDetails.hotelName,
+        checkIn: bookingDetails.checkIn,
+        checkOut: bookingDetails.checkOut,
+        guests: bookingDetails.guests || 1,
+        total: total,
+        roomType: bookingDetails.roomType,
+        location: bookingDetails.location,
+        rooms: bookingDetails.rooms,
+        adults: bookingDetails.adults,
+        children: bookingDetails.children,
+        isRefundable: bookingDetails.isRefundable,
+        vat: bookingDetails.vat,
+        nights: bookingDetails.nights,
+        user: userInfo,
+      };
+
+      // Store in session storage as fallback
+      sessionStorage.setItem(
+        "lastBooking",
+        JSON.stringify(bookingConfirmationData)
+      );
+
+      // Navigate with state
+      navigate("/booking-confirmation", {
+        state: { bookingData: bookingConfirmationData },
+      });
+
       const successUrl = `${window.location.origin}/booking-confirmation`;
       const cancelUrl = `${window.location.origin}/hotel/checkout`;
       const bookingId = location.state?.createdBookingId;
@@ -192,7 +235,10 @@ export default function PaymentConfirm() {
 
         if (checkoutUrl) {
           console.log("Redirecting to Paystack checkout:", checkoutUrl);
-          window.location.href = checkoutUrl;
+          // Use navigate instead of direct href to pass state
+          navigate("/booking-confirmation", {
+            state: { bookingData: bookingConfirmationData },
+          });
           return;
         } else {
           throw new Error("No valid checkout URL found in Paystack response");
@@ -236,7 +282,10 @@ export default function PaymentConfirm() {
         const checkoutUrl =
           result?.data?.checkoutUrl || result?.data?.url || result?.url;
         if (checkoutUrl) {
-          window.location.href = checkoutUrl;
+          // Use navigate instead of direct href to pass state
+          navigate("/booking-confirmation", {
+            state: { bookingData: bookingConfirmationData },
+          });
         } else {
           throw new Error("Could not retrieve Stripe checkout URL");
         }

@@ -17,28 +17,72 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { Modal } from "antd";
 
+// Default booking data in case nothing is passed
+const defaultBookingData = {
+  bookingId: "BK" + Math.floor(10000000 + Math.random() * 90000000),
+  hotelName: "Luxury Hotel",
+  location: "Beachfront Resort, Maldives",
+  checkIn: new Date().toISOString().split("T")[0],
+  checkOut: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0],
+  guests: 2,
+  roomType: "Deluxe Suite",
+  total: 2500,
+  bookingDate: new Date().toISOString().split("T")[0],
+  paymentMethod: "Credit Card",
+  rating: 4.8,
+  rooms: 1,
+  adults: 2,
+  children: 0,
+  isRefundable: true,
+  vat: 10,
+  nights: 7,
+};
+
 export default function BookingConfirmation() {
   const location = useLocation();
-  // const navigate = useNavigate();
   const [isEmailSending, setIsEmailSending] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Get booking data from location state or use default values
-  const bookingData = location.state || {
-    bookingId: "BK" + Math.floor(10000000 + Math.random() * 90000000),
-    hotelName: "Azure Oasis",
-    location: "Riviera Resort, Pristine Thailand",
-    checkIn: new Date().toISOString().split("T")[0],
-    checkOut: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-    guests: 1,
-    roomType: "Deluxe Room",
-    total: 4000,
-    bookingDate: new Date().toISOString().split("T")[0],
-    paymentMethod: "Card ending in 4242",
-    rating: 4.8,
-  };
+  // Try to get booking data from location state, then session storage, then use defaults
+  const [bookingData, setBookingData] = useState(() => {
+    // First try to get from location state
+    if (location.state?.bookingData) {
+      return location.state.bookingData;
+    }
+    const userInfo = location.state?.userInfo;
+    console.log("UserInfo", userInfo);
+
+    // Then try to get from session storage
+    try {
+      const savedBooking = sessionStorage.getItem("lastBooking");
+      if (savedBooking) {
+        return JSON.parse(savedBooking);
+      }
+    } catch (e) {
+      console.error("Error parsing saved booking data:", e);
+    }
+
+    // Fall back to default data
+    return { ...defaultBookingData };
+  });
+
+  console.log("Booking Data:", bookingData);
+  //   bookingId: "BK" + Math.floor(10000000 + Math.random() * 90000000),
+  //   hotelName: "Azure Oasis",
+  //   location: "Riviera Resort, Pristine Thailand",
+  //   checkIn: new Date().toISOString().split("T")[0],
+  //   checkOut: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000)
+  //     .toISOString()
+  //     .split("T")[0],
+  //   guests: 1,
+  //   roomType: "Deluxe Room",
+  //   total: 4000,
+  //   bookingDate: new Date().toISOString().split("T")[0],
+  //   paymentMethod: "Card ending in 4242",
+  //   rating: 4.8,
+  // };
 
   // Hotel details
   const hotelDetails = {
