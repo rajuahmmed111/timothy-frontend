@@ -128,9 +128,15 @@ export default function PaymentConfirm() {
     const options = { year: "numeric", month: "short", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
-  const bookingId = location.state?.createdBookingId;
+  // Get booking ID from URL params or state
+  const searchParams = new URLSearchParams(location.search);
+  const bookingId =
+    searchParams.get("bookingId") || location.state?.createdBookingId;
 
   const handlePayment = async () => {
+    // Re-fetch bookingId in case it was updated
+    const currentBookingId =
+      searchParams.get("bookingId") || location.state?.createdBookingId;
     if (!bookingDetails?.user?.country) {
       toast.error("Please select a country");
       return;
@@ -138,15 +144,13 @@ export default function PaymentConfirm() {
 
     setIsLoading(true);
     try {
-      
-      const bookingId = location.state?.createdBookingId;
-
-      if (!bookingId) {
+      if (!currentBookingId) {
         toast.error("Booking reference not found. Please try again.");
         return;
       }
       const successUrl = `${window.location.origin}/booking-confirmation`;
       const cancelUrl = `${window.location.origin}/hotel/checkout`;
+      const bookingId = location.state?.createdBookingId;
 
       // Prepare user information
       const userInfo = bookingDetails.user;
@@ -154,7 +158,7 @@ export default function PaymentConfirm() {
       const { vatAmount, total } = calculateTotal();
 
       const bookingConfirmationData = {
-        bookingId,
+        bookingId: currentBookingId,
         hotelName: bookingDetails.hotelName,
         checkIn: bookingDetails.checkIn,
         checkOut: bookingDetails.checkOut,
@@ -206,7 +210,7 @@ export default function PaymentConfirm() {
       if (paymentMethod === "paystack" && isUserInAfrica) {
         console.log("Processing Paystack payment for:", userCountry);
         const response = await createPaystackSession({
-          bookingId,
+          bookingId: currentBookingId,
           body: {
             ...paymentData,
             callback_url: successUrl,
@@ -223,41 +227,63 @@ export default function PaymentConfirm() {
         if (!checkoutUrl)
           throw new Error("No valid checkout URL found in Paystack response");
 
-        window.location.href = checkoutUrl; // redirect to Paystack payment page
+        // Store booking data in session storage before redirecting
+        sessionStorage.setItem(
+          "pendingBooking",
+          JSON.stringify({
+            bookingId,
+            paymentMethod: "paystack",
+            timestamp: new Date().toISOString(),
+          })
+        );
+        // Store booking data in session storage before redirecting
+        sessionStorage.setItem(
+          "pendingBooking",
+          JSON.stringify({
+            bookingId: currentBookingId,
+            paymentMethod: "paystack",
+            timestamp: new Date().toISOString(),
+            successUrl,
+            cancelUrl,
+          })
+        );
+
+        // Redirect to payment gateway
+        window.location.href = checkoutUrl;
       } else {
         console.log("Processing Stripe payment for:", userCountry);
         paymentData.currency = "USD";
 
-      const result = await createStripeSession({
-        bookingId: bookingId,
-        body: {
-          ...paymentData,
-          line_items: [
-            {
-              price_data: {
-                currency: "usd",
-                product_data: {
-                  name: `Hotel Booking - ${
-                    bookingDetails.hotelName || "Hotel"
-                  }`,
-                  description: `Room Type: ${
-                    bookingDetails.roomType || "Standard"
-                  }`,
+        const result = await createStripeSession({
+          bookingId: currentBookingId,
+          body: {
+            ...paymentData,
+            line_items: [
+              {
+                price_data: {
+                  currency: "usd",
+                  product_data: {
+                    name: `Hotel Booking - ${
+                      bookingDetails.hotelName || "Hotel"
+                    }`,
+                    description: `Room Type: ${
+                      bookingDetails.roomType || "Standard"
+                    }`,
+                  },
+                  unit_amount: Math.round(total * 100),
                 },
-                unit_amount: Math.round(total * 100),
+                quantity: 1,
               },
-              quantity: 1,
-            },
-          ],
-          mode: "payment",
-          success_url: successUrl,
-          cancel_url: cancelUrl,
-          billing_address_collection: "required",
-          submit_type: "pay",
-          allow_promotion_codes: true,
-          metadata: paymentData.metadata,
-        },
-      }).unwrap();
+            ],
+            mode: "payment",
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            billing_address_collection: "required",
+            submit_type: "pay",
+            allow_promotion_codes: true,
+            metadata: paymentData.metadata,
+          },
+        }).unwrap();
 
         const checkoutUrl =
           result?.data?.checkoutUrl || result?.data?.url || result?.url;
@@ -265,7 +291,29 @@ export default function PaymentConfirm() {
         if (!checkoutUrl)
           throw new Error("Could not retrieve Stripe checkout URL");
 
-        window.location.href = checkoutUrl; // redirect to Stripe payment page
+        // Store booking data in session storage before redirecting
+        sessionStorage.setItem(
+          "pendingBooking",
+          JSON.stringify({
+            bookingId,
+            paymentMethod: "stripe",
+            timestamp: new Date().toISOString(),
+          })
+        );
+        // Store booking data in session storage before redirecting
+        sessionStorage.setItem(
+          "pendingBooking",
+          JSON.stringify({
+            bookingId: currentBookingId,
+            paymentMethod: "stripe",
+            timestamp: new Date().toISOString(),
+            successUrl,
+            cancelUrl,
+          })
+        );
+
+        // Redirect to payment gateway
+        window.location.href = checkoutUrl;
       }
     } catch (error) {
       console.error("Payment error:", error);
