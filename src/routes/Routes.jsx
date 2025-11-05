@@ -167,7 +167,7 @@ export const routes = createBrowserRouter([
         element: <ReservationDetails />,
       },
       {
-        path: "/payment/success", // this is for stays booking confirmation
+        path: "/booking-confirmation", // this is for stays booking confirmation
         element: <BookingConfirmation />,
       },
       {
