@@ -91,6 +91,7 @@ export default function PaymentConfirm() {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const bookingDetails = location.state?.bookingDetails;
+  console.log("Booking Details:", bookingDetails);
 
   // Set payment method based on country when component mounts or country changes
   useEffect(() => {
@@ -127,6 +128,7 @@ export default function PaymentConfirm() {
     const options = { year: "numeric", month: "short", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
+  const bookingId = location.state?.createdBookingId;
 
   const handlePayment = async () => {
     if (!bookingDetails?.user?.country) {
@@ -136,27 +138,28 @@ export default function PaymentConfirm() {
 
     setIsLoading(true);
     try {
-      // Prepare booking data to pass to confirmation page
+      
+      const bookingId = location.state?.createdBookingId;
+
+      if (!bookingId) {
+        toast.error("Booking reference not found. Please try again.");
+        return;
+      }
+      const successUrl = `${window.location.origin}/booking-confirmation`;
+      const cancelUrl = `${window.location.origin}/hotel/checkout`;
+
       // Prepare user information
-      const userInfo = bookingDetails.user
-        ? {
-            id: bookingDetails.user.id,
-            email: bookingDetails.user.email,
-            fullName: bookingDetails.user.fullName || bookingDetails.user.name,
-            phone:
-              bookingDetails.user.contactNumber || bookingDetails.user.phone,
-            country: bookingDetails.user.country,
-            // Include any other user fields you need
-          }
-        : {};
-      console.log("UserInfo", userInfo);
+      const userInfo = bookingDetails.user;
+
+      const { vatAmount, total } = calculateTotal();
+
       const bookingConfirmationData = {
-        bookingId: bookingId,
+        bookingId,
         hotelName: bookingDetails.hotelName,
         checkIn: bookingDetails.checkIn,
         checkOut: bookingDetails.checkOut,
         guests: bookingDetails.guests || 1,
-        total: total,
+        total,
         roomType: bookingDetails.roomType,
         location: bookingDetails.location,
         rooms: bookingDetails.rooms,
@@ -174,22 +177,8 @@ export default function PaymentConfirm() {
         JSON.stringify(bookingConfirmationData)
       );
 
-      // Navigate with state
-      navigate("/booking-confirmation", {
-        state: { bookingData: bookingConfirmationData },
-      });
-
-      const successUrl = `${window.location.origin}/booking-confirmation`;
-      const cancelUrl = `${window.location.origin}/hotel/checkout`;
-      const bookingId = location.state?.createdBookingId;
-
-      if (!bookingId) {
-        toast.error("Booking reference not found. Please try again.");
-        return;
-      }
-
       const paymentData = {
-        amount: Math.round(total * 100), // Convert to smallest currency unit
+        amount: Math.round(total * 100), // smallest currency unit
         email: bookingDetails.user.email || "",
         name:
           bookingDetails.user.fullName ||
@@ -197,29 +186,27 @@ export default function PaymentConfirm() {
           "Customer",
         phone:
           bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
-        currency: "NGN", // Use NGN for Paystack
+        currency: "NGN", // default Paystack
         hotelId: bookingDetails.hotelId,
         roomId: bookingDetails.roomId,
         userId: bookingDetails.user.id,
-        successUrl: successUrl,
-        cancelUrl: cancelUrl,
+        successUrl,
+        cancelUrl,
         metadata: {
-          bookingId: bookingId,
+          bookingId,
           hotelId: bookingDetails.hotelId,
           roomId: bookingDetails.roomId,
           userId: bookingDetails.user.id,
         },
       };
 
-      // Check if user's country is in Africa
       const userCountry = (bookingDetails.user.country || "").toLowerCase();
       const isUserInAfrica = isAfricanCountry(userCountry);
 
       if (paymentMethod === "paystack" && isUserInAfrica) {
-        // Process Paystack payment for African countries
-        console.log("Processing Paystack payment for country:", userCountry);
+        console.log("Processing Paystack payment for:", userCountry);
         const response = await createPaystackSession({
-          bookingId: bookingId,
+          bookingId,
           body: {
             ...paymentData,
             callback_url: successUrl,
@@ -233,62 +220,52 @@ export default function PaymentConfirm() {
           response?.data?.authorization_url ||
           response?.authorization_url;
 
-        if (checkoutUrl) {
-          console.log("Redirecting to Paystack checkout:", checkoutUrl);
-          // Use navigate instead of direct href to pass state
-          navigate("/booking-confirmation", {
-            state: { bookingData: bookingConfirmationData },
-          });
-          return;
-        } else {
+        if (!checkoutUrl)
           throw new Error("No valid checkout URL found in Paystack response");
-        }
-      } else {
-        // Process Stripe payment for non-African countries
-        console.log("Processing Stripe payment for country:", userCountry);
-        paymentData.currency = "USD"; // Use USD for Stripe
 
-        const result = await createStripeSession({
-          bookingId: bookingId,
-          body: {
-            ...paymentData,
-            line_items: [
-              {
-                price_data: {
-                  currency: "usd",
-                  product_data: {
-                    name: `Hotel Booking - ${
-                      bookingDetails.hotelName || "Hotel"
-                    }`,
-                    description: `Room Type: ${
-                      bookingDetails.roomType || "Standard"
-                    }`,
-                  },
-                  unit_amount: Math.round(total * 100),
+        window.location.href = checkoutUrl; // redirect to Paystack payment page
+      } else {
+        console.log("Processing Stripe payment for:", userCountry);
+        paymentData.currency = "USD";
+
+      const result = await createStripeSession({
+        bookingId: bookingId,
+        body: {
+          ...paymentData,
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: `Hotel Booking - ${
+                    bookingDetails.hotelName || "Hotel"
+                  }`,
+                  description: `Room Type: ${
+                    bookingDetails.roomType || "Standard"
+                  }`,
                 },
-                quantity: 1,
+                unit_amount: Math.round(total * 100),
               },
-            ],
-            mode: "payment",
-            success_url: successUrl,
-            cancel_url: cancelUrl,
-            billing_address_collection: "required",
-            submit_type: "pay",
-            allow_promotion_codes: true,
-            metadata: paymentData.metadata,
-          },
-        }).unwrap();
+              quantity: 1,
+            },
+          ],
+          mode: "payment",
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+          billing_address_collection: "required",
+          submit_type: "pay",
+          allow_promotion_codes: true,
+          metadata: paymentData.metadata,
+        },
+      }).unwrap();
 
         const checkoutUrl =
           result?.data?.checkoutUrl || result?.data?.url || result?.url;
-        if (checkoutUrl) {
-          // Use navigate instead of direct href to pass state
-          navigate("/booking-confirmation", {
-            state: { bookingData: bookingConfirmationData },
-          });
-        } else {
+
+        if (!checkoutUrl)
           throw new Error("Could not retrieve Stripe checkout URL");
-        }
+
+        window.location.href = checkoutUrl; // redirect to Stripe payment page
       }
     } catch (error) {
       console.error("Payment error:", error);
