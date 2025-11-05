@@ -89,31 +89,38 @@ export default function PaymentConfirm() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("stripe");
   const bookingDetails = location.state?.bookingDetails;
+
+  // Set payment method based on country when component mounts or country changes
+  useEffect(() => {
+    if (bookingDetails?.user?.country) {
+      const country = bookingDetails.user.country.toLowerCase();
+      const isUserInAfrica = isAfricanCountry(country);
+      setPaymentMethod(isUserInAfrica ? 'paystack' : 'stripe');
+    }
+  }, [bookingDetails?.user?.country]);
 
   // Payment mutations
   const [createPaystackSession] =
     useCreateHotelPaystackCheckoutSessionMutation();
   const [createStripeSession] =
     useCreateHotelStripeCheckoutSessionWebsiteMutation();
-  console.log("dsfd", bookingDetails);
 
   const calculateTotal = () => {
     const price =
       Number(bookingDetails?.roomPrice) * Number(bookingDetails?.rooms) || 0;
-    const subtotal = price;
-    const vatAmount = Math.round((subtotal * (bookingDetails?.vat || 0)) / 100);
-    const total = subtotal + vatAmount;
+    const vatAmount = Math.round((price * (bookingDetails?.vat || 0)) / 100);
+    const total = price + vatAmount;
 
     return {
-      subtotal,
+
       vatAmount,
       total,
     };
   };
 
-  const { subtotal, vatAmount, total } = calculateTotal();
+  const { vatAmount, total } = calculateTotal();
 
   // Format date to be more readable
   const formatDate = (dateString) => {
@@ -123,48 +130,34 @@ export default function PaymentConfirm() {
   };
 
   const handlePayment = async () => {
-    // Validate required fields
-    if (
-      !bookingDetails?.user?.id ||
-      !bookingDetails?.hotelId ||
-      !bookingDetails?.roomId
-    ) {
-      toast.error("Invalid booking details. Please try again.");
+    if (!bookingDetails?.user?.country) {
+      toast.error("Please select a country");
       return;
     }
-
-    // Check if we have a valid booking ID from location state
-    const bookingId = location.state?.createdBookingId;
-    if (!bookingId) {
-      toast.error(
-        "Booking reference not found. Please start the booking process again."
-      );
-      return;
-    }
-
+    
     setIsLoading(true);
-
     try {
       const baseUrl = window.location.origin;
       const successUrl = `${baseUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}`;
       const cancelUrl = `${baseUrl}/hotel/checkout`;
+      const bookingId = location.state?.createdBookingId;
+
+      if (!bookingId) {
+        toast.error("Booking reference not found. Please try again.");
+        return;
+      }
 
       const paymentData = {
         amount: Math.round(total * 100), // Convert to smallest currency unit
-        email: bookingDetails.user.email,
-        name:
-          bookingDetails.user.fullName ||
-          bookingDetails.user.name ||
-          "Customer",
-        phone:
-          bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
-        currency: "USD",
+        email: bookingDetails.user.email || "",
+        name: bookingDetails.user.fullName || bookingDetails.user.name || "Customer",
+        phone: bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
+        currency: "NGN", // Use NGN for Paystack
         hotelId: bookingDetails.hotelId,
         roomId: bookingDetails.roomId,
         userId: bookingDetails.user.id,
         successUrl: successUrl,
         cancelUrl: cancelUrl,
-        // Add any additional required fields here
         metadata: {
           bookingId: bookingId,
           hotelId: bookingDetails.hotelId,
@@ -173,80 +166,51 @@ export default function PaymentConfirm() {
         },
       };
 
-      console.log("Payment data:", paymentData);
+      // Check if user's country is in Africa
+      const userCountry = (bookingDetails.user.country || "").toLowerCase();
+      const isUserInAfrica = isAfricanCountry(userCountry);
 
-      // For testing - force Paystack
-      const forcePaystack = true; // Set to false to use country-based detection
-      const userCountry = (bookingDetails.user?.country || "").toLowerCase();
-      const isAfrican = forcePaystack || isAfricanCountry(userCountry);
-
-      console.log("Payment method selection:", { userCountry, isAfrican });
-
-      if (isAfrican) {
-        // Process Paystack payment
-        console.log("Initiating Paystack payment...");
-
-        try {
-          const response = await createPaystackSession({
-            bookingId: bookingId,
-            body: {
-              email: paymentData.email,
-              amount: paymentData.amount,
-              currency: "NGN", // Force Naira for Paystack
-              callback_url: paymentData.successUrl,
-              metadata: {
-                bookingId: bookingId,
-                hotelId: bookingDetails.hotelId,
-                roomId: bookingDetails.roomId,
-                userId: bookingDetails.user.id,
-              },
-            },
-          }).unwrap();
-
-          console.log("Paystack response:", response);
-
-          // Handle different response formats
-          const checkoutUrl =
-            response?.data?.checkoutUrl ||
-            response?.checkoutUrl ||
-            response?.data?.authorization_url ||
-            response?.authorization_url;
-
-          if (checkoutUrl) {
-            console.log("Redirecting to Paystack checkout:", checkoutUrl);
-            window.location.href = checkoutUrl;
-            return; // Important: Stop execution after redirect
-          } else {
-            throw new Error("No valid checkout URL found in Paystack response");
-          }
-        } catch (error) {
-          console.error("Paystack API error:", error);
-          const errorMessage =
-            error?.data?.message ||
-            error?.message ||
-            "Failed to initialize Paystack payment";
-          console.error("Payment error details:", { error });
-          throw new Error(`Paystack Error: ${errorMessage}`);
-        }
-      } else {
-        // Process Stripe payment
-        console.log("Initiating Stripe payment...");
-        result = await createStripeSession({
+      if (paymentMethod === 'paystack' && isUserInAfrica) {
+        // Process Paystack payment for African countries
+        console.log("Processing Paystack payment for country:", userCountry);
+        const response = await createPaystackSession({
           bookingId: bookingId,
           body: {
             ...paymentData,
-            // Ensure required fields for Stripe
+            callback_url: successUrl,
+            metadata: paymentData.metadata,
+          },
+        }).unwrap();
+
+        const checkoutUrl = 
+          response?.data?.checkoutUrl || 
+          response?.checkoutUrl || 
+          response?.data?.authorization_url || 
+          response?.authorization_url;
+
+        if (checkoutUrl) {
+          console.log("Redirecting to Paystack checkout:", checkoutUrl);
+          window.location.href = checkoutUrl;
+          return;
+        } else {
+          throw new Error("No valid checkout URL found in Paystack response");
+        }
+      } else {
+        // Process Stripe payment for non-African countries
+        console.log("Processing Stripe payment for country:", userCountry);
+        paymentData.currency = "USD"; // Use USD for Stripe
+        
+        const result = await createStripeSession({
+          bookingId: bookingId,
+          body: {
+            ...paymentData,
             line_items: [
               {
                 price_data: {
                   currency: "usd",
                   product_data: {
-                    name: `Hotel Booking - ${
-                      bookingDetails.hotelName || "Hotel"
-                    }`,
-                    description: `Room Type: ${
-                      bookingDetails.roomType || "Standard"
-                    }`,
+                    name: `Hotel Booking - ${bookingDetails.hotelName || "Hotel"}`,
+                    description: `Room Type: ${bookingDetails.roomType || "Standard"}`,
                   },
                   unit_amount: Math.round(total * 100),
                 },
@@ -256,33 +220,27 @@ export default function PaymentConfirm() {
             mode: "payment",
             success_url: successUrl,
             cancel_url: cancelUrl,
-            metadata: {
-              bookingId: bookingId,
-              hotelId: bookingDetails.hotelId,
-              roomId: bookingDetails.roomId,
-              userId: bookingDetails.user.id,
-            },
+            billing_address_collection: 'required',
+            submit_type: 'pay',
+            allow_promotion_codes: true,
+            metadata: paymentData.metadata,
           },
         }).unwrap();
 
-        console.log("Stripe response:", result);
-
-        // Handle different response formats
-        const checkoutUrl =
-          result?.data?.checkoutUrl || result?.data?.url || result?.url;
+        const checkoutUrl = result?.data?.checkoutUrl || result?.data?.url || result?.url;
         if (checkoutUrl) {
           window.location.href = checkoutUrl;
         } else {
           throw new Error("Could not retrieve Stripe checkout URL");
         }
       }
+      
     } catch (error) {
       console.error("Payment error:", error);
-      const errorMessage =
-        error?.data?.message ||
-        error?.error ||
-        error?.message ||
-        "Payment processing failed. Please try again.";
+      const errorMessage = error?.data?.message ||
+                         error?.error ||
+                         error?.message ||
+                         "Payment processing failed. Please try again.";
       toast.error(`Payment Error: ${errorMessage}`);
     } finally {
       setIsLoading(false);
@@ -290,159 +248,163 @@ export default function PaymentConfirm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50  py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to previous page
-        </button>
+      <div className="min-h-screen bg-gray-50  py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to previous page
+          </button>
 
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="p-6 md:flex gap-8">
-            {/* Left Column - Booking Details */}
-            <div className="md:w-2/3 space-y-6">
-              <div className="pb-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-medium">
-                      {bookingDetails?.hotelName || "Hotel Name Not Available"}
-                    </h3>
-                    <div className="flex items-center text-gray-600 mt-1">
-                      <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <p className="text-sm">
-                        {bookingDetails?.location || "Location not specified"}
-                      </p>
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="p-6 md:flex gap-8">
+              {/* Left Column - Booking Details */}
+              <div className="md:w-2/3 space-y-6">
+                <div className="pb-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium">
+                        {bookingDetails?.hotelName ||
+                          "Hotel Name Not Available"}
+                      </h3>
+                      <div className="flex items-center text-gray-600 mt-1">
+                        <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <p className="text-sm">
+                          {bookingDetails?.location || "Location not specified"}
+                        </p>
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-600">
+                          {bookingDetails?.roomType &&
+                            `Room Type: ${bookingDetails.roomType}`}
+                        </p>
+                      </div>
                     </div>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-600">
-                        {bookingDetails?.roomType &&
-                          `Room Type: ${bookingDetails.roomType}`}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="space-y-5">
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Check-in</p>
-                        <p>
-                          {formatDate(bookingDetails?.checkIn) ||
-                            "Not specified"}
-                        </p>
+                    <div className="space-y-5">
+                      <div className="flex items-center">
+                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Check-in</p>
+                          <p>
+                            {formatDate(bookingDetails?.checkIn) ||
+                              "Not specified"}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Check-out</p>
-                        <p>
-                          {formatDate(bookingDetails?.checkOut) ||
-                            "Not specified"}
-                        </p>
+                      <div className="flex items-center">
+                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Check-out</p>
+                          <p>
+                            {formatDate(bookingDetails?.checkOut) ||
+                              "Not specified"}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Nights</p>
-                        <p>
-                          {bookingDetails?.nights || "1"} night
-                          {bookingDetails?.nights !== 1 ? "s" : ""}
-                        </p>
+                      <div className="flex items-center">
+                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Nights</p>
+                          <p>
+                            {bookingDetails?.nights || "1"} night
+                            {bookingDetails?.nights !== 1 ? "s" : ""}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center">
-                      <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Guests</p>
-                        <p>
-                          {bookingDetails?.adults || 1}{" "}
-                          {bookingDetails?.adults === 1 ? "Adult" : "Adults"}
-                          {bookingDetails?.children
-                            ? `, ${bookingDetails.children} ${
-                                bookingDetails.children === 1
-                                  ? "Child"
-                                  : "Children"
-                              }`
-                            : ""}
-                        </p>
+                      <div className="flex items-center">
+                        <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Guests</p>
+                          <p>
+                            {bookingDetails?.adults || 1}{" "}
+                            {bookingDetails?.adults === 1 ? "Adult" : "Adults"}
+                            {bookingDetails?.children
+                              ? `, ${bookingDetails.children} ${
+                                  bookingDetails.children === 1
+                                    ? "Child"
+                                    : "Children"
+                                }`
+                              : ""}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center">
-                      <ShieldCheck className="w-5 h-5 text-gray-500 mr-2" />
-                      <div>
-                        <p className="text-sm text-gray-500">Condition</p>
-                        <p
-                          className={
-                            bookingDetails?.isRefundable
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }
-                        >
-                          {bookingDetails?.isRefundable
-                            ? "Refundable"
-                            : "Non-Refundable"}
-                        </p>
+                      <div className="flex items-center">
+                        <ShieldCheck className="w-5 h-5 text-gray-500 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-500">Condition</p>
+                          <p
+                            className={
+                              bookingDetails?.isRefundable
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }
+                          >
+                            {bookingDetails?.isRefundable
+                              ? "Refundable"
+                              : "Non-Refundable"}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center">
-                      <Phone className="w-5 h-5 text-gray-500 mr-2" />
-                      <div>
-                        <p className="text-sm text-gray-500">Phone Number: </p>
-                        <p> {bookingDetails?.phoneNumber || "Not provided"}</p>
+                      <div className="flex items-center">
+                        <Phone className="w-5 h-5 text-gray-500 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-500">Country: </p>
+                          <p>
+                            {" "}
+                            {bookingDetails?.user?.country || "Not provided"}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Right Column - Price Summary */}
-            <div className="md:w-1/3 mt-10 md:mt-0">
-              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 sticky top-6">
-                <h2 className="text-lg font-semibold mb-8">Price Details</h2>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Price per night</span>
-                    <span>
-                      ${(bookingDetails?.roomPrice || 0).toLocaleString()}
-                    </span>
-                  </div>
+              {/* Right Column - Price Summary */}
+              <div className="md:w-1/3 mt-10 md:mt-0">
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 sticky top-6">
+                  <h2 className="text-lg font-semibold mb-8">Price Details</h2>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Price per night</span>
+                      <span>
+                        ${(bookingDetails?.roomPrice || 0).toLocaleString()}
+                      </span>
+                    </div>
 
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>${(subtotal || 0).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>VAT ({bookingDetails?.vat || 0}%)</span>
-                    <span>${(vatAmount || 0).toLocaleString()}</span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-3 mt-3">
-                    <div className="flex justify-between font-semibold text-lg">
-                      <span>Total</span>
-                      <span>${(total || 0).toLocaleString()}</span>
+                    <div className="flex justify-between">
+                      <span>VAT ({bookingDetails?.vat || 0}%)</span>
+                      <span>${(vatAmount || 0).toLocaleString()}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <div className="border-t w-full border-gray-200 pt-3 mt-3">
+                        <div className="flex justify-between font-semibold text-lg">
+                          <span>Total</span>
+                          <span>${(total || 0).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 space-y-3">
+                      <button
+                        onClick={handlePayment}
+                        disabled={isLoading}
+                        className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center disabled:opacity-70"
+                      >
+                        {isLoading ? "Processing..." : "Continue to Pay"}
+                      </button>
                     </div>
                   </div>
-                </div>
-
-                <div className="mt-6 space-y-3">
-                  <button
-                    onClick={handlePayment}
-                    disabled={isLoading}
-                    className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center disabled:opacity-70"
-                  >
-                    {isLoading ? "Processing..." : "Continue to Pay"}
-                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+  
   );
 }
