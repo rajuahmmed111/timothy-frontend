@@ -39,7 +39,7 @@ export default function Checkout() {
     rooms: bookingData?.rooms || 1,
   };
 
-  const userInfo = bookingData?.user || {};
+  const userInfo = bookingData?.user;
   
   // Check if user's country is in Africa
   const isAfricaByCountry = (country) => {
@@ -75,6 +75,7 @@ export default function Checkout() {
       navigate("/hotel/payment-confirm", {
         state: {
           bookingDetails: bookingData,
+          user: userInfo,
           createdBookingId: res?.data?.id,
         },
       });
