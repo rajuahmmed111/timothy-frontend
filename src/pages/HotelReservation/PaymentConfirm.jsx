@@ -330,7 +330,7 @@ export default function PaymentConfirm() {
 
   return (
     <div className="min-h-screen bg-gray-50  py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
@@ -414,7 +414,7 @@ export default function PaymentConfirm() {
                     <div className="flex items-center">
                       <ShieldCheck className="w-5 h-5 text-gray-500 mr-2" />
                       <div>
-                        <p className="text-sm text-gray-500">Condition</p>
+                        <p className="text-sm text-gray-500">Booking Condition</p>
                         <p
                           className={
                             bookingDetails?.isRefundable
@@ -423,8 +423,9 @@ export default function PaymentConfirm() {
                           }
                         >
                           {bookingDetails?.isRefundable
-                            ? "Refundable"
-                            : "Non-Refundable"}
+                            ? "Refundable , Pay Online"
+                            : "Non Refundable"}
+                      
                         </p>
                       </div>
                     </div>
@@ -475,7 +476,7 @@ export default function PaymentConfirm() {
                       disabled={isLoading}
                       className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center disabled:opacity-70"
                     >
-                      {isLoading ? "Processing..." : "Continue to Pay"}
+                      {isLoading ? "Processing..." : "Continue"}
                     </button>
                   </div>
                 </div>
