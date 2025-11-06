@@ -27,12 +27,6 @@ export default function CarBookings() {
 
   const columns = [
     { title: "No", dataIndex: "no", key: "no" },
-    {
-      title: "Car Image",
-      dataIndex: "carImage",
-      key: "carImage",
-      render: (text, record) => <img src={record.carImage} alt="car" />,
-    },
     { title: "Car Model", dataIndex: "carModel", key: "carModel" },
     { title: "Start Date", dataIndex: "startDate", key: "startDate" },
     { title: "End Date", dataIndex: "endDate", key: "endDate" },
