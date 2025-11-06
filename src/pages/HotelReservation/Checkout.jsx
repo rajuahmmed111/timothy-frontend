@@ -290,7 +290,7 @@ export default function Checkout() {
                       >
                         {isProcessing || isLoading
                           ? "Processing..."
-                          : "Booked And Pay"}
+                          : "Continue"}
                       </button>
                   
                   </div>
