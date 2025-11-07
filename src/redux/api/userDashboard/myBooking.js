@@ -3,11 +3,21 @@ import { baseApi } from "../baseUrl";
 export const bookingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllHotelBooking: builder.query({
-      query: () => ({
+      query: (
+        
+      ) => ({
         url: `/hotel-booking/my-bookings`,
         method: "GET",
       }),
       providesTags: ["user"],
+    }),
+    cancelHotelBooking: builder.mutation({
+      query: ({ id, bookingStatus = "CANCELLED" }) => ({
+        url: `/hotel-booking/cancel-my-booking/${id}`,
+        method: "PATCH",
+        body: { bookingStatus },
+      }),
+      invalidatesTags: ["user"],
     }),
     getAllSecurityBooking: builder.query({
       query: () => ({
@@ -23,7 +33,6 @@ export const bookingApi = baseApi.injectEndpoints({
       }),
       providesTags: ["user"],
     }),
-
     getAllAttractionBooking: builder.query({
       query: () => ({
         url: `/attraction-booking/my-bookings`,
@@ -36,6 +45,7 @@ export const bookingApi = baseApi.injectEndpoints({
 
 export const {
   useGetAllHotelBookingQuery,
+  useCancelHotelBookingMutation,
   useGetAllSecurityBookingQuery,
   useGetAllCarBookingQuery,
   useGetAllAttractionBookingQuery,

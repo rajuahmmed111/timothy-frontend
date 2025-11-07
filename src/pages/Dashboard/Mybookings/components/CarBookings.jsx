@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Table, Tag } from "antd";
 import { useGetAllCarBookingQuery } from "../../../../redux/api/userDashboard/myBooking";
 import Loader from "../../../../shared/Loader/Loader";
@@ -8,7 +8,7 @@ export default function CarBookings() {
     refetchOnMountOrArgChange: true,
   });
 
-  const bookingData = React.useMemo(() => {
+  const bookingData = useMemo(() => {
     if (!carBooking?.data) return [];
     return carBooking.data.map((booking, index) => ({
       no: index + 1,
