@@ -271,7 +271,7 @@ export default function Checkout() {
                   <div className="flex flex-col">
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total Amount</span>
-                      <span>${bookingData.total}</span>
+                      <span>{bookingData.total}</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
                       Includes VAT and all applicable taxes
