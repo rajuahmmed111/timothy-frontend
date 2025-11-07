@@ -251,19 +251,19 @@ export default function Checkout() {
                     ${bookingData.roomPrice} × {bookingData.nights} nights ×{" "}
                     {safeGuests.rooms} {safeGuests.rooms > 1 ? "rooms" : "room"}
                   </span>
-                  <span>${bookingData.subtotal}</span>
+                  <span>{bookingData.subtotal}</span>
                 </div>
 
                 <div className="flex justify-between text-sm">
                   <span>VAT (12%)</span>
-                  <span>${bookingData.vat}</span>
+                  <span>{bookingData.vat}</span>
                 </div>
 
                 {/* Add service fee if applicable */}
                 {bookingData.serviceFee > 0 && (
                   <div className="flex justify-between text-sm">
                     <span>Service Fee</span>
-                    <span>${bookingData.serviceFee}</span>
+                    <span>{bookingData.serviceFee}</span>
                   </div>
                 )}
 
