@@ -3,8 +3,13 @@ import { Star, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function HotelCard({ hotel }) {
+  console.log("Hotel", hotel);
   return (
-    <Link to={`/hotel-details/${hotel.id}`} state={{ hotel: hotel.raw || hotel }} className="w-full">
+    <Link
+      to={`/hotel-details/${hotel.id}`}
+      state={{ hotel: hotel.raw || hotel }}
+      className="w-full"
+    >
       <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
         {/* Hotel Image */}
         <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
@@ -34,30 +39,27 @@ export default function HotelCard({ hotel }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-baseline gap-2">
               <div className="text-2xl font-bold text-gray-900">
-                ${Math.max(0, Math.round((Number(hotel.price || 0) * (100 - Number(hotel.discount || 0))) / 100))}
+              {hotel?.raw?.displayCurrency}:- {Number(hotel?.raw?.averagePrice || 0).toLocaleString()}
               </div>
-              {Number(hotel.discount || 0) > 0 && (
-                <>
-                  <div className="text-sm text-gray-400 line-through">${Number(hotel.price || 0)}</div>
-                  <div className="text-xs bg-red-100 text-red-700 font-medium px-2 py-0.5 rounded">
-                    -{Math.round(Number(hotel.discount))}%
-                  </div>
-                </>
-              )}
             </div>
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
                   className={`w-4 h-4 ${
-                    i < Math.floor(hotel.rating || 0)
+                    i < Math.floor(hotel?.raw?.averageRating || 0)
                       ? "fill-yellow-400 text-yellow-400"
                       : "text-gray-300"
                   }`}
                 />
               ))}
               <span className="text-sm text-gray-600 ml-1">
-                ({hotel.rating ? Number(hotel.rating).toFixed(1) : "0.0"})
+                ({hotel?.raw?.averageRating ? Number(hotel?.raw?.averageRating).toFixed(1) : "0.0"})
+                {hotel?.raw?.averageReviewCount > 0 && (
+                  <span className="text-xs text-gray-500 ml-1">
+                    ({hotel?.raw?.averageReviewCount} {hotel?.raw?.averageReviewCount === 1 ? 'review' : 'reviews'})
+                  </span>
+                )}
               </span>
             </div>
           </div>

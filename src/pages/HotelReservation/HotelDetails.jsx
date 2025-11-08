@@ -91,49 +91,7 @@ export default function HotelDetails() {
             <div className="lg:col-span-2">
               <ImageGallery hotel={hotelData} />
               <PropertyDetails hotel={hotelData} />
-              {/* <section className="my-6 bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Reviews
-                  </h2>
-                  <span className="text-sm text-gray-600">
-                    {reviewCount} review{reviewCount !== 1 ? "s" : ""}
-                  </span>
-                </div>
-                {isReviewsFetching ? (
-                  <p className="text-sm text-gray-500">Loading reviews...</p>
-                ) : reviewCount === 0 ? (
-                  <p className="text-sm text-gray-500">No reviews yet.</p>
-                ) : (
-                  <ul className="space-y-4">
-                    {reviewArray.map((rev) => (
-                      <li
-                        key={rev.id}
-                        className="border border-gray-100 rounded-md p-3"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          {[1, 2, 3, 4, 5].map((s, i) => (
-                            <span
-                              key={s}
-                              className={`w-3 h-3 inline-block ${
-                                i < Math.round(Number(rev?.rating || 0))
-                                  ? "bg-yellow-400"
-                                  : "bg-gray-200"
-                              }`}
-                            ></span>
-                          ))}
-                          <span className="text-xs text-gray-600">
-                            {Number(rev?.rating || 0).toFixed(1)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-800">
-                          {rev?.comment || ""}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section> */}
+          
             </div>
 
             <div className="lg:sticky lg:top-4 space-y-4">

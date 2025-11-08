@@ -20,6 +20,7 @@ export default function BookingForm({ hotel }) {
   const { RangePicker } = DatePicker;
   const user = useSelector((state) => state?.auth?.user);
   const accessToken = useSelector((state) => state?.auth?.accessToken);
+  console.log("Hotel", hotel);
   const userInfo = useMemo(() => {
     if (!accessToken) return null;
     try {
@@ -72,9 +73,14 @@ export default function BookingForm({ hotel }) {
       return hotel.room.map((r) => ({
         id: r?._id || r?.id || r?.roomId || r?.hotelRoomType,
         name: r?.hotelRoomType || "Room",
-        price:
-          Number(r?.hotelRoomPriceNight) || Number(hotel?.averagePrice) || 0,
-        discount: Number(r?.discount) || 0,
+        price: Number(r?.price) || Number(hotel?.averagePrice) || 0,
+        convertedPrice:
+          Number(r?.convertedPrice) ||
+          Number(r?.price) ||
+          Number(hotel?.averagePrice) ||
+          0,
+        discountedPrice: Number(r?.discountedPrice) || Number(r?.discount) || 0,
+        displayCurrency: r?.displayCurrency || hotel?.displayCurrency || "USD",
         features: [
           r?.hotelRoomCapacity ? String(r.hotelRoomCapacity) : undefined,
           r?.category ? String(r.category) : undefined,
@@ -85,9 +91,12 @@ export default function BookingForm({ hotel }) {
     return [
       {
         id: "default",
-        name: hotel?.hotelName || "Standard Room",
+        name: hotel?.hotelName,
         price: Number(hotel?.averagePrice) || 0,
-        discount: 0,
+        convertedPrice:
+          Number(hotel?.convertedPrice) || Number(hotel?.averagePrice) || 0,
+        discountedPrice: Number(hotel?.discountedPrice) || 0,
+        displayCurrency: hotel?.displayCurrency,
         features: [hotel?.hotelAccommodationType].filter(Boolean),
         rating: Number(hotel?.averageRating) || 0,
       },
@@ -103,12 +112,50 @@ export default function BookingForm({ hotel }) {
 
   const selectedRoomData =
     rooms.find((room) => room.id === selectedRoom) || rooms[0];
-  const nightlyBase = Number(selectedRoomData?.price || 0);
-  const nightlyDiscountPct = Number(selectedRoomData?.discount || 0);
-  const nightlyPrice = Math.max(
-    0,
-    Math.round((nightlyBase * (100 - nightlyDiscountPct)) / 100)
+  const nightlyBase = Number(
+    selectedRoomData?.convertedPrice || selectedRoomData?.price || 0
   );
+  const nightlyDiscountPct = Number(
+    selectedRoomData?.discountedPrice || selectedRoomData?.discount || 0
+  );
+  const nightlyPrice =
+    nightlyDiscountPct > 0
+      ? Math.max(
+          0,
+          Math.round((nightlyBase * (100 - nightlyDiscountPct)) / 100)
+        )
+      : nightlyBase;
+
+  // Format price with currency
+  const formatPrice = (
+    amount,
+    currency = selectedRoomData?.displayCurrency || "USD"
+  ) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+      .format(amount)
+      .replace(/^\D+/, "");
+  };
+
+  // Get currency symbol
+  const getCurrencySymbol = (
+    currency = selectedRoomData?.displayCurrency || "USD"
+  ) => {
+    return (0)
+      .toLocaleString("en-US", {
+        style: "currency",
+        currency: currency || "USD",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      })
+      .replace(/[0-9.,\s]/g, "");
+  };
+
+  const currencySymbol = getCurrencySymbol();
   const roomsCount = Math.max(1, Number(bookingData?.guests?.rooms || 1));
 
   // Calculate nights from dateRange
@@ -162,7 +209,12 @@ export default function BookingForm({ hotel }) {
         bookedToDate,
         checkIn: bookedFromDate,
         checkOut: bookedToDate,
+        convertedPrice: selectedRoomData.convertedPrice,
+        displayCurrency: selectedRoomData.displayCurrency,
+        discountedPrice: selectedRoomData.discountedPrice,
+        originalPrice: selectedRoomData.price,
       };
+      console.log("payload", payload);
 
       if (accessToken) {
         // If user is logged in, navigate to checkout
@@ -187,15 +239,15 @@ export default function BookingForm({ hotel }) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-gray-900">
-              ${nightlyPrice * roomsCount}
+              {currencySymbol}:{formatPrice(nightlyPrice * roomsCount)}
             </span>
-            {selectedRoomData?.discount > 0 && (
+            {selectedRoomData?.discountedPrice > 0 && (
               <>
                 <span className="text-sm text-gray-400 line-through">
-                  ${nightlyBase * roomsCount}
+                  {currencySymbol}:{formatPrice(nightlyBase * roomsCount)}
                 </span>
                 <span className="text-xs bg-red-100 text-red-700 font-medium px-2 py-0.5 rounded">
-                  -{Math.round(Number(selectedRoomData.discount))}%
+                  -{Math.round(Number(selectedRoomData.discountedPrice))}%
                 </span>
               </>
             )}
@@ -367,70 +419,67 @@ export default function BookingForm({ hotel }) {
           </Select>
         </div>
 
-        {/* Room Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Room Type
-          </label>
-          <div className="space-y-2">
-            {rooms.map((room) => (
-              <div
-                key={room.id}
-                className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                  selectedRoom === room.id
-                    ? "border-sky-500 bg-sky-50 ring-1 ring-sky-500"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-                onClick={() => setSelectedRoom(room.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-medium text-gray-900">{room.name}</h3>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Star className="w-3 h-3 text-yellow-400 mr-1" />
-                        <span>{room.rating}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {room.features.map((feature, index) => (
-                        <span
-                          key={index}
-                          className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded"
-                        >
-                          {feature}
-                        </span>
-                      ))}
+        <div className="space-y-2">
+          {rooms.map((room) => (
+            <div
+              key={room.id}
+              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                selectedRoom === room.id
+                  ? "border-[#0064D2] bg-blue-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+              onClick={() => setSelectedRoom(room.id)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <h3 className="font-medium text-gray-900">{room.name}</h3>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Star className="w-3 h-3 text-yellow-400 mr-1" />
+                      <span>{room.rating}</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-gray-900">
-                      $
-                      {Math.max(
-                        0,
-                        Math.round(
-                          (Number(room.price || 0) *
-                            (100 - Number(room.discount || 0))) /
-                            100
-                        )
-                      )}
-                    </div>
-                    {Number(room.discount || 0) > 0 && (
-                      <div className="text-xs text-gray-400 line-through">
-                        ${Number(room.price || 0)}
-                      </div>
-                    )}
-                    {Number(room.discount || 0) > 0 && (
-                      <div className="text-[10px] text-red-700 bg-red-100 inline-block mt-0.5 px-1.5 py-0.5 rounded">
-                        -{Math.round(Number(room.discount))}%
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-500">per night</div>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {room.features.map((feature, index) => (
+                      <span
+                        key={index}
+                        className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded"
+                      >
+                        {feature}
+                      </span>
+                    ))}
                   </div>
                 </div>
+                <div className="text-right">
+                  <div className="font-semibold text-gray-900">
+                    {getCurrencySymbol(room.displayCurrency)}:
+                    {room.discountedPrice > 0
+                      ? Math.max(
+                          0,
+                          Math.round(
+                            (room.convertedPrice *
+                              (100 - room.discountedPrice)) /
+                              100
+                          )
+                        )
+                      : room.convertedPrice} 
+                  </div>
+                  {Number(room.discountedPrice) > 0 && (
+                    <div className="text-xs text-gray-400 line-through">
+                      {getCurrencySymbol(room.displayCurrency)}:
+                      {Number(room.convertedPrice || 0)}
+                    </div>
+                  )}
+                  {Number(room.discountedPrice) > 0 && (
+                    <div className="text-[10px] text-red-700 bg-red-100 inline-block mt-0.5 px-1.5 py-0.5 rounded">
+                      -{Math.round(Number(room.discountedPrice))}%
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-500">per night</div>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
         {/* Special Request */}
@@ -455,23 +504,33 @@ export default function BookingForm({ hotel }) {
         <div className="border-t pt-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span>
-              ${nightlyPrice} × {nights} {nights === 1 ? "night" : "nights"}
+              {getCurrencySymbol(selectedRoomData?.displayCurrency)}
+              {Number(nightlyPrice).toFixed(2)} × {nights}{" "}
+              {nights === 1 ? "night" : "nights"}
               {roomsCount > 1 ? ` × ${roomsCount} rooms` : ""}
             </span>
-            <span>${nightlyPrice * nights * roomsCount}</span>
+            <span>
+              {getCurrencySymbol(selectedRoomData?.displayCurrency)}
+              {Number(nightlyPrice * nights * roomsCount).toFixed(2)}
+            </span>
           </div>
 
           <div className="flex justify-between text-sm">
-            <span>VAT</span>
+            <span>VAT (12%)</span>
             <span>
-              ${Math.round(nightlyPrice * nights * roomsCount * 0.12)}
+              {getCurrencySymbol(selectedRoomData?.displayCurrency)}
+              {Number(nightlyPrice * nights * roomsCount * 0.12).toFixed(2)}
             </span>
           </div>
           <div className="border-t pt-2">
             <div className="flex justify-between font-semibold text-lg">
               <span>Total</span>
               <span>
-                ${Math.round(nightlyPrice * nights * roomsCount * 1.22)}
+                {getCurrencySymbol(selectedRoomData?.displayCurrency)}
+                {(
+                  Number(nightlyPrice * nights * roomsCount) + 
+                  Number(nightlyPrice * nights * roomsCount * 0.12)
+                ).toFixed(2)}
               </span>
             </div>
           </div>
