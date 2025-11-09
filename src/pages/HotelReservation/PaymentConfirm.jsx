@@ -371,8 +371,23 @@ export default function PaymentConfirm() {
           })
         );
 
-        // Redirect to payment gateway
-        window.location.href = checkoutUrl;
+        // Open Stripe in a popup window
+        const width = 600;
+        const height = 700;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
+        
+        const paymentWindow = window.open(
+          checkoutUrl,
+          'StripePayment',
+          `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+        );
+        
+        // Check for popup blocker
+        if (!paymentWindow || paymentWindow.closed || typeof paymentWindow.closed === 'undefined') {
+          // If popup is blocked, redirect in the same window
+          window.location.href = checkoutUrl;
+        }
       }
     } catch (error) {
       console.error("Payment error:", error);
