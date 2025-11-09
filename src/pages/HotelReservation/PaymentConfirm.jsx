@@ -286,27 +286,8 @@ export default function PaymentConfirm() {
           })
         );
 
-        // Open Paystack in a popup window
-        const width = 600;
-        const height = 700;
-        const left = window.screen.width / 2 - width / 2;
-        const top = window.screen.height / 2 - height / 2;
-
-        const paymentWindow = window.open(
-          checkoutUrl,
-          "PaystackPayment",
-          `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-        );
-
-        // Check for popup blocker
-        if (
-          !paymentWindow ||
-          paymentWindow.closed ||
-          typeof paymentWindow.closed === "undefined"
-        ) {
-          // If popup is blocked, redirect in the same window
-          window.location.href = checkoutUrl;
-        }
+        // Redirect directly to Paystack checkout
+        window.location.href = checkoutUrl;
       } else {
         console.log("Processing Stripe payment for:", userCountry);
         paymentData.currency = "USD";
@@ -355,41 +336,13 @@ export default function PaymentConfirm() {
             bookingId: currentBookingId,
             paymentMethod: "stripe",
             timestamp: new Date().toISOString(),
-          })
-        );
-        // Store booking data in session storage before redirecting
-        sessionStorage.setItem(
-          "pendingBooking",
-          JSON.stringify({
-            bookingId: currentBookingId,
-            paymentMethod: "stripe",
-            timestamp: new Date().toISOString(),
             successUrl,
             cancelUrl,
           })
         );
 
-        // Open Stripe in a popup window
-        const width = 600;
-        const height = 700;
-        const left = window.screen.width / 2 - width / 2;
-        const top = window.screen.height / 2 - height / 2;
-
-        const paymentWindow = window.open(
-          checkoutUrl,
-          "StripePayment",
-          `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-        );
-
-        // Check for popup blocker
-        if (
-          !paymentWindow ||
-          paymentWindow.closed ||
-          typeof paymentWindow.closed === "undefined"
-        ) {
-          // If popup is blocked, redirect in the same window
-          window.location.href = checkoutUrl;
-        }
+        // Redirect directly to Stripe checkout
+        window.location.href = checkoutUrl;
       }
     } catch (error) {
       console.error("Payment error:", error);
@@ -426,7 +379,7 @@ export default function PaymentConfirm() {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-medium">
-                      Hotel Name: {hotelData?.hotelName || hotelData?.name}
+                      Hotel Name: {bookingDetails?.hotelName || hotelData?.name}
                     </h3>
                     <div className="flex items-center text-gray-600 mt-1">
                       <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -501,9 +454,10 @@ export default function PaymentConfirm() {
                             }
                           >
                             {hotelData.isRefundable
-                              ? "Refundable , Pay Online"
-                              : "Non Refundable"}
+                              ? "Refundable"
+                              : "Non Refundable "}
                           </p>
+                          <span className="text-blue-600">Pay Online</span>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">

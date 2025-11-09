@@ -239,13 +239,14 @@ export default function BookingForm({ hotel }) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-gray-900">
-              {currencySymbol}:{formatPrice(nightlyPrice * roomsCount)}
+              {currencySymbol}:{formatPrice(nightlyBase * roomsCount)}
             </span>
             {selectedRoomData?.discountedPrice > 0 && (
               <>
                 <span className="text-sm text-gray-400 line-through">
-                  {currencySymbol}:{formatPrice(nightlyBase * roomsCount)}
+                  {currencySymbol}:{formatPrice(nightlyPrice * roomsCount)}
                 </span>
+
                 <span className="text-xs bg-red-100 text-red-700 font-medium px-2 py-0.5 rounded">
                   -{Math.round(Number(selectedRoomData.discountedPrice))}%
                 </span>
@@ -258,7 +259,7 @@ export default function BookingForm({ hotel }) {
           </div> */}
         </div>
         <span className="text-gray-600">
-          per night{roomsCount > 1 ? ` · for ${roomsCount} rooms` : ""}
+          Per night{roomsCount > 1 ? ` · for ${roomsCount} rooms` : ""}
         </span>
       </div>
 
@@ -462,7 +463,7 @@ export default function BookingForm({ hotel }) {
                               100
                           )
                         )
-                      : room.convertedPrice} 
+                      : room.convertedPrice}
                   </div>
                   {Number(room.discountedPrice) > 0 && (
                     <div className="text-xs text-gray-400 line-through">
@@ -475,7 +476,7 @@ export default function BookingForm({ hotel }) {
                       -{Math.round(Number(room.discountedPrice))}%
                     </div>
                   )}
-                  <div className="text-xs text-gray-500">per night</div>
+                  <div className="text-xs text-gray-500">Per night</div>
                 </div>
               </div>
             </div>
@@ -528,7 +529,7 @@ export default function BookingForm({ hotel }) {
               <span>
                 {getCurrencySymbol(selectedRoomData?.displayCurrency)}
                 {(
-                  Number(nightlyPrice * nights * roomsCount) + 
+                  Number(nightlyPrice * nights * roomsCount) +
                   Number(nightlyPrice * nights * roomsCount * 0.12)
                 ).toFixed(2)}
               </span>

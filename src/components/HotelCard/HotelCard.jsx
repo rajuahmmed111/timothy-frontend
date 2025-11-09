@@ -39,7 +39,7 @@ export default function HotelCard({ hotel }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-baseline gap-2">
               <div className="text-2xl font-bold text-gray-900">
-              {hotel?.raw?.displayCurrency}:- {Number(hotel?.raw?.averagePrice || 0).toLocaleString()}
+              {hotel?.raw?.displayCurrency}: {Number(hotel?.raw?.averagePrice || 0).toLocaleString()}
               </div>
             </div>
             <div className="flex items-center gap-1">
