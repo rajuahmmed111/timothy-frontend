@@ -20,6 +20,7 @@ export default function Checkout() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state?.auth?.user);
   const bookingData = location.state?.bookingData || {};
+  const guestInfo = location.state?.guestInfo || {};
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [createHotelBooking, { isLoading }] = useCreateHotelBookingMutation();
@@ -31,11 +32,14 @@ export default function Checkout() {
   };
 
   const [updatedUser, setUpdatedUser] = useState({
-    name: bookingData?.user?.fullName || user?.name || "",
-    email: bookingData?.user?.email || user?.email || "",
-    phone: bookingData?.user?.contactNumber || user?.phone || "",
-    address: bookingData?.user?.country || "",
+    name: guestInfo.fullName || user?.name || bookingData?.user?.fullName || '',
+    email: guestInfo.email || user?.email || bookingData?.user?.email || '',
+    phone: guestInfo.phone || user?.phone || bookingData?.user?.contactNumber || '',
+    address: guestInfo.country || user?.address || bookingData?.user?.country || '',
   });
+  
+  console.log('Guest Info:', guestInfo);
+  console.log('Updated User:', updatedUser);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -93,9 +97,52 @@ export default function Checkout() {
        bookingId: bookingData.roomId, // API expects roomId in URL
        data: bookingPayload,
      }).unwrap();
+     console.log("res",res)
+     
+     // Get the created booking ID from the response
+     const createdBookingId = res.data?._id || res.data?.id || res._id || res.id;
+     
+     if (!createdBookingId) {
+       console.error('No booking ID in response:', res);
+       toast.error('Booking was created but could not retrieve booking reference. Please check your bookings.');
+       return;
+     }
 
-     console.log("Booking response:", res);
+     // Combine API response with existing booking data
+     const paymentData = {
+       ...res,
+       
+       hotelName: bookingData.hotelName,
+       location: bookingData.location,
+       roomType: bookingData.roomType,
+       roomPrice: bookingData.roomPrice,
+       checkIn: bookingData.checkIn,
+       checkOut: bookingData.checkOut,
+       nights: bookingData.nights,
+       adults: bookingData.adults,
+       children: bookingData.children || 0,
+       rooms: bookingData.rooms || 1,
+       vat: bookingData.vat || 0,
+       isRefundable: bookingData.isRefundable || false,
+       user: {
+         ...res.user,
+         name: updatedUser.name || user?.name,
+         email: updatedUser.email || user?.email,
+         phone: updatedUser.phone || user?.phone,
+         country: updatedUser.address || user?.country || 'Bangladesh'
+       }
+     };
+
      handleSuccess("Room reserved successfully!");
+     navigate(`/hotel/payment-confirm?bookingId=${encodeURIComponent(createdBookingId)}`, {
+       state: { 
+         data: {
+           ...paymentData,
+           createdBookingId // Include the booking ID in state as well
+         }
+       },
+       replace: true // Replace current entry in history
+     });
    } catch (e) {
      const msg = e?.data?.message || e?.message || "Failed to create booking";
      if (msg.toLowerCase().includes("already booked")) {
@@ -151,7 +198,7 @@ export default function Checkout() {
                     <input
                       type="text"
                       name="name"
-                      value={updatedUser.name}
+                      value={updatedUser.name }
                       onChange={handleInputChange}
                       className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                     />
@@ -164,7 +211,7 @@ export default function Checkout() {
                     <input
                       type="email"
                       name="email"
-                      value={updatedUser.email}
+                      value={updatedUser.email }
                       onChange={handleInputChange}
                       className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                     />
@@ -175,9 +222,10 @@ export default function Checkout() {
                       <Phone className="w-4 h-4" /> <span>Phone</span>
                     </label>
                     <input
-                      type="tel"
+                      type="text"
                       name="phone"
-                      value={updatedUser.phone}
+                    
+                      value={updatedUser.phone }
                       onChange={handleInputChange}
                       className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                     />
@@ -190,7 +238,7 @@ export default function Checkout() {
                     <input
                       type="text"
                       name="address"
-                      value={updatedUser.address}
+                      value={updatedUser.address }
                       onChange={handleInputChange}
                       className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                     />

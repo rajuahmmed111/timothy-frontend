@@ -90,9 +90,11 @@ export default function PaymentConfirm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("stripe");
-  const bookingDetails = location.state?.bookingDetails;
-  console.log("Booking Details:", bookingDetails);
-
+  const bookingDetails = location.state?.data;
+  const hotelData = bookingDetails?.data || bookingDetails || {};
+  console.log("Booking details:", bookingDetails);
+  console.log("Hotel data:", hotelData);
+  console.log("Payment method:", paymentMethod);
   // Set payment method based on country when component mounts or country changes
   useEffect(() => {
     if (bookingDetails?.user?.country) {
@@ -109,10 +111,12 @@ export default function PaymentConfirm() {
     useCreateHotelStripeCheckoutSessionWebsiteMutation();
 
   const calculateTotal = () => {
-    const price =
-      Number(bookingDetails?.roomPrice) * Number(bookingDetails?.rooms) || 0;
-    const vatAmount = Math.round((price * (bookingDetails?.vat || 0)) / 100);
-    const total = price + vatAmount;
+    const price = Number(hotelData?.convertedPrice || 0);
+    const discount = Number(hotelData?.discountedPrice || 0);
+    const subtotal = price - discount;
+    const vatRate = 5; // Fixed 5% VAT
+    const vatAmount = Number(((subtotal * vatRate) / 100).toFixed(2));
+    const total = subtotal + vatAmount;
 
     return {
       vatAmount,
@@ -130,13 +134,52 @@ export default function PaymentConfirm() {
   };
   // Get booking ID from URL params or state
   const searchParams = new URLSearchParams(location.search);
-  const bookingId =
-    searchParams.get("bookingId") || location.state?.createdBookingId;
+  
+  // Debug logging for all potential ID sources
+  console.log('Debug - Booking ID sources:', {
+    fromUrl: searchParams.get("bookingId"),
+    fromLocationState: location.state?.createdBookingId,
+    fromBookingDetails: bookingDetails?.id,
+    fullLocationState: location.state,
+    fullBookingDetails: bookingDetails
+  });
+
+  // Get booking ID from multiple sources with fallback
+  const bookingId = (() => {
+    // Try URL parameters first
+    const fromUrl = searchParams.get("bookingId");
+    if (fromUrl) return fromUrl;
+
+    // Then try location state
+    if (location.state?.createdBookingId) {
+      return location.state.createdBookingId;
+    }
+
+    // Then try booking details
+    if (bookingDetails?.id) {
+      return bookingDetails.id.toString();
+    }
+
+    // If we have a booking reference in the URL path
+    const pathParts = window.location.pathname.split('/');
+    const possibleId = pathParts[pathParts.length - 1];
+    if (possibleId && possibleId.length > 10) { // Simple validation for ID length
+      return possibleId;
+    }
+
+    return null;
+  })();
+  
+  console.log('Current booking ID:', bookingId);
 
   const handlePayment = async () => {
-    // Re-fetch bookingId in case it was updated
-    const currentBookingId =
-      searchParams.get("bookingId") || location.state?.createdBookingId;
+    // Prevent execution if total is not valid
+    if (!total || total <= 0) {
+      console.log("Payment not processed: Invalid total amount");
+      return;
+    }
+    // Use the already retrieved bookingId
+    const currentBookingId = bookingId;
     if (!bookingDetails?.user?.country) {
       toast.error("Please select a country");
       return;
@@ -145,12 +188,13 @@ export default function PaymentConfirm() {
     setIsLoading(true);
     try {
       if (!currentBookingId) {
-        toast.error("Booking reference not found. Please try again.");
+        console.error('No booking ID found in any source');
+        toast.error("Booking reference not found. Please try refreshing the page or contact support.");
         return;
       }
       const successUrl = `${window.location.origin}/booking-confirmation`;
       const cancelUrl = `${window.location.origin}/hotel/checkout`;
-      const bookingId = location.state?.createdBookingId;
+      // Use the already retrieved bookingId
 
       // Prepare user information
       const userInfo = bookingDetails.user;
@@ -197,7 +241,7 @@ export default function PaymentConfirm() {
         successUrl,
         cancelUrl,
         metadata: {
-          bookingId,
+          bookingId: currentBookingId,
           hotelId: bookingDetails.hotelId,
           roomId: bookingDetails.roomId,
           userId: bookingDetails.user.id,
@@ -231,7 +275,7 @@ export default function PaymentConfirm() {
         sessionStorage.setItem(
           "pendingBooking",
           JSON.stringify({
-            bookingId,
+            bookingId: currentBookingId,
             paymentMethod: "paystack",
             timestamp: new Date().toISOString(),
           })
@@ -295,7 +339,7 @@ export default function PaymentConfirm() {
         sessionStorage.setItem(
           "pendingBooking",
           JSON.stringify({
-            bookingId,
+            bookingId: currentBookingId,
             paymentMethod: "stripe",
             timestamp: new Date().toISOString(),
           })
@@ -327,6 +371,7 @@ export default function PaymentConfirm() {
       setIsLoading(false);
     }
   };
+ 
 
   return (
     <div className="min-h-screen bg-gray-50  py-8 px-4 sm:px-6 lg:px-8">
@@ -340,6 +385,9 @@ export default function PaymentConfirm() {
         </button>
 
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <h1 className="text-center text-2xl font-bold mt-4 mb-6">
+            Booking Details
+          </h1>
           <div className="p-6 md:flex gap-8">
             {/* Left Column - Booking Details */}
             <div className="md:w-2/3 space-y-6">
@@ -347,96 +395,92 @@ export default function PaymentConfirm() {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-medium">
-                      {bookingDetails?.hotelName || "Hotel Name Not Available"}
+                      Hotel Name: {hotelData?.hotelName || hotelData?.name}
                     </h3>
                     <div className="flex items-center text-gray-600 mt-1">
                       <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
                       <p className="text-sm">
-                        {bookingDetails?.location || "Location not specified"}
-                      </p>
-                    </div>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-600">
-                        {bookingDetails?.roomType &&
-                          `Room Type: ${bookingDetails.roomType}`}
+                        Location: {hotelData?.location || hotelData?.address}
                       </p>
                     </div>
                   </div>
 
-                  <div className="space-y-5">
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Check-in</p>
-                        <p>
-                          {formatDate(bookingDetails?.checkIn) ||
-                            "Not specified"}
-                        </p>
+                  <div className="space-y-5 flex  gap-20">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                      <div className="flex gap-2 items-center">
+                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Check-in</p>
+                          <p>
+                            {formatDate(hotelData.bookedFromDate) ||
+                              "Not specified"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex mt-2 gap-2 items-center">
+                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Check-out</p>
+                          <p>
+                            {formatDate(hotelData.bookedToDate) ||
+                              "Not specified"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex mt-2 gap-2 items-center">
+                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Nights</p>
+                          <p>
+                            {hotelData.nights || "1"} night
+                            {hotelData.nights !== 1 ? "s" : ""}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Check-out</p>
-                        <p>
-                          {formatDate(bookingDetails?.checkOut) ||
-                            "Not specified"}
-                        </p>
+                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                      <div className="flex gap-2 items-center">
+                        <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Guests</p>
+                          <p>
+                            {hotelData.adults || 1}{" "}
+                            {hotelData.adults === 1 ? "Adult" : "Adults"}
+                            {hotelData.children
+                              ? `, ${hotelData.children} ${
+                                  hotelData.children === 1
+                                    ? "Child"
+                                    : "Children"
+                                }`
+                              : ""}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Nights</p>
-                        <p>
-                          {bookingDetails?.nights || "1"} night
-                          {bookingDetails?.nights !== 1 ? "s" : ""}
-                        </p>
+                      <div className="flex mt-2 gap-2 items-center">
+                        <ShieldCheck className="w-5 h-5 text-gray-500 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Booking Condition
+                          </p>
+                          <p
+                            className={
+                              bookingDetails?.isRefundable
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }
+                          >
+                            {hotelData.isRefundable
+                              ? "Refundable , Pay Online"
+                              : "Non Refundable"}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center">
-                      <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-500">Guests</p>
-                        <p>
-                          {bookingDetails?.adults || 1}{" "}
-                          {bookingDetails?.adults === 1 ? "Adult" : "Adults"}
-                          {bookingDetails?.children
-                            ? `, ${bookingDetails.children} ${
-                                bookingDetails.children === 1
-                                  ? "Child"
-                                  : "Children"
-                              }`
-                            : ""}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <ShieldCheck className="w-5 h-5 text-gray-500 mr-2" />
-                      <div>
-                        <p className="text-sm text-gray-500">Booking Condition</p>
-                        <p
-                          className={
-                            bookingDetails?.isRefundable
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }
-                        >
-                          {bookingDetails?.isRefundable
-                            ? "Refundable , Pay Online"
-                            : "Non Refundable"}
-                      
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <Phone className="w-5 h-5 text-gray-500 mr-2" />
-                      <div>
-                        <p className="text-sm text-gray-500">Country: </p>
-                        <p>
-                          {" "}
-                          {bookingDetails?.user?.country || "Not provided"}
-                        </p>
+                      <div className="flex mt-2 gap-2 items-center">
+                        <Phone className="w-5 h-5 text-gray-500 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-500">Country: </p>
+                          <p>{hotelData.address || "Not provided"}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -450,22 +494,27 @@ export default function PaymentConfirm() {
                 <h2 className="text-lg font-semibold mb-8">Price Details</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Price per night</span>
-                    <span>
-                      ${(bookingDetails?.roomPrice || 0).toLocaleString()}
-                    </span>
+                    <span className="text-gray-600">Room Price</span>
+                    <span>{hotelData.convertedPrice || 0}</span>
                   </div>
 
+                  {hotelData.discountedPrice > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount</span>
+                      <span>-{hotelData.discountedPrice || 0}</span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between">
-                    <span>VAT ({bookingDetails?.vat || 0}%)</span>
-                    <span>${(vatAmount || 0).toLocaleString()}</span>
+                    <span>VAT (5%)</span>
+                    <span>{vatAmount.toFixed(2)}</span>
                   </div>
 
                   <div className="flex justify-between">
                     <div className="border-t w-full border-gray-200 pt-3 mt-3">
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
-                        <span>${(total || 0).toLocaleString()}</span>
+                        <span>{total.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>

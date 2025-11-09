@@ -36,6 +36,7 @@ export default function GuestLogin() {
     country: "",
   });
   const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [error, setError] = useState('');
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const countries = Country.getAllCountries();
   const [selectedCountry, setSelectedCountry] = useState(
@@ -72,7 +73,10 @@ export default function GuestLogin() {
     setIsCountryDropdownOpen(false);
   };
 
-  const handleGuestLoginThenProceed = async () => {
+  const handleGuestLoginThenProceed = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsLoginLoading(true);
     if (!guestInfo.fullName || !guestInfo.email || !guestInfo.phone) {
       alert("Please fill in all required fields");
       return;
@@ -138,7 +142,8 @@ export default function GuestLogin() {
       });
     } catch (error) {
       console.error("Error during guest login:", error);
-     
+      const errorMessage = error?.data?.message || error?.message || 'An error occurred during login';
+      setError(errorMessage);
     } finally {
       setIsLoginLoading(false);
     }
@@ -150,6 +155,11 @@ export default function GuestLogin() {
         <div className="container mx-auto px-4 lg:max-w-[800px]">
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
 
             <form className="space-y-6">
              
