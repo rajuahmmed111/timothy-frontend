@@ -134,14 +134,14 @@ export default function PaymentConfirm() {
   };
   // Get booking ID from URL params or state
   const searchParams = new URLSearchParams(location.search);
-  
+
   // Debug logging for all potential ID sources
-  console.log('Debug - Booking ID sources:', {
+  console.log("Debug - Booking ID sources:", {
     fromUrl: searchParams.get("bookingId"),
     fromLocationState: location.state?.createdBookingId,
     fromBookingDetails: bookingDetails?.id,
     fullLocationState: location.state,
-    fullBookingDetails: bookingDetails
+    fullBookingDetails: bookingDetails,
   });
 
   // Get booking ID from multiple sources with fallback
@@ -161,16 +161,17 @@ export default function PaymentConfirm() {
     }
 
     // If we have a booking reference in the URL path
-    const pathParts = window.location.pathname.split('/');
+    const pathParts = window.location.pathname.split("/");
     const possibleId = pathParts[pathParts.length - 1];
-    if (possibleId && possibleId.length > 10) { // Simple validation for ID length
+    if (possibleId && possibleId.length > 10) {
+      // Simple validation for ID length
       return possibleId;
     }
 
     return null;
   })();
-  
-  console.log('Current booking ID:', bookingId);
+
+  console.log("Current booking ID:", bookingId);
 
   const handlePayment = async () => {
     // Prevent execution if total is not valid
@@ -188,8 +189,10 @@ export default function PaymentConfirm() {
     setIsLoading(true);
     try {
       if (!currentBookingId) {
-        console.error('No booking ID found in any source');
-        toast.error("Booking reference not found. Please try refreshing the page or contact support.");
+        console.error("No booking ID found in any source");
+        toast.error(
+          "Booking reference not found. Please try refreshing the page or contact support."
+        );
         return;
       }
       const successUrl = `${window.location.origin}/booking-confirmation`;
@@ -278,67 +281,62 @@ export default function PaymentConfirm() {
             bookingId: currentBookingId,
             paymentMethod: "paystack",
             timestamp: new Date().toISOString(),
+            successUrl,
+            cancelUrl,
           })
         );
-        // Store booking data in session storage before redirecting
-        sessionStorage.setItem(
-          "pendingBooking",
-          JSON.stringify({
-            bookingId: currentBookingId,
-            paymentMethod: "paystack",
-            timestamp: new Date().toISOString(),
+
+        // Open Paystack in a popup window
+        const width = 600;
+        const height = 700;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
+
+        const paymentWindow = window.open(
+          checkoutUrl,
+          "PaystackPayment",
+          `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+        );
+
+        // Check for popup blocker
+        if (
+          !paymentWindow ||
+          paymentWindow.closed ||
+          typeof paymentWindow.closed === "undefined"
+        ) {
+          // If popup is blocked, redirect in the same window
+          window.location.href = checkoutUrl;
+        }
+      } else {
+        console.log("Processing Stripe payment for:", userCountry);
+        paymentData.currency = "USD";
+
+        const result = await createStripeSession({
           bookingId: currentBookingId,
-          paymentMethod: "paystack",
-          timestamp: new Date().toISOString(),
-          successUrl,
-          cancelUrl,
-        })
-      );
-
-      // Open checkout link in a popup window
-      // Open Paystack in a popup window
-      const width = 600;
-      const height = 700;
-      const left = window.screen.width / 2 - width / 2;
-      const top = window.screen.height / 2 - height / 2;
-      
-      const paymentWindow = window.open(
-        checkoutUrl,
-        'PaystackPayment',
-        `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-      );
-      
-      // Check for popup blocker
-      if (!paymentWindow || paymentWindow.closed || typeof paymentWindow.closed === 'undefined') {
-        // If popup is blocked, redirect in the same window
-        window.location.href = checkoutUrl;
-      }
-    } else {
-      console.log("Processing Stripe payment for:", userCountry);
-      paymentData.currency = "USD";
-
-      const result = await createStripeSession({
-        bookingId: currentBookingId,
-        body: {
-          ...paymentData,
-          line_items: [
-            {
-              price_data: {
-                currency: "usd",
-                product_data: {
-                  name: `Hotel Booking - ${bookingDetails.hotelName || "Hotel"}`,
-                  description: `Room Type: ${bookingDetails.roomType || "Standard"}`
+          body: {
+            ...paymentData,
+            line_items: [
+              {
+                price_data: {
+                  currency: "usd",
+                  product_data: {
+                    name: `Hotel Booking - ${
+                      bookingDetails.hotelName || "Hotel"
+                    }`,
+                    description: `Room Type: ${
+                      bookingDetails.roomType || "Standard"
+                    }`,
+                  },
+                  unit_amount: Math.round(total * 100),
                 },
-                unit_amount: Math.round(total * 100),
+                quantity: 1,
               },
-              quantity: 1
-            }
-          ],
-          mode: "payment",
-          success_url: successUrl,
-          cancel_url: cancelUrl,
-          billing_address_collection: "required",
-          submit_type: "pay",
+            ],
+            mode: "payment",
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            billing_address_collection: "required",
+            submit_type: "pay",
             allow_promotion_codes: true,
             metadata: paymentData.metadata,
           },
@@ -376,15 +374,19 @@ export default function PaymentConfirm() {
         const height = 700;
         const left = window.screen.width / 2 - width / 2;
         const top = window.screen.height / 2 - height / 2;
-        
+
         const paymentWindow = window.open(
           checkoutUrl,
-          'StripePayment',
+          "StripePayment",
           `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
         );
-        
+
         // Check for popup blocker
-        if (!paymentWindow || paymentWindow.closed || typeof paymentWindow.closed === 'undefined') {
+        if (
+          !paymentWindow ||
+          paymentWindow.closed ||
+          typeof paymentWindow.closed === "undefined"
+        ) {
           // If popup is blocked, redirect in the same window
           window.location.href = checkoutUrl;
         }
@@ -401,7 +403,6 @@ export default function PaymentConfirm() {
       setIsLoading(false);
     }
   };
- 
 
   return (
     <div className="min-h-screen bg-gray-50  py-8 px-4 sm:px-6 lg:px-8">
