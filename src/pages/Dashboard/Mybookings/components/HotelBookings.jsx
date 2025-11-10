@@ -3,6 +3,10 @@ import {
   useGetAllHotelBookingQuery,
   useCancelHotelBookingMutation,
 } from "../../../../redux/api/userDashboard/myBooking";
+import {
+  useCancelStripeBookingMutation,
+  useCancelPaystackBookingMutation,
+} from "../../../../redux/api/payment/payment";
 import Loader from "../../../../shared/Loader/Loader";
 
 export default function HotelBookings() {
@@ -13,14 +17,31 @@ export default function HotelBookings() {
     }
   );
 
-  const [cancelHotelBooking, { isLoading: isCancelling }] =
-    useCancelHotelBookingMutation();
+  console.log("hotelBooking:", hotelBooking);
 
-  const handleCancel = async (id) => {
+  const [cancelStripeBooking, { isLoading: isStripeCancelling }] =
+    useCancelStripeBookingMutation();
+  const [cancelPaystackBooking, { isLoading: isPaystackCancelling }] =
+    useCancelPaystackBookingMutation();
+
+  const handleCancel = async (booking) => {
+    // console.log("booking:", booking);
     try {
-      await cancelHotelBooking({ id }).unwrap();
-    } catch (e) {}
+      const provider = booking?.payment?.[0]?.provider; 
+
+      const bookingId = booking?.id;
+      console.log("provider:", provider);
+      console.log("bookingId:", bookingId);
+      if (provider === "STRIPE") {
+        await cancelStripeBooking({ service: "hotel", bookingId }).unwrap();
+      } else if (provider === "PAYSTACK") {
+        await cancelPaystackBooking({ service: "hotel", bookingId }).unwrap();
+      }
+    } catch (e) {
+      console.log(e);
+    }
   };
+
 
   console.log("hotelBooking:", hotelBooking);
 
@@ -146,9 +167,13 @@ export default function HotelBookings() {
                   </td>
                   <td className="px-6 py-4">
                     <button
-                      onClick={() => handleCancel(booking?.id)}
+                      onClick={() => handleCancel(booking)}
+                      // onClick={() => console.log("cancel")}
+
                       disabled={
-                        isCancelling || booking?.bookingStatus === "CANCELLED"
+                        isStripeCancelling ||
+                        isPaystackCancelling ||
+                        booking?.bookingStatus === "CANCELLED"
                       }
                       className={`text-xs px-3 py-1 rounded border transition ${
                         booking?.bookingStatus === "CANCELLED"
