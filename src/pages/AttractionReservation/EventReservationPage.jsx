@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import img1 from "/burj.png";
 import { useGetAttractionAppealByIdQuery } from "../../redux/api/attraction/attractionApi";
+import ImageGallery from "./ImageGallery";
 
 export default function EventReservationPage() {
   const navigate = useNavigate();
@@ -203,7 +204,7 @@ export default function EventReservationPage() {
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Image Gallery */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+          {/* <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
             <div className="col-span-2 row-span-2">
               <img
                 src={images[0] || "/placeholder.svg"}
@@ -220,8 +221,8 @@ export default function EventReservationPage() {
                 />
               </div>
             ))}
-          </div>
-
+          </div> */}
+          <ImageGallery data={a}/>
           {/* Description */}
           <div>
             <h2 className="text-xl font-semibold mb-3">Description</h2>

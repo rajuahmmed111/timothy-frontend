@@ -4,13 +4,64 @@ import { useGetPopularHotelsQuery } from "../../../redux/api/hotel/hotelApi";
 
 export default function MostVisitedHotels() {
   const { data, isLoading, isError } = useGetPopularHotelsQuery(4);
+  console.log("data", data);
   const hotelsApi = data?.data || [];
+  const getFirstImageFrom = (val) => {
+    if (!val) return undefined;
+    if (typeof val === "string") return val;
+    if (Array.isArray(val)) {
+      const first = val[0];
+      if (!first) return undefined;
+      if (typeof first === "string") return first;
+      return (
+        first.url ||
+        first.imageUrl ||
+        first.src ||
+        first.path ||
+        first.Location ||
+        first.fileUrl ||
+        first.file ||
+        first.link ||
+        first.value
+      );
+    }
+    if (typeof val === "object") {
+      return (
+        val.url ||
+        val.imageUrl ||
+        val.src ||
+        val.path ||
+        val.Location ||
+        val.fileUrl ||
+        val.file ||
+        val.link ||
+        val.value
+      );
+    }
+    return undefined;
+  };
   const hotels = hotelsApi.map((h) => ({
-    name: h.category || h.hotelAccommodationType || h.hotelRoomType || "Hotel",
+    id: h.id || h._id || h.hotelId,
+    name:
+      h.hotelName ||
+      h.hotelBusinessName ||
+      h.category ||
+      h.hotelAccommodationType ||
+      h.hotelRoomType ||
+      "Hotel",
     location: [h.hotelCity, h.hotelCountry].filter(Boolean).join(", "),
-    image: (h.hotelImages && h.hotelImages[0]) || (h.hotelRoomImages && h.hotelRoomImages[0]) || "/placeholder.svg",
-    price: h.hotelRoomPriceNight ? `$${h.hotelRoomPriceNight}` : "",
-    rating: h.hotelRating ? Number(h.hotelRating) : 0,
+    image:
+      getFirstImageFrom(h.hotelImages) ||
+      getFirstImageFrom(h.hotelRoomImages) ||
+      getFirstImageFrom(h.images) ||
+      h.coverImage ||
+      h.hotelCoverImage ||
+      h.businessLogo ||
+      h.hotelLogo ||
+      h.logo ||
+      h.image ||
+      "/placeholder.svg",
+    raw: h,
   }));
 
   return (

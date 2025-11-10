@@ -14,6 +14,7 @@ import {
 import CarBookingForm from "./CarBookingForm";
 import { useParams } from "react-router-dom";
 import { useGetSingleCarQuery } from "../../redux/api/car/getAllCarsApi";
+import ImageGallery from "./ImageGallery";
 
 export default function CarServiceDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -104,56 +105,9 @@ export default function CarServiceDetails() {
                 {/* Image Gallery */}
                 <div className="mb-8">
                   {/* Main Image Display */}
-                  <div className="relative mb-4 rounded-lg overflow-hidden">
-                    <img
-                      src={car.images[currentImageIndex]}
-                      alt={`${car.name} - Image ${currentImageIndex + 1}`}
-                      className="w-full h-96 object-cover rounded-lg"
-                    />
+                  <ImageGallery car={car} />
 
-                    {/* Navigation Arrows */}
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-
-                    {/* Image Counter */}
-                    <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
-                      {currentImageIndex + 1} / {car.images.length}
-                    </div>
-                  </div>
-
-                  {/* Thumbnail Gallery */}
-                  <div className="grid grid-cols-5 gap-2">
-                    {car.images.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => goToImage(index)}
-                        className={`relative rounded-lg overflow-hidden aspect-square ${
-                          currentImageIndex === index
-                            ? "ring-2 ring-sky-500"
-                            : "hover:opacity-80"
-                        }`}
-                      >
-                        <img
-                          src={image}
-                          alt={`${car.name} thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        {currentImageIndex === index && (
-                          <div className="absolute inset-0 bg-sky-500 bg-opacity-20"></div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                  
                 </div>
 
                 <div className="mb-6">
