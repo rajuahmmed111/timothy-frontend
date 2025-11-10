@@ -19,9 +19,9 @@ export default function HotelCard({ hotel }) {
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           />
           <div className="absolute top-3 right-3">
-            {/* <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700">
+            <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700">
               Popular
-            </div> */}
+            </div>
           </div>
         </div>
 
