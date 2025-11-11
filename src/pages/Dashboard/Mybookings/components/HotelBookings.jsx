@@ -1,5 +1,12 @@
 import React from "react";
-import { useGetAllHotelBookingQuery, useCancelHotelBookingMutation } from "../../../../redux/api/userDashboard/myBooking";
+import {
+  useGetAllHotelBookingQuery,
+  useCancelHotelBookingMutation,
+} from "../../../../redux/api/userDashboard/myBooking";
+import {
+  useCancelStripeBookingMutation,
+  useCancelPaystackBookingMutation,
+} from "../../../../redux/api/payment/payment";
 import Loader from "../../../../shared/Loader/Loader";
 
 export default function HotelBookings() {
@@ -10,28 +17,35 @@ export default function HotelBookings() {
     }
   );
 
-  const [cancelHotelBooking, { isLoading: isCancelling }] = useCancelHotelBookingMutation();
+  console.log("hotelBooking:", hotelBooking);
 
-  const handleCancel = async (id) => {
+  const [cancelStripeBooking, { isLoading: isStripeCancelling }] =
+    useCancelStripeBookingMutation();
+  const [cancelPaystackBooking, { isLoading: isPaystackCancelling }] =
+    useCancelPaystackBookingMutation();
+
+  const handleCancel = async (booking) => {
+    // console.log("booking:", booking);
     try {
-      await cancelHotelBooking({ id }).unwrap();
+      const provider = booking?.payment?.[0]?.provider; 
+
+      const bookingId = booking?.id;
+      console.log("provider:", provider);
+      console.log("bookingId:", bookingId);
+      if (provider === "STRIPE") {
+        await cancelStripeBooking({ service: "hotel", bookingId }).unwrap();
+      } else if (provider === "PAYSTACK") {
+        await cancelPaystackBooking({ service: "hotel", bookingId }).unwrap();
+      }
     } catch (e) {
+      console.log(e);
     }
   };
 
+
   console.log("hotelBooking:", hotelBooking);
 
-  let bookingArray = [];
-
-  if (Array.isArray(hotelBooking)) {
-    bookingArray = hotelBooking;
-  } else if (Array.isArray(hotelBooking?.data)) {
-    bookingArray = hotelBooking.data;
-  } else if (Array.isArray(hotelBooking?.data?.results)) {
-    bookingArray = hotelBooking.data.results;
-  } else if (hotelBooking?.data) {
-    bookingArray = [hotelBooking.data];
-  }
+  let bookingArray = hotelBooking?.data || [];
 
   if (isLoading) return <Loader />;
 
@@ -59,12 +73,6 @@ export default function HotelBookings() {
                   To Date
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">
-                  Adults
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">
-                  Children
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">
                   Rooms
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">
@@ -78,6 +86,9 @@ export default function HotelBookings() {
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">
                   Payment Status
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">
+                  Payment Method
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">
                   Actions
@@ -119,12 +130,6 @@ export default function HotelBookings() {
                     {booking?.bookedToDate ?? "N/A"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">
-                    {booking?.adults ?? 0}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
-                    {booking?.children ?? 0}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
                     {booking?.rooms ?? 0}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">
@@ -158,9 +163,18 @@ export default function HotelBookings() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
+                    <span>{booking?.payment?.[0]?.provider ?? "N/A"}</span>
+                  </td>
+                  <td className="px-6 py-4">
                     <button
-                      onClick={() => handleCancel(booking?.id)}
-                      disabled={isCancelling || booking?.bookingStatus === "CANCELLED"}
+                      onClick={() => handleCancel(booking)}
+                      // onClick={() => console.log("cancel")}
+
+                      disabled={
+                        isStripeCancelling ||
+                        isPaystackCancelling ||
+                        booking?.bookingStatus === "CANCELLED"
+                      }
                       className={`text-xs px-3 py-1 rounded border transition ${
                         booking?.bookingStatus === "CANCELLED"
                           ? "cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200"
