@@ -17,7 +17,6 @@ export default function SecurityDetails() {
     sp.get("securityProtocolType") || sp.get("sptype") || "All"
   );
 
-  console.log("securityProtocolType", useGetAllSecurityProtocolsQuery);
   const initialFrom = sp.get("fromDate");
   const initialTo = sp.get("toDate");
   const [dateRange, setDateRange] = useState(
@@ -33,29 +32,36 @@ export default function SecurityDetails() {
   const [providers, setProviders] = useState([]);
   const [hasMore, setHasMore] = useState(true);
   const loader = useRef(null);
+  const isPagingRef = useRef(false);
 
-  const queryParams = {
-    page,
-    limit: 10,
-    ...(selectedType &&
-      selectedType !== "All" && { securityProtocolType: selectedType }),
-    ...(dateRange &&
-      dateRange[0] &&
-      dateRange[1] && {
-        fromDate: dateRange[0].format("YYYY-MM-DD"),
-        toDate: dateRange[1].format("YYYY-MM-DD"),
-      }),
-    ...(locationText &&
-      (() => {
-        const parts = locationText
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-        if (parts.length === 2) return { country: parts[0], city: parts[1] };
-        if (parts.length === 1) return { city: parts[0] };
-        return {};
-      })()),
-  };
+  const queryParams = React.useMemo(() => {
+    const base = {
+      page,
+      limit: 10,
+    };
+    const type =
+      selectedType && selectedType !== "All"
+        ? { securityProtocolType: selectedType }
+        : {};
+    const dates =
+      dateRange && dateRange[0] && dateRange[1]
+        ? {
+            fromDate: dateRange[0].format("YYYY-MM-DD"),
+            toDate: dateRange[1].format("YYYY-MM-DD"),
+          }
+        : {};
+    const loc = (() => {
+      if (!locationText) return {};
+      const parts = locationText
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (parts.length === 2) return { country: parts[0], city: parts[1] };
+      if (parts.length === 1) return { city: parts[0] };
+      return {};
+    })();
+    return { ...base, ...type, ...dates, ...loc };
+  }, [page, selectedType, dateRange, locationText]);
 
   const { data, isLoading, isFetching, isError } =
     useGetAllSecurityProtocolsQuery(queryParams, { skip: !hasMore });
@@ -70,22 +76,47 @@ export default function SecurityDetails() {
         return [...prev, ...items];
       });
 
-      const total = payload?.meta?.total ?? 0;
       const limit = payload?.meta?.limit ?? 10;
-      const totalPages = Math.ceil(total / limit) || 0;
-      if (totalPages && page >= totalPages) setHasMore(false);
+      const total = payload?.meta?.total;
+      // If API provides total, use it; otherwise infer from page items
+      if (typeof total === "number") {
+        if (total === 0) {
+          setHasMore(false);
+        } else {
+          const totalPages = Math.ceil(total / limit) || 0;
+          if (totalPages && page >= totalPages) setHasMore(false);
+        }
+      } else {
+        // Fallback: if fewer than a full page returned, no more pages
+        if ((items?.length || 0) < limit) setHasMore(false);
+        // Also if first page has no items, stop further attempts
+        if (page === 1 && (items?.length || 0) === 0) setHasMore(false);
+      }
+      // allow next paging after data settles
+      isPagingRef.current = false;
     }
   }, [data, page]);
 
   // Handle scroll for infinite loading
+  const lastRequestedPageRef = useRef(1);
+
   const handleObserver = useCallback(
     (entries) => {
       const target = entries[0];
-      if (target.isIntersecting && !isFetching && hasMore) {
-        setPage((prev) => prev + 1);
+      if (
+        target.isIntersecting &&
+        hasMore &&
+        !isFetching &&
+        !isPagingRef.current &&
+        lastRequestedPageRef.current < page + 1
+      ) {
+        isPagingRef.current = true;
+        const next = page + 1;
+        lastRequestedPageRef.current = next;
+        setPage(next);
       }
     },
-    [isFetching, hasMore]
+    [isFetching, hasMore, page]
   );
 
   // Reset pagination when filters change
@@ -93,9 +124,13 @@ export default function SecurityDetails() {
     setPage(1);
     setHasMore(true);
     setProviders([]);
+    isPagingRef.current = false;
+    lastRequestedPageRef.current = 1;
   }, [selectedType, dateRange, locationText]);
 
   // Set up intersection observer
+  const observerRef = useRef(null);
+
   useEffect(() => {
     const option = {
       root: null,
@@ -103,11 +138,21 @@ export default function SecurityDetails() {
       threshold: 0,
     };
 
+    // Clean up any previous observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+
     const observer = new IntersectionObserver(handleObserver, option);
+    observerRef.current = observer;
     if (loader.current) observer.observe(loader.current);
 
     return () => {
-      if (loader.current) observer.unobserve(loader.current);
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
     };
   }, [handleObserver]);
 
@@ -138,11 +183,32 @@ export default function SecurityDetails() {
     navigate(url, { replace: false });
   };
 
+  const locationParts = React.useMemo(() => {
+    const parts = (locationText || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (parts.length === 2) return { country: parts[0], city: parts[1] };
+    if (parts.length === 1) return { country: "", city: parts[0] };
+    return { country: "", city: "" };
+  }, [locationText]);
+
   // Map to cards: prefer guard-level; fallback to protocol-level when no guards
-  const cardProviders = providers.flatMap((b) => {
+  const cardProviders = React.useMemo(() => providers.flatMap((b) => {
     const guards = Array.isArray(b?.security_Guard) ? b.security_Guard : [];
     if (guards.length > 0) {
-      return guards.map((g) => ({
+      const fc = (locationParts.country || "").toLowerCase();
+      const fci = (locationParts.city || "").toLowerCase();
+      const filteredGuards = guards.filter((g) => {
+        const gc = (g?.securityCountry || "").toLowerCase();
+        const gi = (g?.securityCity || "").toLowerCase();
+        if (fc && fci) return gc.includes(fc) && gi.includes(fci);
+        if (fc) return gc.includes(fc) || gi.includes(fc);
+        if (fci) return gi.includes(fci) || gc.includes(fci);
+        return true;
+      });
+      if (filteredGuards.length === 0) return [];
+      return filteredGuards.map((g) => ({
         id: g?.id || g?._id,
         to: `/security-service-details/${b?.id || b?._id}`,
         image:
@@ -163,6 +229,17 @@ export default function SecurityDetails() {
       }));
     }
     // Protocol-level card when no guards
+    const fc = (locationParts.country || "").toLowerCase();
+    const fci = (locationParts.city || "").toLowerCase();
+    const bc = (b?.securityCountry || "").toLowerCase();
+    const bi = (b?.securityCity || "").toLowerCase();
+    const matchesProtocolLoc = (() => {
+      if (fc && fci) return bc.includes(fc) && bi.includes(fci);
+      if (fc) return bc.includes(fc) || bi.includes(fc);
+      if (fci) return bi.includes(fci) || bc.includes(fci);
+      return true;
+    })();
+    if (!matchesProtocolLoc) return [];
     return [
       {
         id: b?.id || b?._id,
@@ -176,7 +253,20 @@ export default function SecurityDetails() {
         ownerAvatar: b?.user?.profileImage,
       },
     ];
-  });
+  }), [providers, locationParts]);
+
+  const uniqueCardProviders = React.useMemo(() => {
+    const seen = new Set();
+    const out = [];
+    for (const c of cardProviders) {
+      const key = c?.id || `${c?.to}|${c?.name}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push(c);
+      }
+    }
+    return out;
+  }, [cardProviders]);
 
   const handleTypeChange = (e) => {
     setSelectedType(e.target.value);
@@ -234,13 +324,9 @@ export default function SecurityDetails() {
 
       {/* Services Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto py-10">
-        {cardProviders.map((securityProvider, index) => (
-          <SecurityCard
-            key={`${securityProvider.id}-${index}`}
-            securityProvider={securityProvider}
-            to={securityProvider.to}
-          />
-        ))}
+       
+          <SecurityCard cards={uniqueCardProviders} />
+       
 
         {/* Loading spinner */}
         {(isLoading || isFetching) && (
@@ -253,9 +339,9 @@ export default function SecurityDetails() {
         <div ref={loader} style={{ height: "20px" }} />
 
         {/* No results message */}
-        {!isLoading && cardProviders.length === 0 && (
+        {!isLoading && !isFetching && uniqueCardProviders.length === 0 && (
           <div className="col-span-full text-center py-10">
-            <p className="text-gray-500">No security providers found.</p>
+            <p className="text-gray-500">No data available.</p>
           </div>
         )}
       </div>
