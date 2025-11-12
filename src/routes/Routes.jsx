@@ -68,6 +68,7 @@ import HotelAllImage from "../pages/HotelReservation/HotelAllImage";
 import GuastLogin from "../pages/HotelReservation/GuastLogin";
 import SecurityGuestLogin from "../pages/SecurityReservation/SecurityGuestLogin";
 import PaymentConfirm from "../pages/HotelReservation/PaymentConfirm";
+import AddNewSecurity from "../components/Security/AddNewSecurity";
 
 export const routes = createBrowserRouter([
   {
@@ -339,7 +340,7 @@ export const routes = createBrowserRouter([
         path: "add-security-listing",
         element: (
           <RoleRoute allowed={["BUSINESS_PARTNER"]}>
-            <AddSecurityBusiness />
+            <AddNewSecurity />
           </RoleRoute>
         ),
       },

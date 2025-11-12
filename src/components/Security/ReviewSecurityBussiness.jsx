@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Card, Button, Row, Col, message, Skeleton, Divider, Typography } from "antd";
+import {
+  Card,
+  Button,
+  Row,
+  Col,
+  message,
+  Skeleton,
+  Divider,
+  Typography,
+} from "antd";
 import {
   EnvironmentOutlined,
   PhoneOutlined,
   MailOutlined,
   EditOutlined,
 } from "@ant-design/icons";
-import { useGetSecurityPartnerMutation } from "../../redux/api/security/securityApi";
+import { useGetSecurityPartnerQuery } from "../../redux/api/security/securityApi";
 import SecurityBusinessEdit from "./SecurityBusinessEdit";
 
 const { Title, Text, Paragraph } = Typography;
@@ -16,34 +25,31 @@ export default function ReviewSecurityBussiness() {
   const [loading, setLoading] = useState(true);
   const [editingHotel, setEditingHotel] = useState(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [getSecurityPartner] = useGetSecurityPartnerMutation();
+  const { data: partnerData, isLoading, error } = useGetSecurityPartnerQuery({
+    limit: 1000,
+    page: 1,
+  });
 
   useEffect(() => {
-    fetchHotels();
-  }, []);
-
-  const fetchHotels = async () => {
-    try {
-      const response = await getSecurityPartner({
-        limit: 1000,
-        page: 1,
-      }).unwrap();
-
-      if (response.success) {
-        setItems(response.data.data || []);
-      }
-    } catch (error) {
-      message.error("Failed to fetch security businesses");
-      console.error("Error fetching security businesses:", error);
-    } finally {
+    if (partnerData?.success) {
+      setItems(partnerData?.data?.data || []);
       setLoading(false);
     }
-  };
+  }, [partnerData]);
+
+  useEffect(() => {
+    if (error) {
+      message.error("Failed to fetch security businesses");
+      setLoading(false);
+    }
+  }, [error]);
 
   const renderHeaderChips = (item) => (
     <Row gutter={[8, 8]} className="mt-2">
       <Col>
-        <Text type="secondary">Type: {item.securityBusinessType || item.securityProtocolType}</Text>
+        <Text type="secondary">
+          Type: {item.securityBusinessType || item.securityProtocolType}
+        </Text>
       </Col>
       {typeof item.totalGuards === "number" && (
         <Col>
@@ -53,7 +59,7 @@ export default function ReviewSecurityBussiness() {
     </Row>
   );
 
-  if (loading) {
+  if (loading || isLoading) {
     return <Skeleton active />;
   }
 
@@ -158,7 +164,9 @@ export default function ReviewSecurityBussiness() {
                         <div className="flex items-center">
                           <Text type="secondary">
                             Established:{" "}
-                            {new Date(item.securityRegDate).toLocaleDateString()}
+                            {new Date(
+                              item.securityRegDate
+                            ).toLocaleDateString()}
                           </Text>
                         </div>
                       </Col>
@@ -182,13 +190,17 @@ export default function ReviewSecurityBussiness() {
                     </Row>
 
                     <Divider />
-                    <Title level={5} className="mb-2">Protocol Description</Title>
+                    <Title level={5} className="mb-2">
+                      Protocol Description
+                    </Title>
                     <Paragraph>{item.securityProtocolDescription}</Paragraph>
 
                     {item?.user?.fullName && (
                       <>
                         <Divider />
-                        <Title level={5} className="mb-2">Partner</Title>
+                        <Title level={5} className="mb-2">
+                          Partner
+                        </Title>
                         <div className="flex items-center gap-3">
                           <img
                             src={item.user.profileImage}
