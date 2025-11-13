@@ -15,25 +15,34 @@ export default function SecurityReservationHero() {
     const hasType = Boolean(securityType);
     if (!hasLocation && !hasDates && !hasType) return; // do nothing when all empty
 
-    const params = new URLSearchParams();
+    let country = "";
+    let city = "";
     if (location) {
       const parts = location
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
       if (parts.length === 2) {
-        params.set("country", parts[0]);
-        params.set("city", parts[1]);
+        country = parts[0];
+        city = parts[1];
       } else if (parts.length === 1) {
-        params.set("city", parts[0]);
+        city = parts[0];
       }
     }
-    if (dateRange?.[0]) params.set("fromDate", dateRange[0].format("YYYY-MM-DD"));
-    if (dateRange?.[1]) params.set("toDate", dateRange[1].format("YYYY-MM-DD"));
-    if (securityType) params.set("securityProtocolType", securityType);
-    const qs = params.toString();
-    const url = qs ? `/security-details?${qs}` : "/security-details";
-    navigate(url);
+
+    const fromDate = dateRange?.[0] ? dateRange[0].format("YYYY-MM-DD") : null;
+    const toDate = dateRange?.[1] ? dateRange[1].format("YYYY-MM-DD") : null;
+
+    navigate("/security-details", {
+      state: {
+        location,
+        country,
+        city,
+        fromDate,
+        toDate,
+        securityType,
+      },
+    });
   };
 
   const onSearch = () => {
