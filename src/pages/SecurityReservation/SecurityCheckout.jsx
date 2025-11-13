@@ -18,11 +18,23 @@ export default function SecurityCheckout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state?.auth?.user);
-  // Payload coming from SecurityBookingForm -> navigate("/security/checkout", { state: { payload } })
-  const bookingDetails = location.state?.payload || {};
+  // Accept booking data from multiple shapes
+  // - From SecurityBookingForm when logged-in: { state: { payload } }
+  // - From SecurityGuestLogin redirect: { state: { bookingData } }
+  // - From other flows: { state: { data|resp|payload } } possibly wrapped with .data
+  const raw = location.state || {};
+  const bookingDetails =
+    raw.payload ||
+    raw.bookingData ||
+    raw.data?.data ||
+    raw.data ||
+    raw.resp?.data ||
+    raw.resp ||
+    raw.payload?.data ||
+    {};
   const guestInfo = location.state?.guestInfo || {};
   const [isProcessing, setIsProcessing] = useState(false);
-
+console.log("bookingDetails", bookingDetails);
   const [createSecurityBooking, { isLoading }] =
     useCreateSecurityBookingMutation();
 

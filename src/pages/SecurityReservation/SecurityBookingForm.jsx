@@ -108,18 +108,36 @@ export default function SecurityBookingForm({ data }) {
     e.preventDefault();
     if (!dateRange || !dateRange[0] || !dateRange[1]) return;
 
+    const startDate = dateRange[0].format("YYYY-MM-DD");
+    const endDate = dateRange[1].format("YYYY-MM-DD");
+    const people = Number(personnelCount || 1);
+    const perDay = Number(unitPrice || 0);
+    const computedTotal = Number(calculateTotal() || perDay * people);
+
     const payload = {
-      startDate: dateRange[0].format("YYYY-MM-DD"),
-      endDate: dateRange[1].format("YYYY-MM-DD"),
-      serviceType: selectedService.name,
-      personnelCount: personnelCount,
-      total: calculateTotal(),
-      serviceDescription: selectedService.description,
+      // Dates
+      startDate,
+      endDate,
+
+      // Service meta
+      serviceType: selectedService?.name,
+      serviceDescription: selectedService?.description,
+
+      // Quantities and pricing
+      personnelCount: people,
+      number_of_security: people, // alias used by downstream
+      pricePerDay: perDay,
+      total: computedTotal,
+      convertedPrice: computedTotal, // alias used by PaymentConfirm
+
+      // Display currency aliases
+      currency: currencyCode,
+      displayCurrency: currencyCode,
+
+      // Guard info
       guardId,
       guardName,
-      pricePerDay: unitPrice,
       photo,
-      currency: currencyCode,
     };
     console.log("booking-form:payload", payload);
     if (accessToken) {
@@ -129,7 +147,7 @@ export default function SecurityBookingForm({ data }) {
       // If user is not logged in, navigate to guest login with booking data
       navigate("/security/guest-login", {
         state: {
-          bookingDetails: payload,
+          bookingData: payload,
           returnUrl: "/security/checkout",
         },
       });

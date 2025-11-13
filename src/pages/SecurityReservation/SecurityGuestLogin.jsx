@@ -141,12 +141,11 @@ export default function SecurityGuestLogin() {
     } catch (error) {
       console.error("Error during guest login:", error);
       const apiMsg =
-        error?.data?.message ||
-        error?.data?.error ||
-        error?.message ||
-        "";
+        error?.data?.message || error?.data?.error || error?.message || "";
       if (/already\s*(exists|registered|created)/i.test(String(apiMsg))) {
-        setInfoMessage("An account with this email/phone already exists. You can proceed to checkout or log in.");
+        setInfoMessage(
+          "An account with this email/phone already exists. You can proceed to checkout or log in."
+        );
       }
     } finally {
       setIsLoginLoading(false);
