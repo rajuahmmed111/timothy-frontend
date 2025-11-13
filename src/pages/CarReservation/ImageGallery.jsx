@@ -26,7 +26,7 @@ export default function ImageGallery({ car }) {
       </div>
 
       {/* Right side - List of all images (including primary) */}
-      <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto">
+      <div className="flex flex-col w-1/3 gap-2 max-h-[600px] overflow-y-auto">
         {allImages.map((src, index) => (
           <div
             key={index}

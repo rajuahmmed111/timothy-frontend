@@ -13,7 +13,7 @@ export default function SecurityReservationHero() {
     const hasLocation = Boolean(location?.trim());
     const hasDates = Boolean(dateRange?.[0]) || Boolean(dateRange?.[1]);
     const hasType = Boolean(securityType);
-    if (!hasLocation && !hasDates && !hasType) return; // do nothing when all empty
+    if (!hasLocation && !hasDates && !hasType) return;
 
     let country = "";
     let city = "";

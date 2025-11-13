@@ -31,7 +31,6 @@ export default function CarDetails() {
 
   useEffect(() => {
     setPage(pageFromQuery);
-    // Prefill inputs from query string
     setLocationText(searchTerm || country || "");
     setCarType(carTypeFromQuery);
     if (fromDate || toDate) {
@@ -39,10 +38,8 @@ export default function CarDetails() {
       const end = toDate ? dayjs(toDate) : null;
       if (start || end) setDateRange([start, end]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep inputs in sync when URL query changes
   useEffect(() => {
     const q = new URLSearchParams(location.search);
     const qSearch = q.get("searchTerm") || "";
@@ -70,17 +67,10 @@ export default function CarDetails() {
       page,
       limit: limitFromQuery,
       searchTerm,
-      fromDate,
-      toDate,
-      sortBy,
-      sortOrder,
-      country,
-      carType: carTypeFromQuery,
     },
     { skip: false }
   );
 
-  // Transform car data to match the expected car card props
   const transformCarData = (car) => ({
     id: car.id,
     name: car.car_Rental?.carName || car.carModel,
@@ -106,7 +96,7 @@ export default function CarDetails() {
         if (meta && meta.total > 0 && page !== 1) {
           // There are results overall, but not on this page. Fallback to page=1.
           const params = new URLSearchParams(location.search);
-          params.set('page', '1');
+          params.set("page", "1");
           navigate(`/car-details?${params.toString()}`);
           return;
         }
@@ -189,27 +179,7 @@ export default function CarDetails() {
   return (
     <div className="py-16 container mx-auto">
       <div className="bg-white p-5 rounded-2xl shadow-lg w-full">
-        {/* Summary based on API meta */}
-        {carsData?.data?.meta && (
-          <div className="mb-4 text-sm text-gray-600">
-            {(() => {
-              const {
-                total = 0,
-                page: curPage = page,
-                limit: lim = limitFromQuery,
-              } = carsData.data.meta;
-              const start = total === 0 ? 0 : (curPage - 1) * lim + 1;
-              const end = Math.min(curPage * lim, total);
-              const parts = [];
-              if (searchTerm) parts.push(`for "${searchTerm}"`);
-              if (country) parts.push(`in ${country}`);
-              if (carTypeFromQuery) parts.push(`type ${carTypeFromQuery}`);
-              const suffix = parts.length ? ` ${parts.join(" ")}` : "";
-              return `Showing ${start}–${end} of ${total}${suffix}`;
-            })()}
-          </div>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           {/* Location Input */}
           <div className="space-y-2">
             <input
@@ -227,20 +197,6 @@ export default function CarDetails() {
             onChange={setDateRange}
             style={{ width: "100%" }}
           />
-          {/* Car Type */}
-          <div className="space-y-2">
-            <select
-              className="w-full p-3 border border-gray-200 rounded-lg text-gray-500 placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
-              value={carType}
-              onChange={(e) => setCarType(e.target.value)}
-            >
-              <option value="">Select Car Type</option>
-              <option value="Sedan">Sedan</option>
-              <option value="SUV">SUV</option>
-              <option value="Luxury">Luxury</option>
-              <option value="Sports">Sports</option>
-            </select>
-          </div>
         </div>
         {/* Search Button */}
         <div>
@@ -274,7 +230,8 @@ export default function CarDetails() {
       {!isLoading && cars.length === 0 && (
         <div className="col-span-full text-center py-10">
           <p className="text-gray-500">
-            No cars available for the selected filters. Try changing search, dates, or car type.
+            No cars available for the selected filters. Try changing search,
+            dates, or car type.
           </p>
         </div>
       )}
