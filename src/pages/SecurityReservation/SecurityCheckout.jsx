@@ -1,525 +1,348 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Shield, CreditCard, ArrowLeft, Check, Calendar } from "lucide-react";
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  useCreateSecurityBookingMutation,
-  useCreateSecurityStripeCheckoutSessionMutation,
-  useCreateSecurityPaystackCheckoutSessionMutation,
-} from "../../redux/api/security/securityBookingApi";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { Modal, message } from "antd";
-import { UserOutlined } from "@ant-design/icons";
-
-const AFRICAN_COUNTRIES = [
-  "Algeria",
-  "Angola",
-  "Benin",
-  "Botswana",
-  "Burkina Faso",
-  "Burundi",
-  "Cabo Verde",
-  "Cameroon",
-  "Central African Republic",
-  "Chad",
-  "Comoros",
-  "Congo",
-  "Democratic Republic of the Congo",
-  "Djibouti",
-  "Egypt",
-  "Equatorial Guinea",
-  "Eritrea",
-  "Eswatini",
-  "Ethiopia",
-  "Gabon",
-  "Gambia",
-  "Ghana",
-  "Guinea",
-  "Guinea-Bissau",
-  "Ivory Coast",
-  "Kenya",
-  "Lesotho",
-  "Liberia",
-  "Libya",
-  "Madagascar",
-  "Malawi",
-  "Mali",
-  "Mauritania",
-  "Mauritius",
-  "Morocco",
-  "Mozambique",
-  "Namibia",
-  "Niger",
-  "Nigeria",
-  "Rwanda",
-  "Sao Tome and Principe",
-  "Senegal",
-  "Seychelles",
-  "Sierra Leone",
-  "Somalia",
-  "South Africa",
-  "South Sudan",
-  "Sudan",
-  "Tanzania",
-  "Togo",
-  "Tunisia",
-  "Uganda",
-  "Zambia",
-  "Zimbabwe",
-];
+  ArrowLeft,
+  Calendar,
+  Users,
+  MapPin,
+  User,
+  Mail,
+  Phone,
+} from "lucide-react";
+import { useCreateSecurityBookingMutation } from "../../redux/api/security/securityBookingApi";
+import { handleError, handleSuccess } from "../../../toast";
 
 export default function SecurityCheckout() {
   const location = useLocation();
   const navigate = useNavigate();
-
-  // State
-  const [isReserved, setIsReserved] = useState(false);
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state?.auth?.user);
+  // Payload coming from SecurityBookingForm -> navigate("/security/checkout", { state: { payload } })
+  const bookingDetails = location.state?.payload || {};
+  const guestInfo = location.state?.guestInfo || {};
   const [isProcessing, setIsProcessing] = useState(false);
-  const [createdBooking, setCreatedBooking] = useState(null);
-  const [createdBookingId, setCreatedBookingId] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("stripe"); // 'stripe' or 'paystack'
-  const [showPaymentChoiceModal, setShowPaymentChoiceModal] = useState(false);
 
-  // API Mutations
-  const [createBooking, { isLoading: isCreating }] =
+  const [createSecurityBooking, { isLoading }] =
     useCreateSecurityBookingMutation();
-  const [createStripeCheckout] =
-    useCreateSecurityStripeCheckoutSessionMutation();
-  const [createPaystackCheckout] =
-    useCreateSecurityPaystackCheckoutSessionMutation();
 
-  const bookingDetails = location.state?.bookingDetails || {};
-
-  console.log("Booking Details11111111111111", bookingDetails);
-
-  // Check if user is in Africa (for payment method selection)
-  const isAfricaByCountry = (country) => {
-    const africanCountries = [
-      "Nigeria",
-      "Ghana",
-      "Kenya",
-      "South Africa",
-      "Egypt",
-      "Morocco",
-      "Ethiopia",
-      "Tanzania",
-      "Uganda",
-      "Zimbabwe",
-      "Zambia",
-      "Rwanda",
-      "Senegal",
-      "Tunisia",
-    ];
-    return country && africanCountries.includes(country);
-  };
-
-  // Get user country from booking details or localStorage
-  const storedUserRaw =
-    typeof window !== "undefined"
-      ? localStorage.getItem("user") || localStorage.getItem("profile") || null
+  // Days between start and end dates
+  const days = (() => {
+    const start = bookingDetails?.startDate
+      ? new Date(bookingDetails.startDate)
       : null;
+    const end = bookingDetails?.endDate
+      ? new Date(bookingDetails.endDate)
+      : null;
+    if (!start || !end) return 1;
+    const diff = Math.ceil(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return diff > 0 ? diff : 1;
+  })();
+  const currencyCode = bookingDetails?.currency || "USD";
+  const unitPrice = Number(bookingDetails?.pricePerDay || 0);
+  const personnelCount = Number(bookingDetails?.personnelCount || 1);
+  const subtotal = unitPrice * days * personnelCount;
+  const total = subtotal; // adjust if taxes/fees apply
 
-  let userCountry = bookingDetails.user?.country || "";
+  // Derive guest fields from multiple possible shapes
+  const deriveGuest = () => ({
+    name:
+      guestInfo?.name ||
+      guestInfo?.fullName ||
+      bookingDetails?.user?.name ||
+      bookingDetails?.user?.fullName ||
+      user?.name ||
+      user?.fullName ||
+      "",
+    email:
+      guestInfo?.email || bookingDetails?.user?.email || user?.email || "",
+    phone:
+      guestInfo?.phone ||
+      guestInfo?.contactNumber ||
+      bookingDetails?.user?.phone ||
+      bookingDetails?.user?.contactNumber ||
+      user?.phone ||
+      user?.contactNumber ||
+      "",
+    address:
+      guestInfo?.address ||
+      guestInfo?.country ||
+      bookingDetails?.user?.address ||
+      bookingDetails?.user?.country ||
+      user?.address ||
+      user?.country ||
+      "",
+  });
 
-  if (!userCountry && storedUserRaw) {
-    try {
-      const storedUser = JSON.parse(storedUserRaw);
-      userCountry =
-        storedUser?.country ||
-        storedUser?.address?.country ||
-        storedUser?.profile?.country ||
-        storedUser?.location?.country ||
-        "";
-    } catch (e) {
-      console.error("Error parsing user data:", e);
-    }
-  }
+  const [updatedUser, setUpdatedUser] = useState(deriveGuest());
 
-  const isAfricanUser = AFRICAN_COUNTRIES.some(
-    (c) => c.toLowerCase() === String(userCountry).toLowerCase()
-  );
+  // Keep form synced if route state or user changes
+  React.useEffect(() => {
+    setUpdatedUser(deriveGuest());
+  }, [JSON.stringify(guestInfo), JSON.stringify(bookingDetails?.user), JSON.stringify(user)]);
 
-  // Calculate booking details
-  const days =
-    Math.ceil(
-      (new Date(bookingDetails.endDate) - new Date(bookingDetails.startDate)) /
-        (1000 * 60 * 60 * 24)
-    ) || 1;
-
-  const servicePrice = bookingDetails.pricePerDay || 0;
-  const subtotal = servicePrice * days;
-  const taxRate = 0.05; // 5% tax
-  const tax = subtotal * taxRate;
-  const total = subtotal + tax;
-  const shouldUsePaystack = isAfricaByCountry(userCountry);
-
-  // Check if user is logged in
-  const isLoggedIn = Boolean(
-    typeof window !== "undefined" &&
-      (localStorage.getItem("accessToken") ||
-        localStorage.getItem("token") ||
-        localStorage.getItem("user"))
-  );
-
-  // Handle API errors
-  const apiError = location.state?.error || location.state?.apiError || null;
-  useEffect(() => {
-    if (apiError) {
-      const statusCode =
-        apiError?.statusCode || apiError?.status || apiError?.err?.statusCode;
-      const errorMessage =
-        apiError?.message || apiError?.errorMessages?.[0]?.message;
-
-      if (statusCode === 401 || /not authorized/i.test(errorMessage || "")) {
-        setShowAuthModal(true);
-      }
-
-      if (errorMessage) {
-        message.error(errorMessage);
-      }
-    }
-  }, [apiError]);
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUpdatedUser((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleProceedToBooking = async () => {
-    try {
-      setIsProcessing(true);
-      const id = bookingDetails?.guardId;
-      const days = bookingDetails?.days || 1;
-      const total =
-        bookingDetails?.total || (bookingDetails?.pricePerDay || 0) * days;
-      const body = {
-        number_of_security: bookingDetails?.personnelCount || 1,
-        securityBookedFromDate: bookingDetails?.startDate,
-        securityBookedToDate: bookingDetails?.endDate,
-        totalPrice: total,
-        guardId: bookingDetails?.guardId,
-        serviceType: bookingDetails?.serviceType || "Security",
-        status: "pending",
-        paymentStatus: "pending",
-        guardName: bookingDetails?.guardName,
-        pricePerDay: bookingDetails?.pricePerDay,
-        serviceDescription: bookingDetails?.serviceDescription,
-      };
-      console.log("Creating booking with:", { id, body });
-      const resp = await createBooking({ id, body }).unwrap();
-      console.log("Create booking response:", resp);
-      const bookingData = resp?.data || resp;
-      setCreatedBooking(bookingData);
-      setCreatedBookingId(bookingData?._id || bookingData?.id);
-      setIsReserved(true);
-      setShowPaymentChoiceModal(true);
-    } catch (err) {
-      console.error("Create booking failed:", err);
-      const statusCode =
-        err?.status || err?.data?.statusCode || err?.originalStatus;
-      const apiMessage =
-        err?.data?.message ||
-        err?.data?.error ||
-        err?.data?.errorMessage ||
-        err?.data?.errorMessages?.[0]?.message ||
-        err?.error ||
-        err?.message ||
-        "";
-      const isAlreadyBooked = /already\s*book(ed)?/i.test(apiMessage);
-      if (statusCode === 401) {
-        setShowAuthModal(true);
-      }
-      toast.dismiss();
-      toast.error(
-        isAlreadyBooked
-          ? "This security service is already booked for the selected dates"
-          : apiMessage || "Failed to create booking. Please try again."
-      );
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleProceedToPayment = async () => {
-    if (!createdBookingId || !bookingDetails.user) {
-      message.error("Booking information is incomplete");
+  const handleReserveConfirm = async () => {
+    if (!bookingDetails?.guardId) {
+      handleError("Guard information is missing");
       return;
     }
+    if (!user) return;
 
     setIsProcessing(true);
+
     try {
-      const userEmail = bookingDetails.user.email;
-      const userName = bookingDetails.user.name || "Customer";
+      // Build body as API expects for security booking
+      const total =
+        bookingDetails?.total ||
+        Number(bookingDetails?.pricePerDay || 0) *
+          days *
+          Number(bookingDetails?.personnelCount || 1);
+      const body = {
+        // Core booking fields (prefer explicit fields from page, fallback to existing)
+        number_of_security: bookingDetails?.number_of_security ?? bookingDetails?.personnelCount ?? 1,
+        securityBookedFromDate: bookingDetails?.securityBookedFromDate || bookingDetails?.startDate,
+        securityBookedToDate: bookingDetails?.securityBookedToDate || bookingDetails?.endDate,
+        totalPrice: total,
+        convertedPrice: bookingDetails?.convertedPrice ?? total,
+        displayCurrency: bookingDetails?.displayCurrency || bookingDetails?.currency || currencyCode,
+        discountedPrice: bookingDetails?.discountedPrice ?? 0,
 
-      if (shouldUsePaystack) {
-        // Handle Paystack payment
-        const result = await createPaystackCheckout({
-          bookingId: createdBookingId,
-          body: {
-            email: userEmail,
-            amount: Math.round(total * 100), // Convert to kobo/pesewas
-            currency: "NGN",
-            metadata: {
-              bookingId: createdBookingId,
-              customerName: userName,
-            },
-          },
-        }).unwrap();
+        // Identification
+        guardId: bookingDetails?.guardId,
+        guardName: bookingDetails?.guardName,
+        serviceType: bookingDetails?.serviceType || "Security",
+        serviceDescription: bookingDetails?.serviceDescription,
+        pricePerDay: bookingDetails?.pricePerDay,
 
-        if (result?.data?.checkoutUrl) {
-          window.location.href = result.data.checkoutUrl;
-        } else {
-          message.error("Failed to initialize payment. Please try again.");
+        // User contact details from form
+        name: updatedUser?.name || "",
+        email: updatedUser?.email || "",
+        phone: updatedUser?.phone || "",
+        address: updatedUser?.address || "",
+
+        // Status flags
+        status: "pending",
+        paymentStatus: "pending",
+      };
+
+      console.log("Creating security booking with:", {
+        id: bookingDetails?.guardId,
+        body,
+      });
+      const resp = await createSecurityBooking({
+        id: bookingDetails?.guardId,
+        body,
+      }).unwrap();
+      console.log("createSecurityBooking resp:", resp);
+
+      handleSuccess("Security service reserved successfully!");
+      const createdBookingId = resp?.data?.id || resp?.id || "";
+    
+      navigate(
+        `/security/payment-confirm?bookingId=${encodeURIComponent(createdBookingId)}`,
+        {
+          state: { data:resp },
+          replace: true,
         }
-      } else {
-        // Handle Stripe payment
-        const result = await createStripeCheckout({
-          bookingId: createdBookingId,
-          body: {
-            email: userEmail,
-            name: userName,
-            amount: Math.round(total * 100), // Convert to cents
-            currency: "USD",
-            metadata: {
-              bookingId: createdBookingId,
-              customerName: userName,
-            },
-            success_url: `${window.location.origin}/payment/success`,
-            cancel_url: `${window.location.origin}/booking/cancel`,
-          },
-        }).unwrap();
-
-        if (result?.data?.checkoutUrl) {
-          window.location.href = result.data.checkoutUrl;
-        } else {
-          message.error("Failed to initialize payment. Please try again.");
-        }
-      }
-    } catch (error) {
-      console.error("Payment error:", error);
-      message.error("Failed to process payment. Please try again.");
+      );
+    } catch (e) {
+      const msg =
+        e?.data?.message || e?.message || "Failed to create security booking";
+      handleError(msg);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleGoBack = () => {
-    navigate(-1);
+  const handleBackToBooking = () => {
+    navigate("/security-details");
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="max-w-8xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <button
-              onClick={handleGoBack}
-              className="flex items-center text-gray-600 hover:text-gray-800 mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Service Details
-            </button>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Security Service Checkout
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Review your booking details before proceeding to payment
-            </p>
-          </div>
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Booking Details */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* User Information Card */}
-              <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-                <div className="flex items-center mb-4">
-                  <UserOutlined className="w-6 h-6 text-blue-600 mr-3" />
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Your Information
-                  </h2>
-                </div>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Full Name</p>
-                      <p className="font-medium">{bookingDetails.user?.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium">
-                        {bookingDetails.user?.email}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Phone</p>
-                      <p className="font-medium">
-                        {bookingDetails.user?.phone}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Country</p>
-                      <p className="font-medium">
-                        {bookingDetails.user?.country}
-                      </p>
-                    </div>
+  return (
+    <div className="min-h-screen items-center bg-gray-50 py-4 md:py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center mb-6">
+          <button
+            onClick={handleBackToBooking}
+            className="flex items-center text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-6 h-6 mr-2" />
+            <h1 className="text-2xl font-bold text-gray-900">Checkout</h1>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left section */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <h2 className="text-xl font-semibold mb-4">Booking Summary</h2>
+
+              {/* Guest Info */}
+              <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                <h3 className="text-md font-medium mb-3">Guest Information</h3>
+                <form className="space-y-4">
+                  <div>
+                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                      <User className="w-4 h-4" /> <span>Full Name</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={updatedUser.name}
+                      onChange={handleInputChange}
+                      placeholder="Full name"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    />
                   </div>
+
+                  <div>
+                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                      <Mail className="w-4 h-4" /> <span>Email</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={updatedUser.email}
+                      onChange={handleInputChange}
+                      placeholder="Email address"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                      <Phone className="w-4 h-4" /> <span>Phone</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="phone"
+                      value={updatedUser.phone}
+                      onChange={handleInputChange}
+                      placeholder="Phone number"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                      <MapPin className="w-4 h-4" /> <span>Address</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={updatedUser.address}
+                      onChange={handleInputChange}
+                      placeholder="Address / Country"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    />
+                  </div>
+                </form>
+              </div>
+
+              {/* Selected Guard Info */}
+              <div className="flex items-start gap-4">
+                {bookingDetails?.photo && (
+                  <img
+                    src={bookingDetails.photo}
+                    alt={bookingDetails.guardName || "Guard"}
+                    className="w-16 h-16 rounded-lg object-cover"
+                  />
+                )}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-medium text-gray-900 truncate">
+                      {bookingDetails.guardName || "Selected Guard"}
+                    </h3>
+                    {bookingDetails?.serviceType && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-xs">
+                        {bookingDetails.serviceType}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-600 mt-1">
+                    {currencyCode} {unitPrice} / day
+                  </p>
                 </div>
               </div>
 
-              {/* Booking Summary Card */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center mb-4">
-                  <Shield className="w-6 h-6 text-blue-600 mr-3" />
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Booking Summary
-                  </h2>
+              {/* Dates */}
+              <div className="flex items-center space-x-4 mt-4">
+                <Calendar className="w-5 h-5 text-gray-400" />
+                <div>
+                  <p className="text-gray-900">
+                    {formatDate(bookingDetails.startDate)} - {formatDate(bookingDetails.endDate)}
+                  </p>
+                  <p className="text-gray-600">{days} {days === 1 ? "day" : "days"}</p>
                 </div>
+              </div>
 
-                <div className="space-y-4">
-                  {/* Booking ID */}
-                  <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                    <span className="text-gray-600">Booking ID</span>
-                    <span className="font-medium text-gray-900">
-                      {bookingDetails.bookingId}
-                    </span>
-                  </div>
-
-                  {/* Service Description */}
-                  <div className="py-3 border-b border-gray-100">
-                    <span className="text-gray-600 block mb-2">
-                      Service Description
-                    </span>
-                    <span className="text-gray-900">
-                      {bookingDetails.serviceDescription}
-                    </span>
-                  </div>
-
-                  {/* Dates */}
-                  <div className="py-3 border-b border-gray-100">
-                    <div className="flex items-center mb-3">
-                      <Calendar className="w-4 h-4 text-gray-500 mr-2" />
-                      <span className="text-gray-600">Service Period</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">
-                          Start Date
-                        </span>
-                        <span className="text-sm font-medium text-gray-900">
-                          {formatDate(bookingDetails.startDate)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">End Date</span>
-                        <span className="text-sm font-medium text-gray-900">
-                          {formatDate(bookingDetails.endDate)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between pt-2 border-t border-gray-100">
-                        <span className="text-sm text-gray-500">Duration</span>
-                        <span className="text-sm font-medium text-gray-900">
-                          {days} {days === 1 ? "day" : "days"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+              {/* Guests */}
+              <div className="flex items-center space-x-4 mt-4">
+                <Users className="w-5 h-5 text-gray-400" />
+                <div>
+                  <p className="text-gray-900">
+                    {bookingDetails?.personnelCount || 1} {Number(bookingDetails?.personnelCount || 1) === 1 ? "guard" : "guards"}
+                  </p>
+                  <p className="text-gray-600">{bookingDetails?.serviceDescription || "Security service"}</p>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Right Column - Price Summary */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-sm p-6 sticky top-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Price Summary
-                </h3>
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-8">
+              <h3 className="text-lg font-semibold mb-4">Price Summary</h3>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      {servicePrice} × {days} {days === 1 ? "day" : "days"}
-                    </span>
-                    <span className="text-gray-900">
-                      ${bookingDetails.total}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Taxes & Fees</span>
-                    <span className="font-medium">${tax.toFixed(2)}</span>
-                  </div>
-
-                  <div className="border-t border-gray-200 pt-3">
-                    <div className="flex justify-between">
-                      <span className="text-lg font-semibold text-gray-900">
-                        Total
-                      </span>
-                      <span className="text-lg font-semibold text-gray-900">
-                        ${total.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
+              <div className="text-sm space-y-2">
+                <div className="flex justify-between">
+                  <span>
+                    {currencyCode} {unitPrice} × {days} {days === 1 ? "day" : "days"} × {personnelCount} {personnelCount === 1 ? "guard" : "guards"}
+                  </span>
+                  <span>{currencyCode} {subtotal.toFixed(2)}</span>
                 </div>
 
-                <div className="mt-6 space-y-4">
-                  {!isReserved ? (
-                    <button
-                      onClick={handleProceedToBooking}
-                      disabled={isProcessing}
-                      className={`w-full py-3 text-white rounded-lg font-medium transition-all ${
-                        isProcessing
-                          ? "bg-blue-400 cursor-not-allowed"
-                          : "bg-blue-700 hover:bg-blue-800"
-                      }`}
-                    >
-                      {isProcessing ? "Processing..." : "Confirm Reservation"}
-                    </button>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <p className="text-green-800 text-sm flex items-center">
-                          <Check className="w-4 h-4 mr-2" />
-                          Security service reserved successfully! Please proceed
-                          with payment to confirm your booking.
-                        </p>
-                      </div>
-                      <button
-                        onClick={handleProceedToPayment}
-                        disabled={isProcessing}
-                        className="w-full py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors font-medium flex items-center justify-center"
-                      >
-                        {isProcessing
-                          ? "Processing..."
-                          : `Pay $${total.toFixed(2)}`}
-                        {!isProcessing && (
-                          <CreditCard className="ml-2 w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-                  )}
+                <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
+                  <span>Total</span>
+                  <span>{currencyCode} {total.toFixed(2)}</span>
                 </div>
+
+                <p className="text-xs text-gray-500 mt-1">Taxes and fees included if applicable</p>
               </div>
+
+              <button
+                onClick={handleReserveConfirm}
+                disabled={isProcessing || isLoading}
+                className={`w-full mt-6 py-3 text-white rounded-lg font-medium ${
+                  isProcessing || isLoading
+                    ? "bg-blue-400 cursor-not-allowed"
+                    : "bg-blue-700 hover:bg-blue-800"
+                }`}
+              >
+                {isProcessing || isLoading ? "Processing..." : "Continue"}
+              </button>
             </div>
           </div>
         </div>
       </div>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
     </div>
   );
 }

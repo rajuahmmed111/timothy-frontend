@@ -9,14 +9,7 @@ import { useMemo } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useBooking } from "../../context/BookingContext";
 
-export default function SecurityBookingForm({
-  guardId,
-  guardName,
-  pricePerDay,
-  photo,
-  fromDate,
-  toDate,
-}) {
+export default function SecurityBookingForm({ data }) {
   const navigate = useNavigate();
   const { bookingData, updateBookingData, updateGuests } = useBooking();
   const [serviceType, setServiceType] = useState("personal");
@@ -41,13 +34,39 @@ export default function SecurityBookingForm({
       return null;
     }
   }, [accessToken, user]);
-  console.log("fdasf", userInfo);
-  const handleGuestsChange = (type, value) => {
-    updateGuests({
-      [type]: value,
-    });
-  };
-  const unitPrice = Number(pricePerDay) || 500;
+
+  // Derive guards list from incoming data (array or single object)
+  const guards = Array.isArray(data) ? data : data ? [data] : [];
+  const [selectedGuardIndex, setSelectedGuardIndex] = useState(0);
+  useEffect(() => {
+    if (guards.length === 0) return;
+    const idx = guards.findIndex(
+      (g) => String(g?.isBooked).toUpperCase() === "AVAILABLE"
+    );
+    setSelectedGuardIndex(idx >= 0 ? idx : 0);
+  }, [JSON.stringify(guards)]);
+
+  const selectedGuard = guards[selectedGuardIndex] || null;
+  const guardId = selectedGuard?.id ?? selectedGuard?._id ?? null;
+  const guardName =
+    selectedGuard?.securityGuardName ||
+    selectedGuard?.securityName ||
+    selectedGuard?.name ||
+    null;
+  const photo =
+    selectedGuard?.photo ||
+    (Array.isArray(selectedGuard?.securityImages)
+      ? selectedGuard.securityImages[0]
+      : null);
+  const derivedPrice =
+    selectedGuard?.securityPriceDay ||
+    selectedGuard?.pricePerDay ||
+    selectedGuard?.securityPrice ||
+    500;
+  const unitPrice = Number(derivedPrice) || 500;
+  const currencyCode =
+    selectedGuard?.displayCurrency || selectedGuard?.currency || "USD";
+
   const serviceTypes = [
     {
       id: "personal",
@@ -96,11 +115,13 @@ export default function SecurityBookingForm({
       personnelCount: personnelCount,
       total: calculateTotal(),
       serviceDescription: selectedService.description,
-      guardId: guardId,
+      guardId,
       guardName,
       pricePerDay: unitPrice,
       photo,
+      currency: currencyCode,
     };
+    console.log("booking-form:payload", payload);
     if (accessToken) {
       // If user is logged in, navigate to checkout
       navigate("/security/checkout", { state: { payload } });
@@ -116,12 +137,7 @@ export default function SecurityBookingForm({
     setIsBooking(false);
   };
 
-  // Prefill date range from props (URL query)
-  useEffect(() => {
-    if (fromDate && toDate) {
-      setDateRange([dayjs(fromDate), dayjs(toDate)]);
-    }
-  }, [fromDate, toDate]);
+  // Prefill date range (optional): Could parse from query params if needed
 
   return (
     <div className="bg-white rounded-2xl shadow-xl p-6">
@@ -143,43 +159,198 @@ export default function SecurityBookingForm({
             {guardName && (
               <div className="font-medium text-gray-900">{guardName}</div>
             )}
-            <div className="text-sm text-gray-600">${unitPrice} / day</div>
+            <div className="text-sm text-gray-600">
+              {currencyCode} {unitPrice} / day
+            </div>
           </div>
         </div>
       )}
 
       <form onSubmit={handleBooking} className="space-y-5">
-        {/* Service Type */}
+        {/* Available Guards */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Service Type
+            Available Guards
           </label>
-          <div className="space-y-2">
-            {serviceTypes.map((service) => (
-              <div
-                key={service.id}
-                onClick={() => setServiceType(service.id)}
-                className={`p-3 border rounded-lg cursor-pointer transition-all flex items-start space-x-3 ${
-                  serviceType === service.id
-                    ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                <div className="mt-0.5">{service.icon}</div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">{service.name}</h3>
-                  <p className="text-sm text-gray-500">{service.description}</p>
-                  <div className="mt-1 text-sm font-medium">
-                    ${service.price}{" "}
-                    <span className="text-gray-500 font-normal">/ day</span>
+          {guards.length === 0 ? (
+            <div className="text-sm text-gray-500">No guards found.</div>
+          ) : (
+            <div className="space-y-5 gap-2">
+              {/* AVAILABLE group */}
+              {guards.some(
+                (g) => String(g?.isBooked).toUpperCase() === "AVAILABLE"
+              ) && (
+                <div>
+                  <div className="text-xs  font-semibold text-green-700 mb-4">
+                    AVAILABLE
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {guards.map((g, idx) => {
+                      const available =
+                        String(g?.isBooked).toUpperCase() === "AVAILABLE";
+                      if (!available) return null;
+                      const name =
+                        g?.securityGuardName ||
+                        g?.securityName ||
+                        g?.name ||
+                        "Guard";
+                      const img =
+                        Array.isArray(g?.securityImages) &&
+                        g.securityImages.length > 0
+                          ? g.securityImages[0]
+                          : null;
+                      const price =
+                        Number(
+                          g?.securityPriceDay ||
+                            g?.pricePerDay ||
+                            g?.securityPrice ||
+                            unitPrice
+                        ) || unitPrice;
+                      const curr =
+                        g?.displayCurrency || g?.currency || currencyCode;
+                      const rating = Number(g?.securityRating) || 0;
+                      const isSelected = idx === selectedGuardIndex;
+                      return (
+                        <div
+                          key={g?.id || idx}
+                          onClick={() => {
+                            console.log("booking-form:selectedGuardIndex", idx);
+                            setSelectedGuardIndex(idx);
+                          }}
+                          className={`p-3 border rounded-lg flex items-start gap-3 ${
+                            isSelected
+                              ? "border-blue-500 ring-1 ring-blue-400 bg-blue-50/40"
+                              : "border-gray-200 hover:border-gray-300"
+                          } cursor-pointer hover:shadow-sm`}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          {img && (
+                            <img
+                              src={img}
+                              alt={name}
+                              className="w-14 h-14 rounded-md object-cover"
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium text-gray-900 truncate">
+                                {name}
+                              </h4>
+                              {isSelected && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+                                  Selected
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-600 mt-0.5">
+                              {curr} {price} / day
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              {[1, 2, 3, 4, 5].map((s, i) => (
+                                <span
+                                  key={i}
+                                  className={`w-2 h-2 inline-block rounded-full ${
+                                    i < Math.round(rating)
+                                      ? "bg-yellow-400"
+                                      : "bg-gray-300"
+                                  }`}
+                                ></span>
+                              ))}
+                              <span className="text-[11px] text-gray-600 ml-1">
+                                {rating.toFixed(1)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-                {serviceType === service.id && (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                )}
-              </div>
-            ))}
-          </div>
+              )}
+
+              {/* BOOKED group */}
+              {guards.some(
+                (g) => String(g?.isBooked).toUpperCase() !== "AVAILABLE"
+              ) && (
+                <div className="mt-4">
+                  <div className="text-xs font-semibold text-gray-700 mb-2">
+                    BOOKED / UNAVAILABLE
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {guards.map((g, idx) => {
+                      const available =
+                        String(g?.isBooked).toUpperCase() === "AVAILABLE";
+                      if (available) return null;
+                      const name =
+                        g?.securityGuardName ||
+                        g?.securityName ||
+                        g?.name ||
+                        "Guard";
+                      const img =
+                        Array.isArray(g?.securityImages) &&
+                        g.securityImages.length > 0
+                          ? g.securityImages[0]
+                          : null;
+                      const price =
+                        Number(
+                          g?.securityPriceDay ||
+                            g?.pricePerDay ||
+                            g?.securityPrice ||
+                            unitPrice
+                        ) || unitPrice;
+                      const curr =
+                        g?.displayCurrency || g?.currency || currencyCode;
+                      const rating = Number(g?.securityRating) || 0;
+                      return (
+                        <div
+                          key={g?.id || idx}
+                          className="p-3 border rounded-lg flex items-start gap-3 border-gray-200 opacity-60"
+                        >
+                          {img && (
+                            <img
+                              src={img}
+                              alt={name}
+                              className="w-14 h-14 rounded-md object-cover"
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium text-gray-900 truncate">
+                                {name}
+                              </h4>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">
+                                Booked
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-600 mt-0.5">
+                              {curr} {price} / day
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              {[1, 2, 3, 4, 5].map((s, i) => (
+                                <span
+                                  key={i}
+                                  className={`w-2 h-2 inline-block rounded-full ${
+                                    i < Math.round(rating)
+                                      ? "bg-yellow-400"
+                                      : "bg-gray-300"
+                                  }`}
+                                ></span>
+                              ))}
+                              <span className="text-[11px] text-gray-600 ml-1">
+                                {rating.toFixed(1)}
+                              </span>
+                            </div>
+                          </div>
+                          
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Date Range */}
@@ -240,6 +411,10 @@ export default function SecurityBookingForm({
                     </Button>
                   </div>
                 </div>
+                <div className="mt-1 text-sm font-medium">
+                  {currencyCode} {selectedService.price}{" "}
+                  <span className="text-gray-500 font-normal">/ day</span>
+                </div>
               </div>
             )}
           />
@@ -251,27 +426,33 @@ export default function SecurityBookingForm({
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">
-                ${selectedService.price} per day per person
+                {currencyCode} {selectedService.price} per day per person
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">
                 {personnelCount} {personnelCount === 1 ? "person" : "people"}
               </span>
-              <span>${selectedService.price * personnelCount} per day</span>
+              <span>
+                {currencyCode} {selectedService.price * personnelCount} per day
+              </span>
             </div>
             {dateRange && dateRange[0] && dateRange[1] && (
               <div className="flex justify-between">
                 <span className="text-gray-600">
                   {getDays()} {getDays() === 1 ? "day" : "days"}
                 </span>
-                <span>${calculateTotal()}</span>
+                <span>
+                  {currencyCode} {calculateTotal()}
+                </span>
               </div>
             )}
             <div className="border-t border-gray-200 my-2"></div>
             <div className="flex justify-between font-medium">
               <span>Total</span>
-              <span>${calculateTotal()}</span>
+              <span>
+                {currencyCode} {calculateTotal()}
+              </span>
             </div>
           </div>
         </div>

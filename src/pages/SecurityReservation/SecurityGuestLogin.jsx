@@ -40,6 +40,7 @@ export default function SecurityGuestLogin() {
   const [selectedCountry, setSelectedCountry] = useState(
     countries && countries.length > 0 ? countries[0] : null
   );
+  const [infoMessage, setInfoMessage] = useState("");
   const dispatch = useDispatch();
   const [loginWebsite] = useGuestLoginMutation();
 
@@ -139,6 +140,14 @@ export default function SecurityGuestLogin() {
       });
     } catch (error) {
       console.error("Error during guest login:", error);
+      const apiMsg =
+        error?.data?.message ||
+        error?.data?.error ||
+        error?.message ||
+        "";
+      if (/already\s*(exists|registered|created)/i.test(String(apiMsg))) {
+        setInfoMessage("An account with this email/phone already exists. You can proceed to checkout or log in.");
+      }
     } finally {
       setIsLoginLoading(false);
     }
@@ -152,6 +161,11 @@ export default function SecurityGuestLogin() {
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               Personal Information
             </h2>
+            {infoMessage && (
+              <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 text-blue-800 px-3 py-2 text-sm">
+                {infoMessage}
+              </div>
+            )}
 
             <form className="space-y-6">
               <div>
