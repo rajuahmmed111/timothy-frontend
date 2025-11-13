@@ -441,10 +441,9 @@ export default function AddSecurityBusiness() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="Event Security">Event Security</option>
-                      <option value="Corporate Security">Corporate Security</option>
-                      <option value="Residential Security">Residential Security</option>
-                      <option value="VIP Protection">VIP Protection</option>
-                      <option value="Crowd Control">Crowd Control</option>
+                      <option value="Executive Protection">Executive Protection</option>
+                      <option value="Security Guard">Security Guard</option>
+                      <option value="Personal Bodyguard">Personal Bodyguard</option>
                     </select>
                   </div>
                   <div className="md:col-span-2">

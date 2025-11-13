@@ -3,7 +3,10 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Upload, X } from "lucide-react";
 import Swal from "sweetalert2";
-import { useAddSecurityGuardMutation, useGetSecurityPartnerMutation } from "../../redux/api/security/securityApi";
+import {
+  useAddSecurityGuardMutation,
+  useGetSecurityPartnerQuery,
+} from "../../redux/api/security/securityApi";
 
 export default function AddNewSecurity() {
   const [loading, setLoading] = useState(false);
@@ -17,31 +20,61 @@ export default function AddNewSecurity() {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm({
     defaultValues: {
-      securityGuardName: "",
-      securityAddress: "",
-      securityPostalCode: "",
-      securityDistrict: "",
-      securityCity: "",
-      securityCountry: "",
-      securityGuardDescription: "",
-      securityPriceDay: 0,
-      experience: 0,
-      availability: "",
-      languages: "",
-      securityServicesOffered: "",
-      certification: "",
-      securityRating: "4",
+      securityGuardName: "aman-create-security-1",
+      securityAddress: "Dhaka",
+      securityPostalCode: "1207",
+      securityDistrict: "Dhaka",
+      securityCity: "Dhaka",
+      securityCountry: "Bangladesh",
+      securityGuardDescription:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+      experience: 5,
+      availability: "24/7",
+      languages: "English",
+      securityServicesOffered: "Patrolling",
+      certification: "CSP",
+      securityRating: "5",
+      currency: "BDT",
     },
   });
 
-  const [getPartner, { data: securityData, isLoading: isPartnerLoading }] =
-    useGetSecurityPartnerMutation();
+  const { data: securityData, isLoading: isPartnerLoading } =
+    useGetSecurityPartnerQuery({ limit: 1000, page: 1 });
 
+  // Currency rates state
+  const [rates, setRates] = useState(null);
+  const [ratesLoading, setRatesLoading] = useState(false);
+  const [ratesError, setRatesError] = useState("");
+
+  // Removed getPartner effect; data now comes from useGetAllSecurityProtocolsQuery
+
+  // currency rates
   useEffect(() => {
-    getPartner({ limit: 1000, page: 1 });
-  }, [getPartner]);
+    let active = true;
+    const fetchRates = async () => {
+      try {
+        setRatesLoading(true);
+        setRatesError("");
+        const res = await fetch("https://open.er-api.com/v6/latest/USD");
+        if (!res.ok) throw new Error("Failed to load currency rates");
+        const json = await res.json();
+        // Expect json.rates to be an object of { code: rate }
+        if (active) setRates(json?.rates || null);
+      } catch (e) {
+        if (active) setRatesError("Unable to load currency list");
+      } finally {
+        if (active) setRatesLoading(false);
+      }
+    };
+    fetchRates();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const securityListings = securityData?.data?.data || [];
   useEffect(() => {
     if (!selectedSecurityId && securityListings.length > 0) {
@@ -53,7 +86,9 @@ export default function AddNewSecurity() {
     }
   }, [securityListings, selectedSecurityId]);
 
-  const selectedSecurity = securityListings.find((s) => s.id === selectedSecurityId);
+  const selectedSecurity = securityListings.find(
+    (s) => s.id === selectedSecurityId
+  );
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -126,6 +161,7 @@ export default function AddNewSecurity() {
         securityPriceDay: data.securityPriceDay,
         category: data.category,
         discount: data.discount,
+        currency: data.currency || "BDT",
         securityReviewCount: data.securityReviewCount,
       };
 
@@ -136,7 +172,9 @@ export default function AddNewSecurity() {
         }
       });
 
-      arrayFields.languages.forEach((lang) => formData.append("languages", lang));
+      arrayFields.languages.forEach((lang) =>
+        formData.append("languages", lang)
+      );
       arrayFields.securityServicesOffered.forEach((svc) =>
         formData.append("securityServicesOffered", svc)
       );
@@ -154,12 +192,11 @@ export default function AddNewSecurity() {
         },
       });
 
-      const response = await addSecurityGuard({ formData, Id: selectedSecurityId }).unwrap();
-
-      // Close the loading dialog
+      const response = await addSecurityGuard({
+        formData,
+        Id: selectedSecurityId,
+      }).unwrap();
       Swal.close();
-
-      // Show success message
       await Swal.fire({
         icon: "success",
         title: "Success!",
@@ -170,10 +207,7 @@ export default function AddNewSecurity() {
       navigate("/dashboard/security-management");
     } catch (error) {
       console.error("Error creating security guard:", error);
-      // Close any open dialogs
       Swal.close();
-
-      // Show error message
       await Swal.fire({
         icon: "error",
         title: "Error",
@@ -217,14 +251,16 @@ export default function AddNewSecurity() {
                   setSelectedSecurityId(val);
                   const found = securityListings.find((x) => x.id === val);
                   setSelectedSecurityType(
-                    found?.securityBusinessType || found?.securityProtocolType || ""
+                    found?.securityBusinessType ||
+                      found?.securityProtocolType ||
+                      ""
                   );
                 }}
                 className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 outline-none"
                 disabled={isPartnerLoading}
               >
                 {securityListings.map((h) => {
-                  const label = h.securityBusinessType || h.securityTypeName || h.securityProtocolType || h.name || h.id;
+                  const label = h.securityBusinessName;
                   return (
                     <option key={h.id} value={h.id}>
                       {label}
@@ -232,14 +268,9 @@ export default function AddNewSecurity() {
                   );
                 })}
               </select>
-              {selectedSecurityType ? (
-                <p className="mt-2 text-sm text-gray-600">
-                  Business Type: <span className="font-medium">{selectedSecurityType}</span>
-                </p>
-              ) : null}
             </div>
           ) : (
-            <p className="text-gray-600">No hotels found for your account.</p>
+            <p className="text-gray-600">No security found for your account.</p>
           )}
         </div>
         {/* Basic Information Section */}
@@ -285,7 +316,55 @@ export default function AddNewSecurity() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Experience (years)</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Currency
+              </label>
+              <select
+                {...register("currency")}
+                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+              >
+                {rates ? (
+                  Object.keys(rates)
+                    .sort()
+                    .map((code) => (
+                      <option key={code} value={code}>
+                        {code}
+                      </option>
+                    ))
+                ) : (
+                  <>
+                    <option value="BDT">BDT</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="NGN">NGN</option>
+                    <option value="AED">AED</option>
+                  </>
+                )}
+              </select>
+              {/* Show current rate for selected currency relative to USD */}
+              {(() => {
+                const selected = watch("currency") || "BDT";
+                const rate = rates?.[selected];
+                if (ratesLoading)
+                  return (
+                    <p className="text-xs text-gray-500 mt-1">Loading rates…</p>
+                  );
+                if (ratesError)
+                  return (
+                    <p className="text-xs text-amber-600 mt-1">{ratesError}</p>
+                  );
+                return rate ? (
+                  <p className="text-xs text-gray-500 mt-1">
+                    1 USD ≈ {rate} {selected}
+                  </p>
+                ) : null;
+              })()}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Experience (years)
+              </label>
               <input
                 type="number"
                 min="0"
@@ -295,7 +374,9 @@ export default function AddNewSecurity() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Availability</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Availability
+              </label>
               <input
                 type="text"
                 {...register("availability")}
@@ -439,7 +520,9 @@ export default function AddNewSecurity() {
           <h2 className="text-lg font-semibold mb-4">Guard Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Languages (comma-separated)</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Languages (comma-separated)
+              </label>
               <input
                 type="text"
                 placeholder="e.g. English, Bangla, Hindi"
@@ -448,7 +531,9 @@ export default function AddNewSecurity() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Services Offered (comma-separated)</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Services Offered (comma-separated)
+              </label>
               <input
                 type="text"
                 placeholder="e.g. Patrolling, CCTV Monitoring"
@@ -457,19 +542,27 @@ export default function AddNewSecurity() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Certification</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Certification
+              </label>
               <input
                 type="text"
                 placeholder="e.g. CSP, Fire Safety Training"
-                {...register("certification", { required: "Certification is required" })}
+                {...register("certification", {
+                  required: "Certification is required",
+                })}
                 className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
               />
               {errors.certification && (
-                <p className="mt-1 text-sm text-red-600">{errors.certification.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.certification.message}
+                </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Rating</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Rating
+              </label>
               <select
                 {...register("securityRating")}
                 className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
@@ -483,7 +576,6 @@ export default function AddNewSecurity() {
             </div>
           </div>
         </div>
-
 
         <div className="flex justify-end space-x-4">
           <button
