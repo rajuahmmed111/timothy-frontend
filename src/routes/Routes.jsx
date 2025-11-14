@@ -70,6 +70,8 @@ import GuastLogin from "../pages/HotelReservation/GuastLogin";
 import SecurityGuestLogin from "../pages/SecurityReservation/SecurityGuestLogin";
 import PaymentConfirm from "../pages/HotelReservation/PaymentConfirm";
 import AddNewSecurity from "../components/Security/AddNewSecurity";
+import EventGuastLogin from "../pages/AttractionReservation/EventGuastLogin";
+import EventPaymentConfirm from "../pages/AttractionReservation/EventPaymentConfirm";
 
 export const routes = createBrowserRouter([
   {
@@ -276,6 +278,14 @@ export const routes = createBrowserRouter([
       {
         path: "/event/payment",
         element: <EventPaymentPage />,
+      },
+      {
+        path: "/event/payment-confirm",
+        element: <EventPaymentConfirm />,
+      },
+      {
+        path: "/event/guest-login",
+        element: <EventGuastLogin />,
       },
       {
         path: "/event/booking-confirmation",

@@ -11,6 +11,7 @@ import {
   Waves,
   ChevronLeft,
   ChevronRight,
+  ExternalLink,
 } from "lucide-react";
 import img1 from "/burj.png";
 import { useGetAttractionAppealByIdQuery } from "../../redux/api/attraction/attractionApi";
@@ -23,6 +24,25 @@ export default function EventReservationPage() {
     skip: !appealId,
   });
   const a = data?.data;
+
+  // ---------- Location & Map Helpers ----------
+  const attractionAddressParts = [
+    a?.attractionAddress,
+    a?.attractionCity,
+    a?.attractionCountry,
+  ].filter(Boolean);
+  const fullAddress = attractionAddressParts.join(", ");
+  const encodedQuery = encodeURIComponent(fullAddress || "");
+  const displayRating = Number(a?.attractionRating) || 0;
+
+  const openFullMap = () => {
+    if (fullAddress) {
+      const url = `https://www.google.com/maps/search/${encodedQuery}`;
+      window.open(url, "_blank");
+    } else {
+      window.open("https://www.google.com/maps", "_blank");
+    }
+  };
 
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -79,7 +99,9 @@ export default function EventReservationPage() {
   const selectedWeekday = useMemo(() => {
     if (!selectedDate) return "";
     try {
-      return new Date(selectedDate).toLocaleDateString("en-US", { weekday: "long" });
+      return new Date(selectedDate).toLocaleDateString("en-US", {
+        weekday: "long",
+      });
     } catch {
       return "";
     }
@@ -88,16 +110,21 @@ export default function EventReservationPage() {
   // ---------- Update available slots when selected date changes ----------
   useEffect(() => {
     if (!selectedDate || !a?.attractionSchedule) return;
-    const weekday = new Date(selectedDate).toLocaleDateString("en-US", { weekday: "long" });
+    const weekday = new Date(selectedDate).toLocaleDateString("en-US", {
+      weekday: "long",
+    });
     const daySchedule = (a.attractionSchedule || []).find(
-      (item) => String(item.day || "").toLowerCase() === String(weekday).toLowerCase()
+      (item) =>
+        String(item.day || "").toLowerCase() === String(weekday).toLowerCase()
     );
     setAvailableSlots(daySchedule?.slots || []);
   }, [selectedDate, a]);
 
   // ---------- Days available from schedule ----------
   const scheduleDays = useMemo(() => {
-    const days = (a?.attractionSchedule || []).map((s) => s?.day).filter(Boolean);
+    const days = (a?.attractionSchedule || [])
+      .map((s) => s?.day)
+      .filter(Boolean);
     return [...new Set(days)];
   }, [a]);
 
@@ -170,7 +197,7 @@ export default function EventReservationPage() {
             </h1>
             <p className="text-gray-600">{a?.attractionDescription}</p>
           </div>
-          <button
+          {/* <button
             onClick={() => navigate(`/attraction-details?appealId=${appealId}`)}
             disabled={!appealId}
             className={`px-4 py-2 rounded-lg font-medium border ${
@@ -180,7 +207,7 @@ export default function EventReservationPage() {
             }`}
           >
             View Attraction Details
-          </button>
+          </button> */}
         </div>
 
         <div className="flex items-center gap-4 mt-2">
@@ -222,7 +249,7 @@ export default function EventReservationPage() {
               </div>
             ))}
           </div> */}
-          <ImageGallery data={a}/>
+          <ImageGallery data={a} />
           {/* Description */}
           <div>
             <h2 className="text-xl font-semibold mb-3">Description</h2>
@@ -252,6 +279,68 @@ export default function EventReservationPage() {
 
         {/* Right Column - Booking */}
         <div className="lg:col-span-1 pb-10">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+            <div className="relative h-[200px]">
+              <iframe
+                src={`https://maps.google.com/maps?q=${encodedQuery}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                width="100%"
+                height="100%"
+                className="absolute inset-0"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Hotel Location Map"
+              ></iframe>
+
+              {/* Map Overlay with Attraction Info */}
+              <div className="absolute top-2 left-2 right-2 bg-white/80 backdrop-blur-md rounded-xl shadow-md p-2">
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-5 h-5 text-red-500 mt-0.5" />
+                  <div className="min-w-0">
+                    <h5 className="font-semibold text-xs text-gray-900 truncate">
+                      {a?.attractionDestinationType || "Attraction"}
+                    </h5>
+                    {a?.attractionCity && (
+                      <p className="text-[11px] text-gray-600 truncate">
+                        {a.attractionCity}
+                      </p>
+                    )}
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-yellow-50 px-1.5 py-0.5 text-[10px] text-yellow-800">
+                        {[1, 2, 3, 4, 5].map((star, i) => (
+                          <Star
+                            key={star}
+                            className={`w-2.5 h-2.5 ${
+                              i < Math.round(displayRating)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                        {displayRating.toFixed(1)}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-700">
+                        {a?.currencySymbol || "$"}
+                        {a?.attractionAdultPrice ?? 0}/person
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* View in full map link */}
+            <div className="bg-white border-t border-gray-100 p-2">
+              <button
+                onClick={openFullMap}
+                className="flex items-center justify-center w-full text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors py-1"
+              >
+                <ExternalLink className="w-4 h-4 mr-1" />
+                View in full map
+              </button>
+            </div>
+          </div>
           <div className="bg-white rounded-xl shadow-lg p-6 sticky top-6">
             {/* Price */}
             <div className="flex items-center justify-between mb-6">
@@ -324,7 +413,10 @@ export default function EventReservationPage() {
                       {/* Weekday Headers */}
                       <div className="grid grid-cols-7 gap-1 mb-2">
                         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
-                          <div key={d} className="text-xs font-medium text-gray-500 text-center py-1">
+                          <div
+                            key={d}
+                            className="text-xs font-medium text-gray-500 text-center py-1"
+                          >
                             {d}
                           </div>
                         ))}
@@ -364,7 +456,13 @@ export default function EventReservationPage() {
               {selectedDate && (
                 <div className="mb-2">
                   <span className="text-sm text-gray-600">
-                    Selected: {new Date(selectedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} ({selectedWeekday})
+                    Selected:{" "}
+                    {new Date(selectedDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}{" "}
+                    ({selectedWeekday})
                   </span>
                 </div>
               )}
@@ -445,7 +543,7 @@ export default function EventReservationPage() {
                 <div className="flex justify-between font-medium text-lg">
                   <span>Total</span>
                   <span>
-                    ${(a?.attractionAdultPrice || 0) * parseInt(guests) }
+                    ${(a?.attractionAdultPrice || 0) * parseInt(guests)}
                   </span>
                 </div>
               </div>
@@ -468,7 +566,7 @@ export default function EventReservationPage() {
                     selectedSlotId,
                     guests,
                     unitPrice,
-                    total: unitPrice * parseInt(guests) ,
+                    total: unitPrice * parseInt(guests),
                     appealId,
                     discountPercent: a?.discount || 0,
                     vatPercent: a?.vat || 0,

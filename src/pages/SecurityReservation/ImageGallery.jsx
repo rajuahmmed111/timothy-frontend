@@ -1,23 +1,42 @@
 import React, { useState } from "react";
 
-export default function ImageGallery({ images = [], data = [], alt = '' }) {
-  console.log(images, data)
+export default function ImageGallery({ images }) {
   // Normalize inputs: accept either array of URLs via `images`,
-  // or array of guards via `data` (each may contain securityImages[])
-  const guardImages = Array.isArray(data)
-    ? data.flatMap((g) => (Array.isArray(g?.securityImages) ? g.securityImages : []))
-    : [];
-  const urlImages = Array.isArray(images) ? images : [];
-  const allImages = [...new Set([...urlImages, ...guardImages].filter(Boolean))];
+  // or array of guards (each may contain securityImages[])
+  const isArray = Array.isArray(images);
+  const hasGuardImages =
+    isArray && images.some((g) => Array.isArray(g?.securityImages));
 
-  const [primaryImage, setPrimaryImage] = useState(allImages[0] || '');
+  // If we have guards with securityImages, take those; otherwise treat `images` as URL array
+  const allImages = hasGuardImages
+    ? [
+        ...new Set(
+          images
+            .flatMap((g) =>
+              Array.isArray(g?.securityImages) ? g.securityImages : []
+            )
+            .filter(Boolean)
+        ),
+      ]
+    : isArray
+    ? images.filter(Boolean)
+    : [];
+
+  const [primaryImage, setPrimaryImage] = useState(allImages[0] || "");
 
   // Keep primary image in sync when image sources change
   React.useEffect(() => {
-    if (!primaryImage || !allImages.includes(primaryImage)) {
-      setPrimaryImage(allImages[0] || '');
+    if (!allImages.length) {
+      if (primaryImage !== "") {
+        setPrimaryImage("");
+      }
+      return;
     }
-  }, [allImages.join('|')]);
+
+    if (!primaryImage || !allImages.includes(primaryImage)) {
+      setPrimaryImage(allImages[0] || "");
+    }
+  }, [allImages, primaryImage]);
 
   if (allImages.length === 0) {
     return (
@@ -27,6 +46,11 @@ export default function ImageGallery({ images = [], data = [], alt = '' }) {
     );
   }
 
+  const baseAlt =
+    Array.isArray(images) && images[0] && images[0].name
+      ? images[0].name
+      : "Image";
+
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-8">
       {/* Left side - Main large image */}
@@ -34,7 +58,7 @@ export default function ImageGallery({ images = [], data = [], alt = '' }) {
         <div className="relative w-full h-[300px] md:h-[500px] rounded-lg overflow-hidden">
           <img
             src={primaryImage}
-            alt={alt}
+            alt={baseAlt}
             className="w-full h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
           />
         </div>
@@ -44,19 +68,21 @@ export default function ImageGallery({ images = [], data = [], alt = '' }) {
       <div className="w-full md:w-1/3">
         <div
           className="flex md:flex-col gap-3 md:h-full md:max-h-[500px] md:overflow-y-auto overflow-x-auto pr-2"
-          style={{ scrollbarWidth: 'thin' }}
+          style={{ scrollbarWidth: "thin" }}
         >
           {allImages.map((src, index) => (
             <div
               key={`${src}-${index}`}
               className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0 ${
-                primaryImage === src ? 'border-blue-500' : 'border-transparent hover:border-gray-300'
+                primaryImage === src
+                  ? "border-blue-500"
+                  : "border-transparent hover:border-gray-300"
               }`}
               onClick={() => setPrimaryImage(src)}
             >
               <img
                 src={src}
-                alt={`${alt} ${index + 1}`}
+                alt={`${baseAlt} ${index + 1}`}
                 className="md:w-full md:h-32 w-32 h-24 object-cover rounded-md hover:opacity-90 transition-opacity"
               />
               {primaryImage === src && (

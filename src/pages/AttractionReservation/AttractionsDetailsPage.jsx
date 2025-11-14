@@ -20,6 +20,7 @@ export default function AttractionsDetailsPage() {
     { searchTerm, page, limit },
     { skip: !!appealId }
   );
+  console.log("data", data);
   const {
     data: singleData,
     isLoading: isLoadingSingle,
