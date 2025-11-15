@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function AttractionCard({ attraction }) {
+    console.log("attraction", attraction)
     const IconComponent = attraction.icon;
 
     return (

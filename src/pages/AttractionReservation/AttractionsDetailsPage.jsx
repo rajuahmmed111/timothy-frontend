@@ -36,11 +36,18 @@ export default function AttractionsDetailsPage() {
   const events = appeals.map((appeal) => {
     const image = appeal.attractionImages?.[0] || "/placeholder.svg";
     const name = appeal.attractionDestinationType || "Attraction";
-    const location = `${appeal.attractionCity || ""}${appeal.attractionCity && appeal.attractionCountry ? ", " : ""}${appeal.attractionCountry || ""}`;
-    const price = typeof appeal.attractionAdultPrice !== 'undefined' ? `$${appeal.attractionAdultPrice}` : "$0";
+    const location = `${appeal.attractionCity || ""}${
+      appeal.attractionCity && appeal.attractionCountry ? ", " : ""
+    }${appeal.attractionCountry || ""}`;
+    const displayCurrency = appeal.displayCurrency;
+    const basePrice =
+      appeal.convertedAdultPrice ?? appeal.attractionAdultPrice ?? 0;
+    const price = displayCurrency
+      ? `${displayCurrency} ${basePrice}`
+      : basePrice;
     const rating = parseFloat(appeal.attractionRating) || 0;
     const id = appeal.id;
-    return { id, name, location, image, price, rating };
+    return { id, name, location, image, price, rating, displayCurrency };
   });
 
   const total = meta?.total || 0;

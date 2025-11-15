@@ -280,7 +280,7 @@ export const routes = createBrowserRouter([
         element: <EventPaymentPage />,
       },
       {
-        path: "/event/payment-confirm",
+        path: "/event/payment-confirm/:id",
         element: <EventPaymentConfirm />,
       },
       {

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   MapPin,
   Star,
@@ -23,7 +24,12 @@ export default function EventReservationPage() {
   const { data, isLoading, error } = useGetAttractionAppealByIdQuery(appealId, {
     skip: !appealId,
   });
+  const accessToken = useSelector((state) => state?.auth?.accessToken);
   const a = data?.data;
+  console.log("a", a);
+
+  const displayCurrency = a?.displayCurrency;
+  const adultPrice = a?.convertedAdultPrice ?? a?.attractionAdultPrice ?? 0;
 
   // ---------- Location & Map Helpers ----------
   const attractionAddressParts = [
@@ -50,7 +56,8 @@ export default function EventReservationPage() {
   const [selectedTo, setSelectedTo] = useState(null);
   const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [availableSlots, setAvailableSlots] = useState([]);
-  const [guests, setGuests] = useState("1");
+  const [adults, setAdults] = useState("1");
+  const [children, setChildren] = useState("0");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -94,6 +101,56 @@ export default function EventReservationPage() {
     "November",
     "December",
   ];
+  const handleBooking = (e) => {
+    e?.preventDefault?.();
+
+    if (!selectedDate || !selectedTime || !a) {
+      return;
+    }
+
+    const unitPrice = adultPrice || 0;
+    const adultCount = parseInt(adults || "0", 10);
+    const childCount = parseInt(children || "0", 10);
+    const guestCount = adultCount + childCount;
+    const childPrice = a?.convertedChildPrice ?? adultPrice;
+    const total = adultCount * unitPrice + childCount * (childPrice || 0);
+
+    const bookingDetails = {
+      bookingId: appealId || a?.id || "",
+      eventName: a?.attractionDestinationType || "Event",
+      location: `${a?.attractionCity || ""}, ${
+        a?.attractionCountry || ""
+      }`.trim(),
+      selectedDate,
+      selectedTime,
+      selectedFrom,
+      selectedTo,
+      selectedSlotId,
+      guests: guestCount,
+      adults: adultCount,
+      children: childCount,
+      unitPrice,
+      total,
+      // send both adult and child prices forward
+      convertedAdultPrice: a?.convertedAdultPrice ?? unitPrice,
+      convertedChildPrice: a?.convertedChildPrice ?? childPrice,
+      displayCurrency,
+      appealId,
+      discountPercent: a?.discount || 0,
+      vatPercent: a?.vat || 0,
+    };
+    console.log("bookingDetails", bookingDetails);
+    if (accessToken) {
+      navigate("/event/checkout", { state: { bookingDetails } });
+    } else {
+      navigate("/event/guest-login", {
+        state: {
+          bookingDetails,
+          returnUrl: "/event/checkout",
+        },
+      });
+    }
+  };
 
   // ---------- Selected weekday (derived from selected date) ----------
   const selectedWeekday = useMemo(() => {
@@ -230,25 +287,6 @@ export default function EventReservationPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Image Gallery */}
-          {/* <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-            <div className="col-span-2 row-span-2">
-              <img
-                src={images[0] || "/placeholder.svg"}
-                alt="Main View"
-                className="w-full h-64 md:h-80 object-cover rounded-lg shadow-md"
-              />
-            </div>
-            {images.slice(1).map((image, index) => (
-              <div key={index}>
-                <img
-                  src={image || "/placeholder.svg"}
-                  alt={`View ${index + 2}`}
-                  className="w-full h-32 md:h-38 object-cover rounded-lg shadow-md"
-                />
-              </div>
-            ))}
-          </div> */}
           <ImageGallery data={a} />
           {/* Description */}
           <div>
@@ -321,8 +359,8 @@ export default function EventReservationPage() {
                         {displayRating.toFixed(1)}
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-700">
-                        {a?.currencySymbol || "$"}
-                        {a?.attractionAdultPrice ?? 0}/person
+                        {displayCurrency}
+                        {a?.convertedAdultPrice ?? 0}/person
                       </span>
                     </div>
                   </div>
@@ -343,11 +381,17 @@ export default function EventReservationPage() {
           </div>
           <div className="bg-white rounded-xl shadow-lg p-6 sticky top-6">
             {/* Price */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center  mb-6">
               <span className="text-2xl font-bold">
-                ${a?.attractionAdultPrice}
+                {displayCurrency}:{a?.convertedAdultPrice}
               </span>
-              <span className="text-sm text-gray-600">per person</span>
+              <span className="text-sm text-gray-600">(Per Adult)</span>
+            </div>
+            <div className="flex items-center mb-6">
+              <span className="text-2xl font-bold">
+                {displayCurrency}:{a?.convertedChildPrice}
+              </span>
+              <span className="text-sm text-gray-600">(Per Child)</span>
             </div>
 
             {/* Day Selector */}
@@ -503,24 +547,47 @@ export default function EventReservationPage() {
               </div>
 
               {/* Guests */}
-              <div>
-                <label
-                  htmlFor="guests"
-                  className="text-xs font-medium block mb-1"
-                >
-                  GUESTS
-                </label>
-                <select
-                  value={guests}
-                  onChange={(e) => setGuests(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                >
-                  {[...Array(10)].map((_, i) => (
-                    <option key={i + 1} value={String(i + 1)}>
-                      {i + 1} guest{i > 0 ? "s" : ""}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="adults"
+                    className="text-xs font-medium block mb-1"
+                  >
+                    ADULTS
+                  </label>
+                  <select
+                    id="adults"
+                    value={adults}
+                    onChange={(e) => setAdults(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  >
+                    {[...Array(10)].map((_, i) => (
+                      <option key={i + 1} value={String(i + 1)}>
+                        {i + 1} adult{i > 0 ? "s" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="children"
+                    className="text-xs font-medium block mb-1"
+                  >
+                    CHILDREN
+                  </label>
+                  <select
+                    id="children"
+                    value={children}
+                    onChange={(e) => setChildren(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  >
+                    {[...Array(10)].map((_, i) => (
+                      <option key={i} value={String(i)}>
+                        {i} child{i === 1 ? "" : "ren"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Price Breakdown */}
@@ -528,11 +595,28 @@ export default function EventReservationPage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>
-                    ${a?.attractionAdultPrice} x {guests} guest
-                    {parseInt(guests) > 1 ? "s" : ""}
+                    {displayCurrency}
+                    {a?.convertedAdultPrice} x {parseInt(adults || "0", 10)}{" "}
+                    adult
+                    {parseInt(adults || "0", 10) > 1 ? "s" : ""}
                   </span>
                   <span>
-                    ${(a?.attractionAdultPrice || 0) * parseInt(guests)}
+                    {displayCurrency}
+                    {(a?.convertedAdultPrice || 0) *
+                      parseInt(adults || "0", 10)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>
+                    {displayCurrency}
+                    {(a?.convertedChildPrice ?? a?.convertedAdultPrice) ||
+                      0} x {parseInt(children || "0", 10)} child
+                    {parseInt(children || "0", 10) === 1 ? "" : "ren"}
+                  </span>
+                  <span>
+                    {displayCurrency}
+                    {((a?.convertedChildPrice ?? a?.convertedAdultPrice) || 0) *
+                      parseInt(children || "0", 10)}
                   </span>
                 </div>
                 {/* <div className="flex justify-between text-sm">
@@ -543,36 +627,19 @@ export default function EventReservationPage() {
                 <div className="flex justify-between font-medium text-lg">
                   <span>Total</span>
                   <span>
-                    ${(a?.attractionAdultPrice || 0) * parseInt(guests)}
+                    {displayCurrency}
+                    {(a?.convertedAdultPrice || 0) *
+                      parseInt(adults || "0", 10) +
+                      ((a?.convertedChildPrice ?? a?.convertedAdultPrice) ||
+                        0) *
+                        parseInt(children || "0", 10)}
                   </span>
                 </div>
               </div>
 
               {/* Continue Button */}
               <button
-                onClick={() => {
-                  const unitPrice = a?.attractionAdultPrice || 0;
-                  const bookingDetails = {
-                    bookingId:
-                      "EVT" + Math.floor(10000000 + Math.random() * 90000000),
-                    eventName: a?.attractionDestinationType || "Event",
-                    location: `${a?.attractionCity || ""}, ${
-                      a?.attractionCountry || ""
-                    }`.trim(),
-                    selectedDate,
-                    selectedTime,
-                    selectedFrom,
-                    selectedTo,
-                    selectedSlotId,
-                    guests,
-                    unitPrice,
-                    total: unitPrice * parseInt(guests),
-                    appealId,
-                    discountPercent: a?.discount || 0,
-                    vatPercent: a?.vat || 0,
-                  };
-                  navigate("/event/checkout", { state: { bookingDetails } });
-                }}
+                onClick={handleBooking}
                 disabled={!selectedDate || !selectedTime}
                 className={`w-full bg-[#0064D2] text-white py-3 px-6 rounded-lg font-medium transition-colors mt-4 ${
                   !selectedDate || !selectedTime
@@ -580,7 +647,7 @@ export default function EventReservationPage() {
                     : "hover:bg-blue-700"
                 }`}
               >
-                Continue to Checkout
+                Continue
               </button>
             </div>
           </div>

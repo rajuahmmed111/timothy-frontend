@@ -10,6 +10,7 @@ import { jwtDecode } from "jwt-decode";
 import { useSelector, useDispatch } from "react-redux";
 
 export default function BookingForm({ hotel }) {
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { bookingData, updateBookingData, updateGuests } = useBooking();

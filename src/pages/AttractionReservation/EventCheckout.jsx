@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useCreateAttractionBookingMutation } from "../../redux/api/attraction/attractionApi";
+import { useSelector } from "react-redux";
 import {
   ArrowLeft,
   Calendar,
@@ -10,22 +11,22 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import { useCreateSecurityBookingMutation } from "../../redux/api/security/securityBookingApi";
 import { handleError, handleSuccess } from "../../../toast";
 
-export default function SecurityCheckout() {
+export default function EventCheckout() {
   const location = useLocation();
+  const [createAttractionBooking] = useCreateAttractionBookingMutation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const user = useSelector((state) => state?.auth?.user);
   // Accept booking data from multiple shapes
-  // - From SecurityBookingForm when logged-in: { state: { payload } }
-  // - From SecurityGuestLogin redirect: { state: { bookingData } }
-  // - From other flows: { state: { data|resp|payload } } possibly wrapped with .data
+  // - From EventReservationPage.handleBooking: { state: { bookingDetails } }
+  // - From EventGuestLogin redirect: { state: { bookingDetails } }
+  // - Fallbacks for other shapes reused from security flow
   const raw = location.state || {};
   const bookingDetails =
-    raw.payload ||
+    raw.bookingDetails ||
     raw.bookingData ||
+    raw.payload ||
     raw.data?.data ||
     raw.data ||
     raw.resp?.data ||
@@ -35,28 +36,20 @@ export default function SecurityCheckout() {
   const guestInfo = location.state?.guestInfo || {};
   const [isProcessing, setIsProcessing] = useState(false);
   console.log("bookingDetails", bookingDetails);
-  const [createSecurityBooking, { isLoading }] =
-    useCreateSecurityBookingMutation();
-
-  // Days between start and end dates
-  const days = (() => {
-    const start = bookingDetails?.startDate
-      ? new Date(bookingDetails.startDate)
-      : null;
-    const end = bookingDetails?.endDate
-      ? new Date(bookingDetails.endDate)
-      : null;
-    if (!start || !end) return 1;
-    const diff = Math.ceil(
-      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return diff > 0 ? diff : 1;
-  })();
-  const currencyCode = bookingDetails?.currency || "USD";
-  const unitPrice = Number(bookingDetails?.pricePerDay || 0);
-  const personnelCount = Number(bookingDetails?.personnelCount || 1);
-  const subtotal = unitPrice * days * personnelCount;
-  const total = subtotal; // adjust if taxes/fees apply
+  const unitPrice = Number(bookingDetails?.unitPrice || 0);
+  const guestCount = Number(bookingDetails?.guests || 1);
+  const total = Number(bookingDetails?.total || unitPrice * guestCount);
+  const currencyLabel = bookingDetails?.displayCurrency || "";
+  const adultCount = Number(
+    bookingDetails?.adults ?? bookingDetails?.guests ?? 1
+  );
+  const childCount = Number(bookingDetails?.children ?? 0);
+  const convertedAdultPrice = Number(
+    bookingDetails?.convertedAdultPrice ?? unitPrice
+  );
+  const convertedChildPrice = Number(
+    bookingDetails?.convertedChildPrice ?? convertedAdultPrice
+  );
 
   // Derive guest fields from multiple possible shapes
   const deriveGuest = () => ({
@@ -107,82 +100,75 @@ export default function SecurityCheckout() {
   };
 
   const handleReserveConfirm = async () => {
-    if (!bookingDetails?.guardId) {
-      handleError("Guard information is missing");
+    if (!bookingDetails || !bookingDetails?.bookingId) {
+      handleError("Booking information is missing");
       return;
     }
-    if (!user) return;
+
+    // Guests coming from EventGuestLogin should now be authenticated
+    if (!user) {
+      handleError("Please sign in to confirm your booking");
+      return;
+    }
+
+    const attractionId =
+      bookingDetails.appealId || bookingDetails.bookingId || bookingDetails.id;
+    if (!attractionId) {
+      handleError("Event identifier is missing");
+      return;
+    }
 
     setIsProcessing(true);
-
     try {
-      // Build body as API expects for security booking
-      const total =
-        bookingDetails?.total ||
-        Number(bookingDetails?.pricePerDay || 0) *
-          days *
-          Number(bookingDetails?.personnelCount || 1);
+      const convertedAdultPrice = Number(
+        bookingDetails.convertedAdultPrice ?? bookingDetails.unitPrice ?? 0
+      );
+      const convertedChildPrice = Number(
+        bookingDetails.convertedChildPrice ?? convertedAdultPrice ?? 0
+      );
+      const adults = Number(
+        bookingDetails.adults ?? bookingDetails.guests ?? 1
+      );
+      const children = Number(bookingDetails.children ?? 0);
+      const discountedPrice = Number(
+        bookingDetails.discountPercent ?? bookingDetails.discountedPrice ?? 0
+      );
+
       const body = {
-        // Core booking fields (prefer explicit fields from page, fallback to existing)
-        number_of_security:
-          bookingDetails?.number_of_security ??
-          bookingDetails?.personnelCount ??
-          1,
-        securityBookedFromDate:
-          bookingDetails?.securityBookedFromDate || bookingDetails?.startDate,
-        securityBookedToDate:
-          bookingDetails?.securityBookedToDate || bookingDetails?.endDate,
-        totalPrice: total,
-        convertedPrice: bookingDetails?.convertedPrice ?? total,
-        displayCurrency:
-          bookingDetails?.displayCurrency ||
-          bookingDetails?.currency ||
-          currencyCode,
-        discountedPrice: bookingDetails?.discountedPrice ?? 0,
-
-        // Identification
-        guardId: bookingDetails?.guardId,
-        guardName: bookingDetails?.guardName,
-        serviceType: bookingDetails?.serviceType || "Security",
-        serviceDescription: bookingDetails?.serviceDescription,
-        pricePerDay: bookingDetails?.pricePerDay,
-
-        // User contact details from form
-        name: updatedUser?.name || "",
-        email: updatedUser?.email || "",
-        phone: updatedUser?.phone || "",
-        address: updatedUser?.address || "",
-
-        // Status flags
-        status: "pending",
-        paymentStatus: "pending",
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        address: updatedUser.address,
+        convertedAdultPrice,
+        convertedChildPrice,
+        displayCurrency: bookingDetails.displayCurrency,
+        discountedPrice,
+        adults,
+        children,
+        date: bookingDetails.selectedDate,
+        day: bookingDetails.day,
+        from: bookingDetails.selectedFrom,
+        to: bookingDetails.selectedTo,
       };
 
-      console.log("Creating security booking with:", {
-        id: bookingDetails?.guardId,
-        body,
-      });
-      const resp = await createSecurityBooking({
-        id: bookingDetails?.guardId,
+      const resp = await createAttractionBooking({
+        id: attractionId,
         body,
       }).unwrap();
-      console.log("createSecurityBooking resp:", resp);
 
-      handleSuccess("Security service reserved successfully!");
-      const createdBookingId = resp?.data?.id || resp?.id || "";
+      const createdBookingId =
+        resp?.data?.id || resp?.id || bookingDetails.bookingId;
 
+      handleSuccess("Event reserved successfully!");
       navigate(
-        `/security/payment-confirm?bookingId=${encodeURIComponent(
-          createdBookingId
-        )}`,
+        "/event/payment-confirm/" + encodeURIComponent(createdBookingId),
         {
           state: { data: resp },
-          replace: true,
         }
       );
-    } catch (e) {
+    } catch (error) {
       const msg =
-        e?.data?.message || e?.message || "Failed to create security booking";
+        error?.data?.message || error?.message || "Failed to create booking";
       handleError(msg);
     } finally {
       setIsProcessing(false);
@@ -190,16 +176,18 @@ export default function SecurityCheckout() {
   };
 
   const handleBackToBooking = () => {
-    navigate("/security-details");
+    navigate(-1);
   };
 
-  const formatDate = (dateString) =>
-    new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "short",
       year: "numeric",
       month: "short",
       day: "numeric",
     });
+  };
 
   return (
     <div className="min-h-screen items-center bg-gray-50 py-4 md:py-8">
@@ -282,28 +270,23 @@ export default function SecurityCheckout() {
                 </form>
               </div>
 
-              {/* Selected Guard Info */}
+              {/* Event Info */}
               <div className="flex items-start gap-4">
-                {bookingDetails?.photo && (
+                {bookingDetails?.image && (
                   <img
-                    src={bookingDetails.photo}
-                    alt={bookingDetails.guardName || "Guard"}
+                    src={bookingDetails.image}
+                    alt={bookingDetails.eventName || "Event"}
                     className="w-16 h-16 rounded-lg object-cover"
                   />
                 )}
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-medium text-gray-900 truncate">
-                      {bookingDetails.guardName || "Selected Guard"}
+                      {bookingDetails.eventName || "Selected Event"}
                     </h3>
-                    {bookingDetails?.serviceType && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-xs">
-                        {bookingDetails.serviceType}
-                      </span>
-                    )}
                   </div>
                   <p className="text-gray-600 mt-1">
-                    {currencyCode} {unitPrice} / day
+                    {bookingDetails.location}
                   </p>
                 </div>
               </div>
@@ -313,12 +296,9 @@ export default function SecurityCheckout() {
                 <Calendar className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-gray-900">
-                    {formatDate(bookingDetails.startDate)} -{" "}
-                    {formatDate(bookingDetails.endDate)}
+                    {formatDate(bookingDetails.selectedDate)}
                   </p>
-                  <p className="text-gray-600">
-                    {days} {days === 1 ? "day" : "days"}
-                  </p>
+                  <p className="text-gray-600">{bookingDetails.selectedTime}</p>
                 </div>
               </div>
 
@@ -327,13 +307,15 @@ export default function SecurityCheckout() {
                 <Users className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-gray-900">
-                    {bookingDetails?.personnelCount || 1}{" "}
-                    {Number(bookingDetails?.personnelCount || 1) === 1
-                      ? "guard"
-                      : "guards"}
+                    {guestCount || 1} {guestCount === 1 ? "guest" : "guests"}
                   </p>
                   <p className="text-gray-600">
-                    {bookingDetails?.serviceDescription || "Security service"}
+                    {`Adults: ${
+                      (bookingDetails?.adults ?? guestCount) || 1
+                    } | Children: ${bookingDetails?.children ?? 0}`}
+                  </p>
+                  <p className="text-gray-600">
+                    {bookingDetails?.eventName || "Event booking"}
                   </p>
                 </div>
               </div>
@@ -346,21 +328,38 @@ export default function SecurityCheckout() {
               <h3 className="text-lg font-semibold mb-4">Price Summary</h3>
 
               <div className="text-sm space-y-2">
+                {/* Adults line */}
                 <div className="flex justify-between">
                   <span>
-                    {currencyCode} {unitPrice} × {days}{" "}
-                    {days === 1 ? "day" : "days"} × {personnelCount}{" "}
-                    {personnelCount === 1 ? "guard" : "guards"}
+                    {currencyLabel} {convertedAdultPrice.toFixed(2)} ×{" "}
+                    {adultCount} adult
+                    {adultCount === 1 ? "" : "s"}
                   </span>
                   <span>
-                    {currencyCode} {subtotal.toFixed(2)}
+                    {currencyLabel}{" "}
+                    {(convertedAdultPrice * adultCount).toFixed(2)}
                   </span>
                 </div>
+
+                {/* Children line */}
+                {childCount > 0 && (
+                  <div className="flex justify-between">
+                    <span>
+                      {currencyLabel} {convertedChildPrice.toFixed(2)} ×{" "}
+                      {childCount} child
+                      {childCount === 1 ? "" : "ren"}
+                    </span>
+                    <span>
+                      {currencyLabel}{" "}
+                      {(convertedChildPrice * childCount).toFixed(2)}
+                    </span>
+                  </div>
+                )}
 
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
                   <span>Total</span>
                   <span>
-                    {currencyCode} {total.toFixed(2)}
+                    {currencyLabel} {total.toFixed(2)}
                   </span>
                 </div>
 
@@ -371,14 +370,14 @@ export default function SecurityCheckout() {
 
               <button
                 onClick={handleReserveConfirm}
-                disabled={isProcessing || isLoading}
+                disabled={isProcessing}
                 className={`w-full mt-6 py-3 text-white rounded-lg font-medium ${
-                  isProcessing || isLoading
+                  isProcessing
                     ? "bg-blue-400 cursor-not-allowed"
                     : "bg-blue-700 hover:bg-blue-800"
                 }`}
               >
-                {isProcessing || isLoading ? "Processing..." : "Continue"}
+                {isProcessing ? "Processing..." : "Continue"}
               </button>
             </div>
           </div>

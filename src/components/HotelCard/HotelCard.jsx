@@ -3,7 +3,14 @@ import { Star, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function HotelCard({ hotel }) {
+  const hotelImage =
+    hotel?.hotelImages?.[0] ||
+    hotel?.raw?.hotelImages?.[0] ||
+    hotel?.raw?.room?.[0]?.hotelImages?.[0] ||
+    hotel?.image ||
+    null;
   console.log("Hotel", hotel);
+  console.log("Hotel Image", hotelImage);
   return (
     <Link
       to={`/hotel-details/${hotel.id}`}
@@ -14,7 +21,7 @@ export default function HotelCard({ hotel }) {
         {/* Hotel Image */}
         <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
           <img
-            src={hotel.image || "/placeholder.svg"}
+            src={hotelImage || "/placeholder.svg"}
             alt={hotel.name}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           />
@@ -39,7 +46,8 @@ export default function HotelCard({ hotel }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-baseline gap-2">
               <div className="text-xl font-bold text-gray-900">
-              {hotel?.raw?.displayCurrency}: {Number(hotel?.raw?.averagePrice || 0).toLocaleString()}
+                {hotel?.raw?.displayCurrency}:{" "}
+                {Number(hotel?.raw?.averagePrice || 0).toLocaleString()}
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -54,10 +62,18 @@ export default function HotelCard({ hotel }) {
                 />
               ))}
               <span className="text-sm text-gray-600 ml-1">
-                ({hotel?.raw?.averageRating ? Number(hotel?.raw?.averageRating).toFixed(1) : "0.0"})
+                (
+                {hotel?.raw?.averageRating
+                  ? Number(hotel?.raw?.averageRating).toFixed(1)
+                  : "0.0"}
+                )
                 {hotel?.raw?.averageReviewCount > 0 && (
                   <span className="text-xs text-gray-500 ml-1">
-                    ({hotel?.raw?.averageReviewCount} {hotel?.raw?.averageReviewCount === 1 ? 'review' : 'reviews'})
+                    ({hotel?.raw?.averageReviewCount}{" "}
+                    {hotel?.raw?.averageReviewCount === 1
+                      ? "review"
+                      : "reviews"}
+                    )
                   </span>
                 )}
               </span>
