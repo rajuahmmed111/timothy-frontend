@@ -1,21 +1,6 @@
 import React from "react";
-import { MapPin, Star, ExternalLink } from "lucide-react";
-export default function HotelHeader({ hotel, reviewAverage, reviewCount }) {
-
-  const lat = typeof hotel?.hotelLate === 'number' ? hotel.hotelLate : undefined;
-  const lng = typeof hotel?.hotelLong === 'number' ? hotel.hotelLong : undefined;
-  const addressParts = [hotel?.hotelAddress, hotel?.hotelCity, hotel?.hotelCountry].filter(Boolean);
-  const addressQuery = addressParts.join(', ');
-  const mapQuery = lat !== undefined && lng !== undefined ? `${lat},${lng}` : addressQuery;
-  const encodedQuery = encodeURIComponent(mapQuery || '');
-
-  const openFullMap = () => {
-    const url = mapQuery
-      ? `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`
-      : `https://www.google.com/maps`; 
-    window.open(url, "_blank");
-  };
-
+import { MapPin, Star } from "lucide-react";
+export default function HotelHeader({ hotel, reviewAverage }) {
   return (
     <header>
       <div className="container mx-auto py-5 mt-5">
@@ -51,7 +36,6 @@ export default function HotelHeader({ hotel, reviewAverage, reviewCount }) {
                 {Number((reviewAverage ?? hotel?.averageRating) || 0).toFixed(
                   1
                 )}
-                {/* {typeof reviewCount === 'number' ? ` • ${reviewCount} reviews` : ''} */}
               </span>
             </div>
           </div>

@@ -91,9 +91,7 @@ export default function HotelDetails() {
             <div className="lg:col-span-2">
               <ImageGallery hotel={hotelData} />
               <PropertyDetails hotel={hotelData} />
-          
             </div>
-
             <div className="lg:sticky lg:top-4 space-y-4">
               {/* Interactive Map Component */}
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
