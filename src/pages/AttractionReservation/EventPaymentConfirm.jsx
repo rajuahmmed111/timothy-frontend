@@ -135,17 +135,18 @@ export default function EventPaymentConfirm() {
     const subtotalChildren = childCountFallback * priceChildFallback;
     const total = subtotalAdults + subtotalChildren;
 
-    // Optional VAT display (not added into total, just informational)
-    const vatPercent = Number(attractionData?.vatPercent || 0);
+    // VAT is frontend-only informational percentage
+    const vatPercent = Number(5);
     const vatAmount = Number(((total * vatPercent) / 100).toFixed(2));
 
     return {
       vatAmount,
       total,
+      vatPercent,
     };
   };
 
-  const { vatAmount, total } = calculateTotal();
+  const { vatAmount, total, vatPercent } = calculateTotal();
 
   // Derive adult/child counts and prices for UI breakdown
   const adultCount = Number(attractionData?.adults ?? 0);
@@ -519,7 +520,7 @@ export default function EventPaymentConfirm() {
                   )}
 
                   <div className="flex justify-between">
-                    <span>VAT (5%)</span>
+                    <span>VAT ({vatPercent || 0}%)</span>
                     <span>
                       {currencyLabel && `${currencyLabel} `}
                       {vatAmount.toFixed(2)}
