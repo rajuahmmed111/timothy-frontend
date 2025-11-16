@@ -39,7 +39,6 @@ export default function HotelDetails() {
 
   const openFullMap = () => {
     if (fullAddress) {
-      // Using place search for more accurate results
       const url = `https://www.google.com/maps/search/${encodedQuery}`;
       window.open(url, "_blank");
     } else {
