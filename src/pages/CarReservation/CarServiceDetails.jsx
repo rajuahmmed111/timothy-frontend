@@ -1,5 +1,18 @@
-import React, { useMemo, useState } from "react";
-import { MapPin, Star, Car, Clock, Users, Fuel, Settings } from "lucide-react";
+import React from "react";
+import {
+  MapPin,
+  Star,
+  Car,
+  Clock,
+  Users,
+  Fuel,
+  Settings,
+  Wifi,
+  Navigation,
+  Wind,
+  Baby,
+  ExternalLink,
+} from "lucide-react";
 import CarBookingForm from "./CarBookingForm";
 import { useParams } from "react-router-dom";
 import { useGetSingleCarQuery } from "../../redux/api/car/getAllCarsApi";
@@ -9,7 +22,6 @@ import Loader from "../../shared/Loader/Loader";
 export default function CarServiceDetails() {
   const { id } = useParams();
   const { data: carData, isLoading } = useGetSingleCarQuery(id);
-
   console.log("carData", carData);
 
   const rawCar = Array.isArray(carData?.data)
@@ -19,10 +31,12 @@ export default function CarServiceDetails() {
   const car = rawCar
     ? {
         id: rawCar?.id,
+        carType: rawCar?.carType,
         name: rawCar?.carModel || rawCar?.car_Rental?.carName || "Car Details",
-        location: `${rawCar?.carCity || ""}${
-          rawCar?.carCity && rawCar?.carCountry ? ", " : ""
-        }${rawCar?.carCountry || ""}`,
+        address: rawCar?.carAddress || "",
+        location: [rawCar?.carAddress, rawCar?.carCity, rawCar?.carCountry]
+          .filter(Boolean)
+          .join(", "),
         images: rawCar?.carImages || ["/car/default-car.png"],
         price: `$${Number(rawCar?.carPriceDay ?? 0)}`,
         pricePerDay: Number(rawCar?.carPriceDay) || 0,
@@ -35,8 +49,19 @@ export default function CarServiceDetails() {
         fuelType: rawCar?.fuelType || rawCar?.carOilType,
         seats: rawCar?.carSeats,
         description: rawCar?.carDescription,
+        carServicesOffered: Array.isArray(rawCar?.carServicesOffered)
+          ? rawCar.carServicesOffered
+          : [],
       }
     : null;
+
+  const facilityIconMap = {
+    AC: Wind,
+    WiFi: Wifi,
+    WIFI: Wifi,
+    GPS: Navigation,
+    "Child Seat": Baby,
+  };
 
   if (isLoading) {
     return (
@@ -53,6 +78,21 @@ export default function CarServiceDetails() {
       </div>
     );
   }
+
+  // Build complete address for accurate location
+  const fullAddress = car?.location;
+  console.log("fullAddress", fullAddress);
+
+  const encodedQuery = encodeURIComponent(fullAddress);
+
+  const openFullMap = () => {
+    if (fullAddress) {
+      const url = `https://www.google.com/maps/search/${encodedQuery}`;
+      window.open(url, "_blank");
+    } else {
+      window.open("https://www.google.com/maps", "_blank");
+    }
+  };
 
   return (
     <div>
@@ -99,7 +139,7 @@ export default function CarServiceDetails() {
                 <ImageGallery car={car} />
               </div>
               <div className="mb-5">
-                <h2 className="text-xl font-semibold mb-3">About This Car</h2>
+                <h2 className="text-3xl font-bold mb-3">About This Car</h2>
                 <p className="text-gray-700 mb-6">{car?.description}</p>
 
                 <div className="space-y-4">
@@ -108,8 +148,8 @@ export default function CarServiceDetails() {
                     <div className="flex items-center">
                       <Car className="w-5 h-5 text-sky-600 mr-2 flex-shrink-0" />
                       <div>
-                        <p className="text-sm text-gray-500">Year</p>
-                        <p className="font-medium">{car?.year || "N/A"}</p>
+                        <p className="text-sm text-gray-500">Car Type</p>
+                        <p className="font-medium">{car?.carType || "N/A"}</p>
                       </div>
                     </div>
                     <div className="flex items-center">
@@ -162,10 +202,113 @@ export default function CarServiceDetails() {
                   </div>
                 </div>
               </div>
-            </div>
+              {Array.isArray(car?.carServicesOffered) &&
+                car.carServicesOffered.length > 0 && (
+                  <div className="mb-5 space-y-4">
+                    <h2 className="text-xl font-semibold">Facilities</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                      {car.carServicesOffered.map((service, idx) => {
+                        const Icon = facilityIconMap[service] || Settings;
+                        return (
+                          <div
+                            key={`${service}-${idx}`}
+                            className="flex items-center"
+                          >
+                            <Icon className="w-5 h-5 text-sky-600 mr-2 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium">{service}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
+              {(car?.rating || car?.carReviewCount) && (
+                <div className="mb-5 space-y-3">
+                  <div className="flex items-center gap-5">
+                    <h2 className="text-xl font-semibold">Guest Reviews</h2>
+                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      Rating {car?.rating} · {car?.carReviewCount || 0} reviews
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={`guest-${star}`}
+                        className={`w-5 h-5 ${
+                          car.rating >= star
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                    <span className="text-sm text-gray-600">
+                      ({car?.rating})
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
             {/* Right Column - Booking Section */}
             <div className="lg:sticky lg:top-4 space-y-4">
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div className="relative h-[200px]">
+                  <iframe
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                      fullAddress || ""
+                    )}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                    width="100%"
+                    height="100%"
+                    className="absolute inset-0"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Hotel Location Map"
+                  ></iframe>
+
+                  {/* Map Overlay with Hotel Info */}
+                  <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-md p-2 max-w-xs">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-5 h-8 text-red-500 mt-0.5" />
+                      <div>
+                        <h5 className="font-semibold text-xs text-gray-900">
+                          {car?.name || ""}
+                        </h5>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                       
+                            {fullAddress}
+                        </p>
+                        <div className="flex items-center gap-1 mt-1">
+                          {[1, 2, 3, 4, 5].map((star, i) => (
+                            <Star
+                              key={star}
+                              className={`w-2.5 h-2.5 ${
+                                i < Math.round(Number(car?.rating || 0))
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* View in full map link */}
+                <div className="bg-white border-t border-gray-100 p-2">
+                  <button
+                    onClick={openFullMap}
+                    className="flex items-center justify-center w-full text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors py-1"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    View in full map
+                  </button>
+                </div>
+              </div>
               <CarBookingForm car={car} carIdFromParams={id} />
             </div>
           </div>

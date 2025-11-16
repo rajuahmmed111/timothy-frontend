@@ -20,7 +20,9 @@ export default function CarBookingForm({ car, carIdFromParams }) {
             msPerDay
         )
       ) || 1;
-    const price = Number(car?.pricePerDay) || parseInt(car?.price?.replace("$", "") || "50");
+    const price =
+      Number(car?.pricePerDay) ||
+      parseInt(car?.price?.replace("$", "") || "50");
     return price * days;
   };
 
@@ -51,7 +53,9 @@ export default function CarBookingForm({ car, carIdFromParams }) {
       carType: car?.name || "Selected Car",
       total: calculateTotal(),
       days: getDays(),
-      unitPrice: Number(car?.pricePerDay) || parseInt(car?.price?.replace("$", "") || "50"),
+      unitPrice:
+        Number(car?.pricePerDay) ||
+        parseInt(car?.price?.replace("$", "") || "50"),
       carDescription: car?.description || "Car rental booking",
       location: car?.location || "Selected Location",
     };
@@ -135,7 +139,7 @@ export default function CarBookingForm({ car, carIdFromParams }) {
               : "hover:bg-blue-700"
           }`}
         >
-          {isBooking ? "Processing..." : "Continue to Booking"}
+          {isBooking ? "Processing..." : "Reserve"}
         </button>
       </form>
     </div>
