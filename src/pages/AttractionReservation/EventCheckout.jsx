@@ -262,9 +262,9 @@ export default function EventCheckout() {
                       type="text"
                       name="address"
                       value={updatedUser.address}
-                      onChange={handleInputChange}
+                      readOnly
                       placeholder="Address / Country"
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm outline-none p-2 border"
                     />
                   </div>
                 </form>

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useCreateHotelBookingMutation } from "../../redux/api/hotel/hotelApi";
 import { setCredentials } from "../../redux/features/auth/authSlice";
-import {handleError, handleSuccess} from "../../../toast";
+import { handleError, handleSuccess } from "../../../toast";
 
 export default function Checkout() {
   const location = useLocation();
@@ -20,6 +20,7 @@ export default function Checkout() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state?.auth?.user);
   const bookingData = location.state?.bookingData || {};
+  console.log("Booking Data:", bookingData);
   const guestInfo = location.state?.guestInfo || {};
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -32,14 +33,16 @@ export default function Checkout() {
   };
 
   const [updatedUser, setUpdatedUser] = useState({
-    name: guestInfo.fullName || user?.name || bookingData?.user?.fullName || '',
-    email: guestInfo.email || user?.email || bookingData?.user?.email || '',
-    phone: guestInfo.phone || user?.phone || bookingData?.user?.contactNumber || '',
-    address: guestInfo.country || user?.address || bookingData?.user?.country || '',
+    name: guestInfo.fullName || user?.name || bookingData?.user?.fullName || "",
+    email: guestInfo.email || user?.email || bookingData?.user?.email || "",
+    phone:
+      guestInfo.phone || user?.phone || bookingData?.user?.contactNumber || "",
+    address:
+      guestInfo.country || user?.address || bookingData?.user?.country || "",
   });
-  
-  console.log('Guest Info:', guestInfo);
-  console.log('Updated User:', updatedUser);
+
+  console.log("Guest Info:", guestInfo);
+  console.log("Updated User:", updatedUser);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -49,112 +52,122 @@ export default function Checkout() {
     }));
   };
 
- const handleReserveConfirm = async () => {
-   if (!bookingData?.roomId) {
-     handleError("Room information is missing");
-     return;
-   }
-   if (!bookingData?.hotelId) {
-     handleError("Hotel information is missing");
-     return;
-   }
-   if (!user) return;
+  const handleReserveConfirm = async () => {
+    if (!bookingData?.roomId) {
+      handleError("Room information is missing");
+      return;
+    }
+    if (!bookingData?.hotelId) {
+      handleError("Hotel information is missing");
+      return;
+    }
+    if (!user) return;
 
-   setIsProcessing(true);
+    setIsProcessing(true);
 
-   try {
-     // Required fields filled properly
-     const toYMD = (d) => new Date(d).toISOString().slice(0, 10);
+    try {
+      // Required fields filled properly
+      const toYMD = (d) => new Date(d).toISOString().slice(0, 10);
 
-     const bookingPayload = {
-       roomId: bookingData.roomId,
-       hotelId: bookingData.hotelId,
-       userId: user.id || bookingData.user?._id,
-       partnerId: bookingData.partnerId,
-       rooms: Number(bookingData.rooms ?? 1),
-       adults: Number(bookingData.adults ?? 1),
-       children: Number(bookingData.children ?? 0),
-       bookedFromDate: toYMD(bookingData.bookedFromDate || bookingData.checkIn),
-       bookedToDate: toYMD(bookingData.bookedToDate || bookingData.checkOut),
-       totalPrice: Number(bookingData.total || 0),
-       convertedPrice: Number(
-         bookingData.convertedPrice || bookingData.total || 0
-       ),
-       displayCurrency: bookingData.displayCurrency || "USD",
-       discountedPrice: Number(bookingData.discountedPrice || 0),
-       specialRequest: bookingData.specialRequest || null,
-       bookingStatus: bookingData.bookingStatus || "PENDING",
-       category: bookingData.roomType || "Standard",
-       name: updatedUser.name || user.name,
-       email: updatedUser.email || user.email,
-       phone: updatedUser.phone || user.phone,
-       address: updatedUser.address || "Not provided",
-     };
+      const bookingPayload = {
+        roomId: bookingData.roomId,
+        hotelId: bookingData.hotelId,
+        userId: user.id || bookingData.user?._id,
+        partnerId: bookingData.partnerId,
+        rooms: Number(bookingData.rooms ?? 1),
+        adults: Number(bookingData.adults ?? 1),
+        children: Number(bookingData.children ?? 0),
+        bookedFromDate: toYMD(
+          bookingData.bookedFromDate || bookingData.checkIn
+        ),
+        bookedToDate: toYMD(bookingData.bookedToDate || bookingData.checkOut),
+        totalPrice: Number(bookingData.total || 0),
+        convertedPrice: Number(
+          bookingData.convertedPrice || bookingData.total || 0
+        ),
+        displayCurrency: bookingData.displayCurrency || "USD",
+        discountedPrice: Number(bookingData.discountedPrice || 0),
+        specialRequest: bookingData.specialRequest || null,
+        bookingStatus: bookingData.bookingStatus || "PENDING",
+        category: bookingData.roomType || "Standard",
+        name: updatedUser.name || user.name,
+        email: updatedUser.email || user.email,
+        phone: updatedUser.phone || user.phone,
+        address: updatedUser.address || "Not provided",
+      };
 
-     console.log("Booking payload sent to API:", bookingPayload);
+      console.log("Booking payload sent to API:", bookingPayload);
 
-     const res = await createHotelBooking({
-       bookingId: bookingData.roomId, // API expects roomId in URL
-       data: bookingPayload,
-     }).unwrap();
-     console.log("res",res)
-     
-     // Get the created booking ID from the response
-     const createdBookingId = res.data?._id || res.data?.id || res._id || res.id;
-     
-     if (!createdBookingId) {
-       console.error('No booking ID in response:', res);
-       toast.error('Booking was created but could not retrieve booking reference. Please check your bookings.');
-       return;
-     }
+      const res = await createHotelBooking({
+        bookingId: bookingData.roomId, // API expects roomId in URL
+        data: bookingPayload,
+      }).unwrap();
+      console.log("res", res);
 
-     // Combine API response with existing booking data
-     const paymentData = {
-       ...res,
-       
-       hotelName: bookingData.hotelName,
-       location: bookingData.location,
-       roomType: bookingData.roomType,
-       roomPrice: bookingData.roomPrice,
-       checkIn: bookingData.checkIn,
-       checkOut: bookingData.checkOut,
-       nights: bookingData.nights,
-       adults: bookingData.adults,
-       children: bookingData.children || 0,
-       rooms: bookingData.rooms || 1,
-       vat: bookingData.vat || 0,
-       isRefundable: bookingData.isRefundable || false,
-       user: {
-         ...res.user,
-         name: updatedUser.name || user?.name,
-         email: updatedUser.email || user?.email,
-         phone: updatedUser.phone || user?.phone,
-         country: updatedUser.address || user?.country || 'Bangladesh'
-       }
-     };
+      // Get the created booking ID from the response
+      const createdBookingId =
+        res.data?._id || res.data?.id || res._id || res.id;
 
-     handleSuccess("Room reserved successfully!");
-     navigate(`/hotel/payment-confirm?bookingId=${encodeURIComponent(createdBookingId)}`, {
-       state: { 
-         data: {
-           ...paymentData,
-           createdBookingId // Include the booking ID in state as well
-         }
-       },
-       replace: true // Replace current entry in history
-     });
-   } catch (e) {
-     const msg = e?.data?.message || e?.message || "Failed to create booking";
-     if (msg.toLowerCase().includes("already booked")) {
-       handleError("This hotel is already booked for the selected dates");
-     } else {
-       handleError(msg);
-     }
-   } finally {
-     setIsProcessing(false);
-   }
- };
+      if (!createdBookingId) {
+        console.error("No booking ID in response:", res);
+        toast.error(
+          "Booking was created but could not retrieve booking reference. Please check your bookings."
+        );
+        return;
+      }
 
+      // Combine API response with existing booking data
+      const paymentData = {
+        ...res,
+
+        hotelName: bookingData.hotelName,
+        location: bookingData.location,
+        roomType: bookingData.roomType,
+        cancelationPolicy: bookingData.cancelationPolicy,
+        roomPrice: bookingData.roomPrice,
+        checkIn: bookingData.checkIn,
+        checkOut: bookingData.checkOut,
+        nights: bookingData.nights,
+        adults: bookingData.adults,
+        children: bookingData.children || 0,
+        rooms: bookingData.rooms || 1,
+        vat: bookingData.vat || 0,
+        isRefundable: bookingData.isRefundable || false,
+        user: {
+          ...res.user,
+          name: updatedUser.name || user?.name,
+          email: updatedUser.email || user?.email,
+          phone: updatedUser.phone || user?.phone,
+          country: updatedUser.address || user?.country || "Bangladesh",
+        },
+      };
+
+      handleSuccess("Room reserved successfully!");
+      navigate(
+        `/hotel/payment-confirm?bookingId=${encodeURIComponent(
+          createdBookingId
+        )}`,
+        {
+          state: {
+            data: {
+              ...paymentData,
+              createdBookingId, // Include the booking ID in state as well
+            },
+          },
+          replace: true, // Replace current entry in history
+        }
+      );
+    } catch (e) {
+      const msg = e?.data?.message || e?.message || "Failed to create booking";
+      if (msg.toLowerCase().includes("already booked")) {
+        handleError("This hotel is already booked for the selected dates");
+      } else {
+        handleError(msg);
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleBackToBooking = () => {
     navigate("/hotel");
@@ -198,7 +211,7 @@ export default function Checkout() {
                     <input
                       type="text"
                       name="name"
-                      value={updatedUser.name }
+                      value={updatedUser.name}
                       onChange={handleInputChange}
                       className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                     />
@@ -211,7 +224,7 @@ export default function Checkout() {
                     <input
                       type="email"
                       name="email"
-                      value={updatedUser.email }
+                      value={updatedUser.email}
                       onChange={handleInputChange}
                       className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                     />
@@ -224,8 +237,7 @@ export default function Checkout() {
                     <input
                       type="text"
                       name="phone"
-                    
-                      value={updatedUser.phone }
+                      value={updatedUser.phone}
                       onChange={handleInputChange}
                       className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                     />
@@ -238,9 +250,9 @@ export default function Checkout() {
                     <input
                       type="text"
                       name="address"
-                      value={updatedUser.address }
-                      onChange={handleInputChange}
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                      value={updatedUser.address}
+                      readOnly
+                      className="mt-1 w-full outline-none rounded-md border-gray-300 shadow-sm p-2 border"
                     />
                   </div>
                 </form>

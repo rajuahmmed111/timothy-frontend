@@ -92,7 +92,7 @@ export default function PaymentConfirm() {
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const bookingDetails = location.state?.data;
   const hotelData = bookingDetails?.data || bookingDetails || {};
-  console.log("Booking details:", bookingDetails);
+  console.log("Booking details:", bookingDetails?.cancelationPolicy);
   console.log("Hotel data:", hotelData);
   console.log("Payment method:", paymentMethod);
   // Set payment method based on country when component mounts or country changes
@@ -217,6 +217,7 @@ export default function PaymentConfirm() {
         adults: bookingDetails.adults,
         children: bookingDetails.children,
         isRefundable: bookingDetails.isRefundable,
+        cancelationPolicy: bookingDetails.cancelationPolicy,
         vat: bookingDetails.vat,
         nights: bookingDetails.nights,
         user: userInfo,
@@ -446,18 +447,23 @@ export default function PaymentConfirm() {
                           <p className="text-sm text-gray-500">
                             Booking Condition
                           </p>
-                          <p
+                          {/* <p
                             className={
-                              bookingDetails?.isRefundable
+                              bookingDetails?.cancelationPolicy
                                 ? "text-green-600"
                                 : "text-red-600"
                             }
                           >
-                            {hotelData.isRefundable
+                            {bookingDetails?.cancelationPolicy
                               ? "Refundable"
                               : "Non Refundable "}
-                          </p>
-                          <span className="text-blue-600">Pay Online</span>
+                          </p> */}
+                          {bookingDetails?.cancelationPolicy && (
+                            <p className="text-xs text-red-400 mt-1">
+                              {bookingDetails.cancelationPolicy}
+                            </p>
+                          )}
+                          {/* <span className="text-blue-600">Pay Online</span> */}
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">
