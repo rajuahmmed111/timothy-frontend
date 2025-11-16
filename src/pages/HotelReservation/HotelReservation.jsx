@@ -1,22 +1,19 @@
 import React, { useState, useEffect } from "react";
 
-import { Select, Space, Slider, Input, Checkbox, Radio, Rate } from "antd";
+import { Select, Space, Checkbox, Radio, Rate } from "antd";
 import {
   UserOutlined,
   TeamOutlined,
   HomeOutlined,
   FilterOutlined,
-  SearchOutlined,
   WifiOutlined,
   CarOutlined,
   ShopOutlined,
-  StarOutlined,
 } from "@ant-design/icons";
 import { DatePicker, Button } from "antd";
 import { useBooking } from "../../context/BookingContext";
 import { useLocation, useNavigate } from "react-router-dom";
 
-// Removed unused dummy image imports
 import HotelCard from "../../components/HotelCard/HotelCard";
 import { useGetAllHotelRoomsQuery } from "../../redux/api/hotel/hotelApi";
 
@@ -249,7 +246,6 @@ export default function HotelReservation() {
     });
     if (val === "allowed") updateQueryParams({ hotelPetsAllowed: true });
     if (val === "not-allowed") updateQueryParams({ hotelPetsNotAllowed: true });
-    // No preference => no params
   };
   const handlePageChange = (nextPage) => {
     if (nextPage < 1 || nextPage > totalPages) return;
@@ -257,22 +253,12 @@ export default function HotelReservation() {
     const resultsSection = document.getElementById("hotels-results");
     if (resultsSection) resultsSection.scrollIntoView({ behavior: "smooth" });
   };
-  // const handleLimitChange = (nextLimit) => {
-  //     updateQueryParams({ limit: nextLimit, page: 1 });
-  //     const resultsSection = document.getElementById('hotels-results');
-  //     if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth' });
-  // };
+ 
 
   // URL-driven filtering: mirror API results to displayed list
   React.useEffect(() => {
     setFilteredHotels(hotels);
   }, [hotels]);
-
-  // Get unique cities for dropdown
-  // const uniqueCities = [...new Set(hotels.map(hotel => {
-  //     const city = hotel.location.split(',')[0].trim();
-  //     return city;
-  // }))];
 
   // Initialize filtered hotels
   React.useEffect(() => {

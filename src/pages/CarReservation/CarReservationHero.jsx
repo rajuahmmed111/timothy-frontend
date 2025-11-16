@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { DatePicker } from "antd";
 
 
@@ -7,7 +7,19 @@ export default function CarReservationHero() {
     const [dateRange, setDateRange] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const { RangePicker } = DatePicker;
+    const navigate = useNavigate();
     const isDisabled = !searchTerm.trim();
+    const handleSearch = () => {
+        if (isDisabled) return;
+        const params = new URLSearchParams();
+        if (searchTerm) params.set('searchTerm', searchTerm);
+        const start = dateRange?.[0];
+        const end = dateRange?.[1];
+        if (start?.format) params.set('fromDate', start.format('YYYY-MM-DD'));
+        if (end?.format) params.set('toDate', end.format('YYYY-MM-DD'));
+        const qs = params.toString();
+        navigate(qs ? `/car-details?${qs}` : '/car-details');
+    };
     return (
         <section
             className="relative h-[600px] bg-cover bg-center"
@@ -40,29 +52,13 @@ export default function CarReservationHero() {
                         </div>
                         {/* Search Button */}
                         <div className="">
-                            <Link
-                                to={(() => {
-                                    const params = new URLSearchParams();
-                                    if (searchTerm) params.set('searchTerm', searchTerm);
-                                    if (dateRange?.[0]) params.set('fromDate', dateRange[0].format('YYYY-MM-DD'));
-                                    if (dateRange?.[1]) params.set('toDate', dateRange[1].format('YYYY-MM-DD'));
-                                    const qs = params.toString();
-                                    return qs ? `/car-details?${qs}` : '/car-details';
-                                })()}
-                                className="w-full"
-                                onClick={(e) => {
-                                    if (isDisabled) {
-                                        e.preventDefault();
-                                    }
-                                }}
+                            <button
+                                onClick={handleSearch}
+                                disabled={isDisabled}
+                                className={`w-full ${isDisabled ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#0064D2] hover:bg-[#0053ad]'} text-white py-3 rounded-lg font-bold`}
                             >
-                                <button
-                                    disabled={isDisabled}
-                                    className={`w-full ${isDisabled ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#0064D2] hover:bg-[#0053ad]'} text-white py-3 rounded-lg font-bold`}
-                                >
-                                    Search
-                                </button>
-                            </Link>
+                                Search
+                            </button>
                         </div>
                     </div>
                 </div>

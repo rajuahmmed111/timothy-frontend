@@ -19,6 +19,7 @@ export default function CarDetails() {
   const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
+  console.log("queryParams", queryParams);
   const searchTerm = queryParams.get("searchTerm") || "";
   const fromDate = queryParams.get("fromDate") || "";
   const toDate = queryParams.get("toDate") || "";
@@ -74,7 +75,8 @@ export default function CarDetails() {
   const transformCarData = (car) => ({
     id: car.id,
     name: car.car_Rental?.carName || car.carModel,
-    location: searchTerm || country || `${car.carCity}, ${car.carCountry}`,
+    displayLocation: (searchTerm || country || "").trim() || `${car.carCity}, ${car.carCountry}`,
+    location: `${car.carCity}, ${car.carCountry}`,
     image: car.carImages?.[0] || "/car/default-car.png",
     price: `$${car.carPriceDay}`,
     rating: parseFloat(car.carRating) || 4.5,
