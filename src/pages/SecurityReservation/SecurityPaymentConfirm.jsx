@@ -411,16 +411,31 @@ export default function PaymentConfirm() {
                           <p className="text-sm text-gray-500">
                             Total Security Guard
                           </p>
-                          <p>{bookingDetails?.number_of_security}</p>
+                          <p>({bookingDetails?.number_of_security})</p>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">
                         <ShieldCheck className="w-5 h-5 text-gray-500 mr-2" />
                         <div>
-                          <p className="text-sm text-gray-500">
-                            Booking Status
-                          </p>
-                          <p className="text-red-400">{cancelationPolicy}</p>
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              Booking Condition
+                            </p>
+                            <p
+                              className={
+                                cancelationPolicy
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }
+                            >
+                              {cancelationPolicy
+                                ? "Refundable"
+                                : "Non Refundable "}
+                            </p>
+                            <span className="text-red-600 text-xs">
+                              {cancelationPolicy}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">
@@ -471,7 +486,7 @@ export default function PaymentConfirm() {
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
                         <span>
-                          {hotelData.displayCurrency || ""} 
+                          {hotelData.displayCurrency || ""}
                           {total.toFixed(2)}
                         </span>
                       </div>

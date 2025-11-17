@@ -447,7 +447,7 @@ export default function PaymentConfirm() {
                           <p className="text-sm text-gray-500">
                             Booking Condition
                           </p>
-                          {/* <p
+                          <p
                             className={
                               bookingDetails?.cancelationPolicy
                                 ? "text-green-600"
@@ -457,13 +457,10 @@ export default function PaymentConfirm() {
                             {bookingDetails?.cancelationPolicy
                               ? "Refundable"
                               : "Non Refundable "}
-                          </p> */}
-                          {bookingDetails?.cancelationPolicy && (
-                            <p className="text-xs text-red-400 mt-1">
-                              {bookingDetails.cancelationPolicy}
-                            </p>
-                          )}
-                          {/* <span className="text-blue-600">Pay Online</span> */}
+                          </p>
+                          <span className="text-red-600 text-xs">
+                            {bookingDetails.cancelationPolicy}
+                          </span>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">
@@ -486,26 +483,36 @@ export default function PaymentConfirm() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Room Price</span>
-                    <span>{hotelData.displayCurrency} {hotelData.convertedPrice || 0}</span>
+                    <span>
+                      {hotelData.displayCurrency}{" "}
+                      {hotelData.convertedPrice || 0}
+                    </span>
                   </div>
 
                   {hotelData.discountedPrice > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-{ hotelData.displayCurrency} {hotelData.discountedPrice || 0}</span>
+                      <span>
+                        -{hotelData.displayCurrency}{" "}
+                        {hotelData.discountedPrice || 0}
+                      </span>
                     </div>
                   )}
 
                   <div className="flex justify-between">
                     <span>VAT (5%)</span>
-                    <span>{hotelData.displayCurrency} {vatAmount.toFixed(2)}</span>
+                    <span>
+                      {hotelData.displayCurrency} {vatAmount.toFixed(2)}
+                    </span>
                   </div>
 
                   <div className="flex justify-between">
                     <div className="border-t w-full border-gray-200 pt-3 mt-3">
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
-                        <span>{hotelData.displayCurrency} {total.toFixed(2)}</span>
+                        <span>
+                          {hotelData.displayCurrency} {total.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   </div>
