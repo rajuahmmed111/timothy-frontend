@@ -486,26 +486,26 @@ export default function PaymentConfirm() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Room Price</span>
-                    <span>{hotelData.convertedPrice || 0}</span>
+                    <span>{hotelData.displayCurrency} {hotelData.convertedPrice || 0}</span>
                   </div>
 
                   {hotelData.discountedPrice > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-{hotelData.discountedPrice || 0}</span>
+                      <span>-{ hotelData.displayCurrency} {hotelData.discountedPrice || 0}</span>
                     </div>
                   )}
 
                   <div className="flex justify-between">
                     <span>VAT (5%)</span>
-                    <span>{vatAmount.toFixed(2)}</span>
+                    <span>{hotelData.displayCurrency} {vatAmount.toFixed(2)}</span>
                   </div>
 
                   <div className="flex justify-between">
                     <div className="border-t w-full border-gray-200 pt-3 mt-3">
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
-                        <span>{total.toFixed(2)}</span>
+                        <span>{hotelData.displayCurrency} {total.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
