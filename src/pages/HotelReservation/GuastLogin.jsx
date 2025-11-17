@@ -18,7 +18,6 @@ export default function GuestLogin() {
   const { token } = useSelector((state) => state.auth);
   console.log("guest login", bookingData)
   useEffect(() => {
-    // If user is already logged in (has token), redirect to checkout
     if (token) {
       navigate(returnUrl, {
         state: {

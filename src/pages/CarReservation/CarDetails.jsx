@@ -75,7 +75,9 @@ export default function CarDetails() {
   const transformCarData = (car) => ({
     id: car.id,
     name: car.car_Rental?.carName || car.carModel,
-    displayLocation: (searchTerm || country || "").trim() || `${car.carCity}, ${car.carCountry}`,
+    displayLocation:
+      (searchTerm || country || "").trim() ||
+      `${car.carCity}, ${car.carCountry}`,
     location: `${car.carCity}, ${car.carCountry}`,
     image: car.carImages?.[0] || "/car/default-car.png",
     price: `$${car.carPriceDay}`,
@@ -155,27 +157,21 @@ export default function CarDetails() {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    // search term or country from input
     if (locationText) params.set("searchTerm", locationText);
-    // dates
     if (dateRange?.[0])
       params.set("fromDate", dateRange[0]?.format?.("YYYY-MM-DD"));
     if (dateRange?.[1])
       params.set("toDate", dateRange[1]?.format?.("YYYY-MM-DD"));
-    // car type
     if (carType) params.set("carType", carType);
-    // paging & keep limit
     params.set("page", "1");
     params.set("limit", String(limitFromQuery));
-    // keep sort if exists in current URL
     if (sortBy) params.set("sortBy", sortBy);
     if (sortOrder) params.set("sortOrder", sortOrder);
 
-    // Reset list then navigate
     setPage(1);
     setCars([]);
     setHasMore(true);
-    navigate(`/car-details?${params.toString()}`);
+    navigate(`/car-service-details?${params.toString()}`);
   };
 
   return (
@@ -214,7 +210,7 @@ export default function CarDetails() {
       {/* Cars Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto py-10">
         {cars.map((car, index) => (
-          <CarCard key={`${car.id}-${index}`} car={car} />
+          <CarCard key={`${car.id}-${index}`} car={car} queryString={location.search} />
         ))}
       </div>
 

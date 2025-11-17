@@ -1,13 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DatePicker } from "antd";
+import dayjs from "dayjs";
+import { useSelector } from "react-redux";
 
-export default function CarBookingForm({ car, carIdFromParams }) {
+export default function CarBookingForm({
+  car,
+  carIdFromParams,
+  fromDate,
+  toDate,
+}) {
   const navigate = useNavigate();
   const [isBooking, setIsBooking] = useState(false);
   const [dateRange, setDateRange] = useState(null);
   const { RangePicker } = DatePicker;
+
+  const accessToken = useSelector((state) => state?.auth?.accessToken);
+
+  useEffect(() => {
+    if (fromDate && toDate) {
+      const start = dayjs(fromDate);
+      const end = dayjs(toDate);
+      if (start.isValid() && end.isValid()) {
+        setDateRange([start, end]);
+      }
+    }
+  }, [fromDate, toDate]);
 
   const calculateTotal = () => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) return 0;
@@ -60,6 +79,21 @@ export default function CarBookingForm({ car, carIdFromParams }) {
       location: car?.location || "Selected Location",
     };
     navigate("/car/checkout", { state: { bookingDetails } });
+
+    try {
+      if (accessToken) {
+        navigate("/car/checkout", { state: { bookingData: bookingDetails } });
+      } else {
+        navigate("/hotel/guest-login", {
+          state: {
+            bookingData: bookingDetails,
+            returnUrl: "/car/checkout",
+          },
+        });
+      }
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   return (

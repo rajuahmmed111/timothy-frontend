@@ -14,13 +14,17 @@ import {
   ExternalLink,
 } from "lucide-react";
 import CarBookingForm from "./CarBookingForm";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useGetSingleCarQuery } from "../../redux/api/car/getAllCarsApi";
 import ImageGallery from "./ImageGallery";
 import Loader from "../../shared/Loader/Loader";
 
 export default function CarServiceDetails() {
   const { id } = useParams();
+  const locationHook = useLocation();
+  const qs = new URLSearchParams(locationHook.search);
+  const fromDate = qs.get("fromDate");
+  const toDate = qs.get("toDate");
   const { data: carData, isLoading } = useGetSingleCarQuery(id);
   console.log("carData", carData);
 
@@ -309,7 +313,7 @@ export default function CarServiceDetails() {
                   </button>
                 </div>
               </div>
-              <CarBookingForm car={car} carIdFromParams={id} />
+              <CarBookingForm car={car} carIdFromParams={id} fromDate={fromDate} toDate={toDate} />
             </div>
           </div>
         </main>

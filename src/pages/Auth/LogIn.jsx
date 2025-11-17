@@ -16,7 +16,6 @@ export default function LogIn() {
     const [login, { isLoading, error } ] = useLoginMutation();
 
     useEffect(() => {
-        // Prefill saved credentials if user opted for Remember Password previously
         try {
             const raw = localStorage.getItem('rememberCredentials');
             if (raw) {
@@ -26,7 +25,6 @@ export default function LogIn() {
                 setIsChecked(true);
             }
         } catch {
-            // ignore malformed storage
         }
     }, []);
 
@@ -45,8 +43,9 @@ export default function LogIn() {
             const res = await login({ email, password }).unwrap();
             // Expected response shape per spec
             const { accessToken, refreshToken, user } = res?.data || {};
+            console.log("user", user);
+
             dispatch(setCredentials({ accessToken, refreshToken, user }));
-            // Save or clear remembered credentials based on checkbox
             if (isChecked) {
                 localStorage.setItem('rememberCredentials', JSON.stringify({ email, password }));
             } else {
@@ -55,7 +54,6 @@ export default function LogIn() {
             navigate("/");
         } catch (err) {
             console.error("Login failed", err);
-            // Optional: show toast here
         }
     };
 
