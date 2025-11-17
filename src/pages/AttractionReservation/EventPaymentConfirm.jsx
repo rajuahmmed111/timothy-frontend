@@ -92,7 +92,10 @@ export default function EventPaymentConfirm() {
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const attractionDetails = location.state?.data;
   const attractionData = attractionDetails?.data || attractionDetails || {};
+  const bookingDetails = location.state?.bookingDetails;
+  const cancelationPolicy = bookingDetails?.cancelationPolicy;
   console.log("attractionDetails", attractionDetails);
+  console.log("cancelationPolicy", cancelationPolicy);
   const currencyLabel = attractionData?.displayCurrency || "";
   const from = attractionDetails.data.timeSlot.from;
   const to = attractionDetails.data.timeSlot.to;
@@ -464,7 +467,9 @@ export default function EventPaymentConfirm() {
                               ? "Refundable"
                               : "Non Refundable "}
                           </p>
-                          <span className="text-blue-600">Pay Online</span>
+                          <span className="text-red-600 text-xs">
+                            {cancelationPolicy}
+                          </span>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">

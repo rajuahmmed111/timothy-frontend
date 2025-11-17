@@ -35,6 +35,7 @@ export default function EventCheckout() {
     {};
   const guestInfo = location.state?.guestInfo || {};
   const [isProcessing, setIsProcessing] = useState(false);
+  const cancelationPolicy = bookingDetails?.cancelationPolicy;
   console.log("bookingDetails", bookingDetails);
   const unitPrice = Number(bookingDetails?.unitPrice || 0);
   const guestCount = Number(bookingDetails?.guests || 1);
@@ -145,6 +146,7 @@ export default function EventCheckout() {
         discountedPrice,
         adults,
         children,
+        cancelationPolicy,
         date: bookingDetails.selectedDate,
         day: bookingDetails.day,
         from: bookingDetails.selectedFrom,
@@ -154,6 +156,7 @@ export default function EventCheckout() {
       const resp = await createAttractionBooking({
         id: attractionId,
         body,
+        bookingDetails,
       }).unwrap();
 
       const createdBookingId =
@@ -163,7 +166,10 @@ export default function EventCheckout() {
       navigate(
         "/event/payment-confirm/" + encodeURIComponent(createdBookingId),
         {
-          state: { data: resp },
+          state: {
+            data: resp,
+            bookingDetails,
+          },
         }
       );
     } catch (error) {

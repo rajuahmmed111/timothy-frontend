@@ -231,7 +231,7 @@ export default function AttractionsDetailsPage() {
             No attractions found.
           </div>
         ) : (
-          events.map((event, index) => <EventCard key={index} event={event} />)
+            events.map((event, index) => <EventCard key={index} event={event}  />)
         )}
       </div>
       {/* Pagination */}

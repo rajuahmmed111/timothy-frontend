@@ -26,7 +26,7 @@ export default function EventReservationPage() {
   });
   const accessToken = useSelector((state) => state?.auth?.accessToken);
   const a = data?.data;
-  console.log("a", a);
+  const cancelationPolicy = a?.attraction?.attractionCancelationPolicy;
 
   const displayCurrency = a?.displayCurrency;
   const adultPrice = a?.convertedAdultPrice ?? a?.attractionAdultPrice ?? 0;
@@ -136,6 +136,7 @@ export default function EventReservationPage() {
       convertedChildPrice: a?.convertedChildPrice ?? childPrice,
       displayCurrency,
       appealId,
+      cancelationPolicy,
       discountPercent: a?.discount || 0,
       vatPercent: a?.vat || 0,
     };
@@ -312,6 +313,10 @@ export default function EventReservationPage() {
                 );
               })}
             </div>
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold mb-3">Booking Policy</h2>
+            <p className="text-red-600 leading-relaxed">{cancelationPolicy}</p>
           </div>
         </div>
 
@@ -596,27 +601,34 @@ export default function EventReservationPage() {
                 <div className="flex justify-between text-sm">
                   <span>
                     {displayCurrency}
-                    {a?.convertedAdultPrice} x {parseInt(adults || "0", 10)}{" "}
-                    adult
+                    {(a?.convertedAdultPrice || 0).toFixed(2)} x{" "}
+                    {parseInt(adults || "0", 10)} adult
                     {parseInt(adults || "0", 10) > 1 ? "s" : ""}
                   </span>
                   <span>
                     {displayCurrency}
-                    {(a?.convertedAdultPrice || 0) *
-                      parseInt(adults || "0", 10)}
+                    {(
+                      (a?.convertedAdultPrice || 0) *
+                      parseInt(adults || "0", 10)
+                    ).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>
                     {displayCurrency}
-                    {(a?.convertedChildPrice ?? a?.convertedAdultPrice) ||
-                      0} x {parseInt(children || "0", 10)} child
+                    {(
+                      (a?.convertedChildPrice ?? a?.convertedAdultPrice) ||
+                      0
+                    ).toFixed(2)}{" "}
+                    x {parseInt(children || "0", 10)} child
                     {parseInt(children || "0", 10) === 1 ? "" : "ren"}
                   </span>
                   <span>
                     {displayCurrency}
-                    {((a?.convertedChildPrice ?? a?.convertedAdultPrice) || 0) *
-                      parseInt(children || "0", 10)}
+                    {(
+                      ((a?.convertedChildPrice ?? a?.convertedAdultPrice) ||
+                        0) * parseInt(children || "0", 10)
+                    ).toFixed(2)}
                   </span>
                 </div>
                 {/* <div className="flex justify-between text-sm">
@@ -628,11 +640,13 @@ export default function EventReservationPage() {
                   <span>Total</span>
                   <span>
                     {displayCurrency}
-                    {(a?.convertedAdultPrice || 0) *
-                      parseInt(adults || "0", 10) +
+                    {(
+                      (a?.convertedAdultPrice || 0) *
+                        parseInt(adults || "0", 10) +
                       ((a?.convertedChildPrice ?? a?.convertedAdultPrice) ||
                         0) *
-                        parseInt(children || "0", 10)}
+                        parseInt(children || "0", 10)
+                    ).toFixed(2)}
                   </span>
                 </div>
               </div>
