@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { User, CheckCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { DatePicker, Select, Button, Space } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -11,6 +11,7 @@ import { useBooking } from "../../context/BookingContext";
 
 export default function SecurityBookingForm({ data }) {
   const navigate = useNavigate();
+  const { search } = useLocation();
   const { bookingData, updateBookingData, updateGuests } = useBooking();
   const [serviceType, setServiceType] = useState("personal");
   const [dateRange, setDateRange] = useState(null);
@@ -18,6 +19,11 @@ export default function SecurityBookingForm({ data }) {
   const [personnelCount, setPersonnelCount] = useState(1);
 
   const { RangePicker } = DatePicker;
+  const params = new URLSearchParams(search || "");
+  const fromDateParam = params.get("fromDate");
+  const toDateParam = params.get("toDate");
+  const fromDate = fromDateParam ? dayjs(fromDateParam) : null;
+  const toDate = toDateParam ? dayjs(toDateParam) : null;
   const user = useSelector((state) => state?.auth?.user);
   const accessToken = useSelector((state) => state?.auth?.accessToken);
   const userInfo = useMemo(() => {
@@ -110,6 +116,12 @@ export default function SecurityBookingForm({ data }) {
       ) || 1
     );
   };
+
+  useEffect(() => {
+    if (!dateRange && fromDate && toDate) {
+      setDateRange([fromDate, toDate]);
+    }
+  }, [fromDate, toDate, dateRange]);
 
   const handleBooking = (e) => {
     e.preventDefault();
@@ -206,9 +218,9 @@ export default function SecurityBookingForm({ data }) {
             Start Date and End Date
           </label>
 
-          {/* Check-in & Check-out */}
+          {/* Date Range */}
           <RangePicker
-            placeholder={["Start-date", "End-date"]}
+            placeholder={["Start Date", "End Date"]}
             value={dateRange}
             onChange={setDateRange}
             style={{ width: "100%", height: "48px" }}

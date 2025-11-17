@@ -56,8 +56,11 @@ export default function SecurityServiceDetails() {
         <main className="container mx-auto px-5 md:px-0 ">
           {/* Header Info */}
           <div className="py-6 mt-6 mb-4">
-            <div onClick={() => navigate(-1)} className="flex items-center gap-2">
-              <ArrowLeft className="w-6 h-6 text-gray-600"  />
+            <div
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-6 h-6 text-gray-600" />
               <span className="ml-2 text-gray-600">Back to Security</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -297,8 +300,12 @@ export default function SecurityServiceDetails() {
                     )}
                     {cancelationPolicy && (
                       <div>
-                        <span className="font-semibold text-xs">Cancelation Policy: </span>
-                        <span className="text-xs text-red-600">{cancelationPolicy}</span>
+                        <span className="font-semibold text-xs">
+                          Cancelation Policy:{" "}
+                        </span>
+                        <span className="text-xs text-red-600">
+                          {cancelationPolicy}
+                        </span>
                       </div>
                     )}
                     {business?.isBooked && (

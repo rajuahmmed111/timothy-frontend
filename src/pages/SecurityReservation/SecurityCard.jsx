@@ -1,8 +1,9 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Star } from "lucide-react";
 
 function SecurityCard({ data = [] }) {
+  const { search } = useLocation();
   const list = Array.isArray(data) ? data : [];
   console.log("data", data);
   return (
@@ -24,7 +25,7 @@ function SecurityCard({ data = [] }) {
         return (
           <Link
             key={b?.id || idx}
-            to={`/security-service-details/${b?.id}`}
+            to={`/security-service-details/${b?.id}${search}`}
             className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block"
           >
             {/* Card Image */}
