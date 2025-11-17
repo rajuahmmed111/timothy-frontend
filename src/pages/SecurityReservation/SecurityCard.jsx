@@ -4,20 +4,22 @@ import { Star } from "lucide-react";
 
 function SecurityCard({ data = [] }) {
   const list = Array.isArray(data) ? data : [];
+  console.log("data", data);
   return (
     <>
       {list.map((b, idx) => {
-        const firstGuard = Array.isArray(b?.security_Guard)
-          ? b.security_Guard[0]
-          : null;
-        const location = [firstGuard?.securityCity, firstGuard?.securityCountry]
+        const location = [b?.securityCity, b?.securityCountry]
           .filter(Boolean)
           .join(", ");
-        const name = b?.securityBusinessName || b?.securityName || "Security Service";
-        const image = b?.businessLogo || "/placeholder.svg";
-        const price = b?.averagePrice ?? 0;
-        const symbol = b?.currencySymbol || "$";
-        const rating = Number(b?.averageRating) || 0;
+        const name =
+          b?.securityGuardName || b?.security?.securityName || "Security Guard";
+        const image =
+          (Array.isArray(b?.securityImages) && b.securityImages[0]) ||
+          b?.user?.profileImage ||
+          "/placeholder.svg";
+        const price = b?.securityPriceDay ?? 0;
+        const symbol = b?.currency || "BDT";
+        const rating = Number(b?.securityRating) || 0;
 
         return (
           <Link
@@ -50,7 +52,6 @@ function SecurityCard({ data = [] }) {
                 {location || "Not provided"}
               </p>
 
-
               {/* Price & Button */}
               <div className="flex items-center justify-between mt-4">
                 <div>
@@ -58,15 +59,21 @@ function SecurityCard({ data = [] }) {
                   <p className="text-xl font-bold text-[#0064D2]">{`${symbol}${price}/day`}</p>
                 </div>
                 <div className="flex items-center justify-center gap-1">
-                  {[...Array(Math.max(0, Math.min(5, Math.round(rating))))].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-              {/* Rating */}
-              <div className="flex items-center gap-2 ">
-                <span className="text-sm text-gray-600 ml-1">{Number(rating) || 0}</span>
-              </div>
+                  {[...Array(Math.max(0, Math.min(5, Math.round(rating))))].map(
+                    (_, i) => (
+                      <Star
+                        key={i}
+                        className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                      />
+                    )
+                  )}
+                  {/* Rating */}
+                  <div className="flex items-center gap-2 ">
+                    <span className="text-sm text-gray-600 ml-1">
+                      {Number(rating) || 0}
+                    </span>
+                  </div>
                 </div>
-             
               </div>
             </div>
           </Link>
