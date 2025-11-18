@@ -92,7 +92,7 @@ export default function PaymentConfirm() {
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const bookingDetails = location.state?.data;
   const hotelData = bookingDetails?.data || bookingDetails || {};
-  console.log("Booking details:", bookingDetails);
+  console.log("Booking details:", bookingDetails?.cancelationPolicy);
   console.log("Hotel data:", hotelData);
   console.log("Payment method:", paymentMethod);
   // Set payment method based on country when component mounts or country changes
@@ -217,6 +217,7 @@ export default function PaymentConfirm() {
         adults: bookingDetails.adults,
         children: bookingDetails.children,
         isRefundable: bookingDetails.isRefundable,
+        cancelationPolicy: bookingDetails.cancelationPolicy,
         vat: bookingDetails.vat,
         nights: bookingDetails.nights,
         user: userInfo,
@@ -448,16 +449,18 @@ export default function PaymentConfirm() {
                           </p>
                           <p
                             className={
-                              bookingDetails?.isRefundable
+                              bookingDetails?.cancelationPolicy
                                 ? "text-green-600"
                                 : "text-red-600"
                             }
                           >
-                            {hotelData.isRefundable
+                            {bookingDetails?.cancelationPolicy
                               ? "Refundable"
                               : "Non Refundable "}
                           </p>
-                          <span className="text-blue-600">Pay Online</span>
+                          <span className="text-red-600 text-xs">
+                            {bookingDetails.cancelationPolicy}
+                          </span>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">
@@ -480,26 +483,36 @@ export default function PaymentConfirm() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Room Price</span>
-                    <span>{hotelData.convertedPrice || 0}</span>
+                    <span>
+                      {hotelData.displayCurrency}{" "}
+                      {hotelData.convertedPrice || 0}
+                    </span>
                   </div>
 
                   {hotelData.discountedPrice > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-{hotelData.discountedPrice || 0}</span>
+                      <span>
+                        -{hotelData.displayCurrency}{" "}
+                        {hotelData.discountedPrice || 0}
+                      </span>
                     </div>
                   )}
 
                   <div className="flex justify-between">
                     <span>VAT (5%)</span>
-                    <span>{vatAmount.toFixed(2)}</span>
+                    <span>
+                      {hotelData.displayCurrency} {vatAmount.toFixed(2)}
+                    </span>
                   </div>
 
                   <div className="flex justify-between">
                     <div className="border-t w-full border-gray-200 pt-3 mt-3">
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
-                        <span>{total.toFixed(2)}</span>
+                        <span>
+                          {hotelData.displayCurrency} {total.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   </div>

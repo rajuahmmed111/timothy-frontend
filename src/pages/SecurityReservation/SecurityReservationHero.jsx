@@ -33,16 +33,15 @@ export default function SecurityReservationHero() {
     const fromDate = dateRange?.[0] ? dateRange[0].format("YYYY-MM-DD") : null;
     const toDate = dateRange?.[1] ? dateRange[1].format("YYYY-MM-DD") : null;
 
-    navigate("/security-details", {
-      state: {
-        location,
-        country,
-        city,
-        fromDate,
-        toDate,
-        securityType,
-      },
-    });
+    const params = new URLSearchParams();
+    if (location) params.set("location", location);
+    if (country) params.set("country", country);
+    if (city) params.set("city", city);
+    if (fromDate) params.set("fromDate", fromDate);
+    if (toDate) params.set("toDate", toDate);
+    if (securityType) params.set("securityType", securityType);
+
+    navigate(`/security-details?${params.toString()}`);
   };
 
   const onSearch = () => {
@@ -112,6 +111,7 @@ export default function SecurityReservationHero() {
                     Executive Protection
                   </option>
                   <option value="Event Security">Event Security</option>
+                  <option value="Escort">Escort</option>
                 </select>
               </div>
             </div>
@@ -119,7 +119,10 @@ export default function SecurityReservationHero() {
             <div className="">
               {(() => {
                 const isDisabled =
-                  !location?.trim() && !dateRange?.[0] && !dateRange?.[1] && !securityType;
+                  !location?.trim() &&
+                  !dateRange?.[0] &&
+                  !dateRange?.[1] &&
+                  !securityType;
                 return (
                   <button
                     onClick={handleSearch}

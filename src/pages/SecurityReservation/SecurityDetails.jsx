@@ -1,6 +1,6 @@
 import React from "react";
 import { DatePicker } from "antd";
-import { useGetAllSecurityProtocolsQuery } from "../../redux/api/security/securityApi";
+import { useGetSecurityProtocolsQuery } from "../../redux/api/security/getAllSecurityApi";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
 import SecurityCard from "./SecurityCard";
@@ -8,39 +8,58 @@ import SecurityCard from "./SecurityCard";
 const { RangePicker } = DatePicker;
 
 export default function SecurityDetails() {
-  const { state } = useLocation();
-  const locationFromState = state?.location || "";
-  const country = state?.country || "";
-  const city = state?.city || "";
-  const displayLocation =
-    locationFromState || [country, city].filter(Boolean).join(", ");
-  const securityType = state?.securityType || "";
-  const fromDate = state?.fromDate ? dayjs(state.fromDate) : null;
-  const toDate = state?.toDate ? dayjs(state.toDate) : null;
+  const { state, search } = useLocation();
+  const params = new URLSearchParams(search || "");
 
-  const { data } = useGetAllSecurityProtocolsQuery();
+  const locationFromParams = params.get("location") || "";
+  const countryFromParams = params.get("country") || "";
+  const cityFromParams = params.get("city") || "";
+  const securityTypeFromParams = params.get("securityType") || "";
+  const fromDateParam = params.get("fromDate");
+  const toDateParam = params.get("toDate");
+
+  const locationFromState = state?.location || "";
+  const countryFromState = state?.country || "";
+  const cityFromState = state?.city || "";
+  const securityTypeFromState = state?.securityType || "";
+  const fromDateState = state?.fromDate || null;
+  const toDateState = state?.toDate || null;
+
+  const country = countryFromParams || countryFromState || "";
+  const city = cityFromParams || cityFromState || "";
+  const baseLocation =
+    locationFromParams ||
+    locationFromState ||
+    [country, city].filter(Boolean).join(", ");
+  const displayLocation = baseLocation;
+  const securityType = securityTypeFromParams || securityTypeFromState || "";
+  const fromDate = fromDateParam
+    ? dayjs(fromDateParam)
+    : fromDateState
+    ? dayjs(fromDateState)
+    : null;
+  const toDate = toDateParam
+    ? dayjs(toDateParam)
+    : toDateState
+    ? dayjs(toDateState)
+    : null;
+
+  const { data } = useGetSecurityProtocolsQuery();
+  console.log("data", data);
   const securityBusinessData = Array.isArray(data?.data?.data)
     ? data.data.data
     : [];
 
-  // Local UI state for inputs
+  // Local UI state for inputs (used directly for filtering)
   const [locText, setLocText] = React.useState(displayLocation);
   const [typeValue, setTypeValue] = React.useState(securityType || "All");
-  // Applied values used for filtering (only change when Search is clicked)
-  const [appliedLoc, setAppliedLoc] = React.useState(displayLocation);
-  const [appliedType, setAppliedType] = React.useState(securityType || "All");
-
-  const handleSearch = () => {
-    setAppliedLoc(locText || "");
-    setAppliedType(typeValue || "All");
-  };
 
   // Build filters from router state (location and protocol type only)
   const filters = React.useMemo(() => {
-    // Parse appliedLoc only; format supports "Country, City" or just "City"
+    // Parse current location input; format supports "Country, City" or just "City"
     let fCountry = "";
     let fCity = "";
-    const loc = (appliedLoc || "").trim();
+    const loc = (locText || "").trim();
     if (loc) {
       const parts = loc
         .split(",")
@@ -53,13 +72,13 @@ export default function SecurityDetails() {
         fCity = parts[0];
       }
     }
-    const fType = (appliedType || "").trim();
+    const fType = (typeValue || "").trim();
     return {
       country: fCountry.toLowerCase(),
       city: fCity.toLowerCase(),
       type: fType.toLowerCase(),
     };
-  }, [appliedLoc, appliedType]);
+  }, [locText, typeValue]);
 
   const filteredBusinesses = React.useMemo(() => {
     const hasCity = Boolean(filters.city);
@@ -68,25 +87,24 @@ export default function SecurityDetails() {
     if (!hasCity && !hasCountry && !hasType) return securityBusinessData;
 
     return securityBusinessData.filter((b) => {
-      // protocol type filter
+      // protocol type filter (from nested security object)
       if (hasType) {
-        const bt = (b?.securityProtocolType || b?.securityBusinessType || "").toLowerCase();
+        const bt = (b?.security?.securityProtocolType || "").toLowerCase();
         if (!bt.includes(filters.type)) return false;
       }
-      // location filter against guards (city/country)
+
+      // location filter using guard's own city/country
       if (hasCity || hasCountry) {
-        const guards = Array.isArray(b?.security_Guard) ? b.security_Guard : [];
-        if (guards.length === 0) return false;
-        const matchesLocation = guards.some((g) => {
-          const gc = (g?.securityCountry || "").toLowerCase();
-          const gi = (g?.securityCity || "").toLowerCase();
-          if (hasCity && hasCountry) return gc.includes(filters.country) && gi.includes(filters.city);
-          if (hasCity) return gi.includes(filters.city) || gc.includes(filters.city);
-          if (hasCountry) return gc.includes(filters.country) || gi.includes(filters.country);
-          return true;
-        });
-        if (!matchesLocation) return false;
+        const gc = (b?.securityCountry || "").toLowerCase();
+        const gi = (b?.securityCity || "").toLowerCase();
+        if (hasCity && hasCountry)
+          return gc.includes(filters.country) && gi.includes(filters.city);
+        if (hasCity)
+          return gi.includes(filters.city) || gc.includes(filters.city);
+        if (hasCountry)
+          return gc.includes(filters.country) || gi.includes(filters.country);
       }
+
       return true;
     });
   }, [securityBusinessData, filters]);
@@ -125,13 +143,14 @@ export default function SecurityDetails() {
               <option value="Security Guard">Security Guard</option>
               <option value="Executive Protection">Executive Protection</option>
               <option value="Event Security">Event Security</option>
+              <option value="Escort">Escort</option>
             </select>
           </div>
         </div>
 
         {/* Search Button */}
         <div>
-          <button onClick={handleSearch} className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold hover:bg-[#0051ad] transition">
+          <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold hover:bg-[#0051ad] transition">
             Search
           </button>
         </div>
@@ -139,12 +158,12 @@ export default function SecurityDetails() {
 
       {/* Results Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto py-10">
-      <SecurityCard data={filteredBusinesses} />
-      {filteredBusinesses && filteredBusinesses.length === 0 && (
-        <div className="col-span-full text-center py-10">
-          <p className="text-gray-500">No data available.</p>
-        </div>
-      )}
+        <SecurityCard data={filteredBusinesses} />
+        {filteredBusinesses && filteredBusinesses.length === 0 && (
+          <div className="col-span-full text-center py-10">
+            <p className="text-gray-500">No data available.</p>
+          </div>
+        )}
       </div>
     </div>
   );

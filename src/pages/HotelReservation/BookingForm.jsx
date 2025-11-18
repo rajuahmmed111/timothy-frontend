@@ -198,6 +198,7 @@ export default function BookingForm({ hotel }) {
           hotel?.location ?? hotel?.hotelAddress ?? hotel?.address ?? "",
         roomType: selectedRoomData?.name ?? "",
         roomPrice: nightlyPrice,
+        cancelationPolicy: hotel?.hotelCancelationPolicy ?? "",
         nights,
         rooms: roomsCount,
         adults: Number(bookingData?.guests?.adults ?? 1),

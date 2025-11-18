@@ -92,7 +92,10 @@ export default function EventPaymentConfirm() {
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const attractionDetails = location.state?.data;
   const attractionData = attractionDetails?.data || attractionDetails || {};
+  const bookingDetails = location.state?.bookingDetails;
+  const cancelationPolicy = bookingDetails?.cancelationPolicy;
   console.log("attractionDetails", attractionDetails);
+  console.log("cancelationPolicy", cancelationPolicy);
   const currencyLabel = attractionData?.displayCurrency || "";
   const from = attractionDetails.data.timeSlot.from;
   const to = attractionDetails.data.timeSlot.to;
@@ -135,17 +138,18 @@ export default function EventPaymentConfirm() {
     const subtotalChildren = childCountFallback * priceChildFallback;
     const total = subtotalAdults + subtotalChildren;
 
-    // Optional VAT display (not added into total, just informational)
-    const vatPercent = Number(attractionData?.vatPercent || 0);
+    // VAT is frontend-only informational percentage
+    const vatPercent = Number(5);
     const vatAmount = Number(((total * vatPercent) / 100).toFixed(2));
 
     return {
       vatAmount,
       total,
+      vatPercent,
     };
   };
 
-  const { vatAmount, total } = calculateTotal();
+  const { vatAmount, total, vatPercent } = calculateTotal();
 
   // Derive adult/child counts and prices for UI breakdown
   const adultCount = Number(attractionData?.adults ?? 0);
@@ -463,7 +467,9 @@ export default function EventPaymentConfirm() {
                               ? "Refundable"
                               : "Non Refundable "}
                           </p>
-                          <span className="text-blue-600">Pay Online</span>
+                          <span className="text-red-600 text-xs">
+                            {cancelationPolicy}
+                          </span>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">
@@ -519,7 +525,7 @@ export default function EventPaymentConfirm() {
                   )}
 
                   <div className="flex justify-between">
-                    <span>VAT (5%)</span>
+                    <span>VAT ({vatPercent || 0}%)</span>
                     <span>
                       {currencyLabel && `${currencyLabel} `}
                       {vatAmount.toFixed(2)}

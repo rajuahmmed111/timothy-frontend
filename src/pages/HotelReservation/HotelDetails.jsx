@@ -20,7 +20,9 @@ export default function HotelDetails() {
     useGetHotelDetailsQuery(routeId, { skip: !!hotel });
 
   const hotelFromApi = hotelDetails?.data ?? hotelDetails;
+  console.log("hotelFromApi", hotelFromApi);
   const hotelData = hotel || hotelFromApi;
+  console.log("hotelDatadsafsadf", hotelData);
 
   // Build complete address for accurate location
   const fullAddress = [

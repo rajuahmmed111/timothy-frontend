@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import img1 from "/burj.png";
 export default function EventCard({ event }) {
+  console.log("event", event);
   return (
     <Link to={`/event-reservation/${encodeURIComponent(event?.id || "")}`} className="w-full">
       <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">

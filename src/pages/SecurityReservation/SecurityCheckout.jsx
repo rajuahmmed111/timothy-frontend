@@ -34,7 +34,7 @@ export default function SecurityCheckout() {
     {};
   const guestInfo = location.state?.guestInfo || {};
   const [isProcessing, setIsProcessing] = useState(false);
-console.log("bookingDetails", bookingDetails);
+  const cancelationPolicy = bookingDetails?.cancelationPolicy || null;
   const [createSecurityBooking, { isLoading }] =
     useCreateSecurityBookingMutation();
 
@@ -68,8 +68,7 @@ console.log("bookingDetails", bookingDetails);
       user?.name ||
       user?.fullName ||
       "",
-    email:
-      guestInfo?.email || bookingDetails?.user?.email || user?.email || "",
+    email: guestInfo?.email || bookingDetails?.user?.email || user?.email || "",
     phone:
       guestInfo?.phone ||
       guestInfo?.contactNumber ||
@@ -93,7 +92,11 @@ console.log("bookingDetails", bookingDetails);
   // Keep form synced if route state or user changes
   React.useEffect(() => {
     setUpdatedUser(deriveGuest());
-  }, [JSON.stringify(guestInfo), JSON.stringify(bookingDetails?.user), JSON.stringify(user)]);
+  }, [
+    JSON.stringify(guestInfo),
+    JSON.stringify(bookingDetails?.user),
+    JSON.stringify(user),
+  ]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -121,14 +124,22 @@ console.log("bookingDetails", bookingDetails);
           Number(bookingDetails?.personnelCount || 1);
       const body = {
         // Core booking fields (prefer explicit fields from page, fallback to existing)
-        number_of_security: bookingDetails?.number_of_security ?? bookingDetails?.personnelCount ?? 1,
-        securityBookedFromDate: bookingDetails?.securityBookedFromDate || bookingDetails?.startDate,
-        securityBookedToDate: bookingDetails?.securityBookedToDate || bookingDetails?.endDate,
+        number_of_security:
+          bookingDetails?.number_of_security ??
+          bookingDetails?.personnelCount ??
+          1,
+        securityBookedFromDate:
+          bookingDetails?.securityBookedFromDate || bookingDetails?.startDate,
+        securityBookedToDate:
+          bookingDetails?.securityBookedToDate || bookingDetails?.endDate,
         totalPrice: total,
         convertedPrice: bookingDetails?.convertedPrice ?? total,
-        displayCurrency: bookingDetails?.displayCurrency || bookingDetails?.currency || currencyCode,
+        displayCurrency:
+          bookingDetails?.displayCurrency ||
+          bookingDetails?.currency ||
+          currencyCode,
         discountedPrice: bookingDetails?.discountedPrice ?? 0,
-
+        cancelationPolicy,
         // Identification
         guardId: bookingDetails?.guardId,
         guardName: bookingDetails?.guardName,
@@ -159,11 +170,13 @@ console.log("bookingDetails", bookingDetails);
 
       handleSuccess("Security service reserved successfully!");
       const createdBookingId = resp?.data?.id || resp?.id || "";
-    
+
       navigate(
-        `/security/payment-confirm?bookingId=${encodeURIComponent(createdBookingId)}`,
+        `/security/payment-confirm?bookingId=${encodeURIComponent(
+          createdBookingId
+        )}`,
         {
-          state: { data:resp },
+          state: { data: resp, cancelationPolicy },
           replace: true,
         }
       );
@@ -261,9 +274,9 @@ console.log("bookingDetails", bookingDetails);
                       type="text"
                       name="address"
                       value={updatedUser.address}
-                      onChange={handleInputChange}
+                      readOnly
                       placeholder="Address / Country"
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm outline-none p-2 border"
                     />
                   </div>
                 </form>
@@ -300,9 +313,12 @@ console.log("bookingDetails", bookingDetails);
                 <Calendar className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-gray-900">
-                    {formatDate(bookingDetails.startDate)} - {formatDate(bookingDetails.endDate)}
+                    {formatDate(bookingDetails.startDate)} -{" "}
+                    {formatDate(bookingDetails.endDate)}
                   </p>
-                  <p className="text-gray-600">{days} {days === 1 ? "day" : "days"}</p>
+                  <p className="text-gray-600">
+                    {days} {days === 1 ? "day" : "days"}
+                  </p>
                 </div>
               </div>
 
@@ -311,9 +327,14 @@ console.log("bookingDetails", bookingDetails);
                 <Users className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-gray-900">
-                    {bookingDetails?.personnelCount || 1} {Number(bookingDetails?.personnelCount || 1) === 1 ? "guard" : "guards"}
+                    {bookingDetails?.personnelCount || 1}{" "}
+                    {Number(bookingDetails?.personnelCount || 1) === 1
+                      ? "guard"
+                      : "guards"}
                   </p>
-                  <p className="text-gray-600">{bookingDetails?.serviceDescription || "Security service"}</p>
+                  <p className="text-gray-600">
+                    {bookingDetails?.serviceDescription || "Security service"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -327,17 +348,25 @@ console.log("bookingDetails", bookingDetails);
               <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>
-                    {currencyCode} {unitPrice} × {days} {days === 1 ? "day" : "days"} × {personnelCount} {personnelCount === 1 ? "guard" : "guards"}
+                    {currencyCode} {unitPrice} × {days}{" "}
+                    {days === 1 ? "day" : "days"} × {personnelCount}{" "}
+                    {personnelCount === 1 ? "guard" : "guards"}
                   </span>
-                  <span>{currencyCode} {subtotal.toFixed(2)}</span>
+                  <span>
+                    {currencyCode} {subtotal.toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
                   <span>Total</span>
-                  <span>{currencyCode} {total.toFixed(2)}</span>
+                  <span>
+                    {currencyCode} {total.toFixed(2)}
+                  </span>
                 </div>
 
-                <p className="text-xs text-gray-500 mt-1">Taxes and fees included if applicable</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Taxes and fees included if applicable
+                </p>
               </div>
 
               <button

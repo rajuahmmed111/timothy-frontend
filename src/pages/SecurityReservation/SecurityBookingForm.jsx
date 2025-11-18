@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { User, CheckCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { DatePicker, Select, Button, Space } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -11,6 +11,7 @@ import { useBooking } from "../../context/BookingContext";
 
 export default function SecurityBookingForm({ data }) {
   const navigate = useNavigate();
+  const { search } = useLocation();
   const { bookingData, updateBookingData, updateGuests } = useBooking();
   const [serviceType, setServiceType] = useState("personal");
   const [dateRange, setDateRange] = useState(null);
@@ -18,6 +19,11 @@ export default function SecurityBookingForm({ data }) {
   const [personnelCount, setPersonnelCount] = useState(1);
 
   const { RangePicker } = DatePicker;
+  const params = new URLSearchParams(search || "");
+  const fromDateParam = params.get("fromDate");
+  const toDateParam = params.get("toDate");
+  const fromDate = fromDateParam ? dayjs(fromDateParam) : null;
+  const toDate = toDateParam ? dayjs(toDateParam) : null;
   const user = useSelector((state) => state?.auth?.user);
   const accessToken = useSelector((state) => state?.auth?.accessToken);
   const userInfo = useMemo(() => {
@@ -47,6 +53,13 @@ export default function SecurityBookingForm({ data }) {
   }, [JSON.stringify(guards)]);
 
   const selectedGuard = guards[selectedGuardIndex] || null;
+  const cancelationPolicy =
+    selectedGuard?.security?.securityCancelationPolicy ||
+    selectedGuard?.securityCancelationPolicy ||
+    null;
+
+  console.log("booking-form:selectedGuard", selectedGuard);
+  console.log("booking-form:cancelationPolicy", cancelationPolicy);
   const guardId = selectedGuard?.id ?? selectedGuard?._id ?? null;
   const guardName =
     selectedGuard?.securityGuardName ||
@@ -104,6 +117,12 @@ export default function SecurityBookingForm({ data }) {
     );
   };
 
+  useEffect(() => {
+    if (!dateRange && fromDate && toDate) {
+      setDateRange([fromDate, toDate]);
+    }
+  }, [fromDate, toDate, dateRange]);
+
   const handleBooking = (e) => {
     e.preventDefault();
     if (!dateRange || !dateRange[0] || !dateRange[1]) return;
@@ -133,7 +152,7 @@ export default function SecurityBookingForm({ data }) {
       // Display currency aliases
       currency: currencyCode,
       displayCurrency: currencyCode,
-
+      cancelationPolicy,
       // Guard info
       guardId,
       guardName,
@@ -186,190 +205,12 @@ export default function SecurityBookingForm({ data }) {
 
       <form onSubmit={handleBooking} className="space-y-5">
         {/* Available Guards */}
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Available Guards
           </label>
-          {guards.length === 0 ? (
-            <div className="text-sm text-gray-500">No guards found.</div>
-          ) : (
-            <div className="space-y-5 gap-2">
-              {/* AVAILABLE group */}
-              {guards.some(
-                (g) => String(g?.isBooked).toUpperCase() === "AVAILABLE"
-              ) && (
-                <div>
-                  <div className="text-xs  font-semibold text-green-700 mb-4">
-                    AVAILABLE
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {guards.map((g, idx) => {
-                      const available =
-                        String(g?.isBooked).toUpperCase() === "AVAILABLE";
-                      if (!available) return null;
-                      const name =
-                        g?.securityGuardName ||
-                        g?.securityName ||
-                        g?.name ||
-                        "Guard";
-                      const img =
-                        Array.isArray(g?.securityImages) &&
-                        g.securityImages.length > 0
-                          ? g.securityImages[0]
-                          : null;
-                      const price =
-                        Number(
-                          g?.securityPriceDay ||
-                            g?.pricePerDay ||
-                            g?.securityPrice ||
-                            unitPrice
-                        ) || unitPrice;
-                      const curr =
-                        g?.displayCurrency || g?.currency || currencyCode;
-                      const rating = Number(g?.securityRating) || 0;
-                      const isSelected = idx === selectedGuardIndex;
-                      return (
-                        <div
-                          key={g?.id || idx}
-                          onClick={() => {
-                            console.log("booking-form:selectedGuardIndex", idx);
-                            setSelectedGuardIndex(idx);
-                          }}
-                          className={`p-3 border rounded-lg flex items-start gap-3 ${
-                            isSelected
-                              ? "border-blue-500 ring-1 ring-blue-400 bg-blue-50/40"
-                              : "border-gray-200 hover:border-gray-300"
-                          } cursor-pointer hover:shadow-sm`}
-                          role="button"
-                          tabIndex={0}
-                        >
-                          {img && (
-                            <img
-                              src={img}
-                              alt={name}
-                              className="w-14 h-14 rounded-md object-cover"
-                            />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium text-gray-900 truncate">
-                                {name}
-                              </h4>
-                              {isSelected && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
-                                  Selected
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-600 mt-0.5">
-                              {curr} {price} / day
-                            </div>
-                            <div className="flex items-center gap-1 mt-1">
-                              {[1, 2, 3, 4, 5].map((s, i) => (
-                                <span
-                                  key={i}
-                                  className={`w-2 h-2 inline-block rounded-full ${
-                                    i < Math.round(rating)
-                                      ? "bg-yellow-400"
-                                      : "bg-gray-300"
-                                  }`}
-                                ></span>
-                              ))}
-                              <span className="text-[11px] text-gray-600 ml-1">
-                                {rating.toFixed(1)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* BOOKED group */}
-              {guards.some(
-                (g) => String(g?.isBooked).toUpperCase() !== "AVAILABLE"
-              ) && (
-                <div className="mt-4">
-                  <div className="text-xs font-semibold text-gray-700 mb-2">
-                    BOOKED / UNAVAILABLE
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {guards.map((g, idx) => {
-                      const available =
-                        String(g?.isBooked).toUpperCase() === "AVAILABLE";
-                      if (available) return null;
-                      const name =
-                        g?.securityGuardName ||
-                        g?.securityName ||
-                        g?.name ||
-                        "Guard";
-                      const img =
-                        Array.isArray(g?.securityImages) &&
-                        g.securityImages.length > 0
-                          ? g.securityImages[0]
-                          : null;
-                      const price =
-                        Number(
-                          g?.securityPriceDay ||
-                            g?.pricePerDay ||
-                            g?.securityPrice ||
-                            unitPrice
-                        ) || unitPrice;
-                      const curr =
-                        g?.displayCurrency || g?.currency || currencyCode;
-                      const rating = Number(g?.securityRating) || 0;
-                      return (
-                        <div
-                          key={g?.id || idx}
-                          className="p-3 border rounded-lg flex items-start gap-3 border-gray-200 opacity-60"
-                        >
-                          {img && (
-                            <img
-                              src={img}
-                              alt={name}
-                              className="w-14 h-14 rounded-md object-cover"
-                            />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium text-gray-900 truncate">
-                                {name}
-                              </h4>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">
-                                Booked
-                              </span>
-                            </div>
-                            <div className="text-xs text-gray-600 mt-0.5">
-                              {curr} {price} / day
-                            </div>
-                            <div className="flex items-center gap-1 mt-1">
-                              {[1, 2, 3, 4, 5].map((s, i) => (
-                                <span
-                                  key={i}
-                                  className={`w-2 h-2 inline-block rounded-full ${
-                                    i < Math.round(rating)
-                                      ? "bg-yellow-400"
-                                      : "bg-gray-300"
-                                  }`}
-                                ></span>
-                              ))}
-                              <span className="text-[11px] text-gray-600 ml-1">
-                                {rating.toFixed(1)}
-                              </span>
-                            </div>
-                          </div>
-                          
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+         
+        </div> */}
 
         {/* Date Range */}
         <div>
@@ -377,9 +218,9 @@ export default function SecurityBookingForm({ data }) {
             Start Date and End Date
           </label>
 
-          {/* Check-in & Check-out */}
+          {/* Date Range */}
           <RangePicker
-            placeholder={["Start-date", "End-date"]}
+            placeholder={["Start Date", "End Date"]}
             value={dateRange}
             onChange={setDateRange}
             style={{ width: "100%", height: "48px" }}

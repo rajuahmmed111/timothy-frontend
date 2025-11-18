@@ -91,6 +91,7 @@ export default function PaymentConfirm() {
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   // Accept data from multiple shapes: {resp}, {data}, {payload}, or direct object
   const raw = location.state;
+  const cancelationPolicy = raw?.cancelationPolicy;
   const bookingDetails =
     raw?.resp?.data ||
     raw?.resp ||
@@ -99,6 +100,7 @@ export default function PaymentConfirm() {
     raw?.payload?.data ||
     raw?.payload ||
     {};
+  
   const hotelData = bookingDetails; // alias to satisfy existing JSX bindings without UI changes
   console.log("bookingDetails", bookingDetails);
   // Set payment method based on country/address when component mounts or changes
@@ -144,7 +146,8 @@ export default function PaymentConfirm() {
     if (!from || !to) return null;
     const start = new Date(from);
     const end = new Date(to);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()))
+      return null;
     const ms = end.getTime() - start.getTime();
     if (ms < 0) return 0;
     return Math.ceil(ms / (1000 * 60 * 60 * 24));
@@ -191,8 +194,6 @@ export default function PaymentConfirm() {
 
     return null;
   })();
-
- 
 
   const handlePayment = async () => {
     // Prevent execution if total is not valid
@@ -340,18 +341,26 @@ export default function PaymentConfirm() {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-medium">
-                      Security: {bookingDetails?.securityName || bookingDetails?.guardName || "Security Service"}
+                      Security:{" "}
+                      {bookingDetails?.securityName ||
+                        bookingDetails?.guardName ||
+                        "Security Service"}
                     </h3>
                     <div className="flex items-center text-gray-600 mt-1">
                       <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
                       <p className="text-sm">
-                        Location: {bookingDetails?.address || bookingDetails?.location || "Not provided"}
+                        Location:{" "}
+                        {bookingDetails?.address ||
+                          bookingDetails?.location ||
+                          "Not provided"}
                       </p>
                     </div>
                     {bookingDetails?.bookingStatus && (
                       <div className="flex items-center text-gray-600 mt-1">
                         <ShieldCheck className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <p className="text-sm">Status: {bookingDetails.bookingStatus}</p>
+                        <p className="text-sm">
+                          Status: {bookingDetails.bookingStatus}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -363,7 +372,9 @@ export default function PaymentConfirm() {
                         <div>
                           <p className="text-sm text-gray-500">Check-in</p>
                           <p>
-                            {formatDate(bookingDetails.securityBookedFromDate) || "Not specified"}
+                            {formatDate(
+                              bookingDetails.securityBookedFromDate
+                            ) || "Not specified"}
                           </p>
                         </div>
                       </div>
@@ -372,17 +383,22 @@ export default function PaymentConfirm() {
                         <div>
                           <p className="text-sm text-gray-500">Check-out</p>
                           <p>
-                            {formatDate(bookingDetails.securityBookedToDate) || "Not specified"}
+                            {formatDate(bookingDetails.securityBookedToDate) ||
+                              "Not specified"}
                           </p>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">
                         <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-gray-500">Total Duration</p>
+                          <p className="text-sm text-gray-500">
+                            Total Duration
+                          </p>
                           <p>
                             {durationDays !== null
-                              ? `${durationDays} day${durationDays === 1 ? "" : "s"}`
+                              ? `${durationDays} day${
+                                  durationDays === 1 ? "" : "s"
+                                }`
                               : "Not specified"}
                           </p>
                         </div>
@@ -392,16 +408,34 @@ export default function PaymentConfirm() {
                       <div className="flex gap-2 items-center">
                         <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-gray-500">Total Security Guard</p>
-                          <p>{bookingDetails?.number_of_security }</p>
+                          <p className="text-sm text-gray-500">
+                            Total Security Guard
+                          </p>
+                          <p>({bookingDetails?.number_of_security})</p>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">
                         <ShieldCheck className="w-5 h-5 text-gray-500 mr-2" />
                         <div>
-                          <p className="text-sm text-gray-500">Booking Status</p>
-                          <p className="text-gray-800">{bookingDetails?.bookingStatus }</p>
-                          <span className="text-blue-600">Pay Online</span>
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              Booking Condition
+                            </p>
+                            <p
+                              className={
+                                cancelationPolicy
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }
+                            >
+                              {cancelationPolicy
+                                ? "Refundable"
+                                : "Non Refundable "}
+                            </p>
+                            <span className="text-red-600 text-xs">
+                              {cancelationPolicy}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex mt-2 gap-2 items-center">
@@ -425,15 +459,17 @@ export default function PaymentConfirm() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Service Price</span>
                     <span>
-                      {hotelData.convertedPrice || 0} {hotelData.displayCurrency || ""}
+                      {hotelData.displayCurrency || ""}
+                      {hotelData.convertedPrice || 0}{" "}
                     </span>
                   </div>
 
                   {hotelData.discountedPrice > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-
-                        {hotelData.discountedPrice || 0} {hotelData.displayCurrency || ""}
+                      <span>
+                        {hotelData.displayCurrency || ""}-
+                        {hotelData.discountedPrice || 0}{" "}
                       </span>
                     </div>
                   )}
@@ -441,7 +477,7 @@ export default function PaymentConfirm() {
                   <div className="flex justify-between">
                     <span>VAT (5%)</span>
                     <span>
-                      {vatAmount.toFixed(2)} {hotelData.displayCurrency || ""}
+                      {hotelData.displayCurrency || ""} {vatAmount.toFixed(2)}
                     </span>
                   </div>
 
@@ -450,7 +486,8 @@ export default function PaymentConfirm() {
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
                         <span>
-                          {total.toFixed(2)} {hotelData.displayCurrency || ""}
+                          {hotelData.displayCurrency || ""}
+                          {total.toFixed(2)}
                         </span>
                       </div>
                     </div>

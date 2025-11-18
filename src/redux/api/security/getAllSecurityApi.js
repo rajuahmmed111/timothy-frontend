@@ -36,4 +36,9 @@ export const securityProtocolsApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetSecurityProtocolsQuery, useGetSecurityProtocolsRootQuery, useGetSecurityGuardByIdQuery, useGetSecurityProtocolByIdQuery } = securityProtocolsApi;
+export const {
+  useGetSecurityProtocolsQuery,
+  useGetSecurityProtocolsRootQuery,
+  useGetSecurityGuardByIdQuery,
+  useGetSecurityProtocolByIdQuery,
+} = securityProtocolsApi;
