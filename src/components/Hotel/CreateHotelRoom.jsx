@@ -249,7 +249,7 @@ export default function CreateHotelRoom() {
               )}
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700">
                 Number of Rooms
               </label>
@@ -266,7 +266,7 @@ export default function CreateHotelRoom() {
                   {errors.hotelNumberOfRooms.message}
                 </p>
               )}
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
