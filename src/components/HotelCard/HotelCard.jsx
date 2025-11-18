@@ -3,6 +3,7 @@ import { Star, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function HotelCard({ hotel }) {
+
   const hotelImage =
     hotel?.hotelImages?.[0] ||
     hotel?.raw?.hotelImages?.[0] ||
@@ -35,7 +36,7 @@ export default function HotelCard({ hotel }) {
         {/* Hotel Details */}
         <div className="p-5">
           <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1">
-            {hotel.name}
+            {hotel?.raw?.hotelBusinessName}
           </h3>
           {/* Hotel Location */}
           <p className="text-sm text-gray-600 line-clamp-2 flex items-center gap-2 mb-2">
@@ -45,7 +46,7 @@ export default function HotelCard({ hotel }) {
           {/* Price and Rating */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-baseline gap-2">
-              <div className="text-xl font-bold text-gray-900">
+              <div className="text-sm font-bold text-gray-900">
                 {hotel?.raw?.displayCurrency}:{" "}
                 {Number(hotel?.raw?.averagePrice || 0).toLocaleString()}
               </div>
