@@ -292,7 +292,7 @@ export default function AddHotelBusiness() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Hotel Name <span className="text-red-500">*</span>
+                      Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -565,8 +565,9 @@ export default function AddHotelBusiness() {
                     >
                       <option value="hotel">Hotel</option>
                       <option value="apartment">Apartment</option>
-                      <option value="holiday-accommodation">Holiday Accommodation</option>
-                     
+                      <option value="holiday-accommodation">
+                        Holiday Accommodation
+                      </option>
                     </select>
                   </div>
                 </div>

@@ -185,13 +185,9 @@ export default function PaymentConfirm() {
       console.log("Payment not processed: Invalid total amount");
       return;
     }
-    // Resolve a robust booking identifier for the payment session
-    const currentBookingId =
-      bookingId ||
-      bookingDetails?.bookingId ||
-      location.state?.createdBookingId ||
-      bookingDetails?.carId ||
-      null;
+    // Use the already retrieved bookingId
+    const currentBookingId = bookingDetails?.carId;
+console.log("Current booking ID:", currentBookingId);
     if (!bookingDetails?.user?.country) {
       toast.error("Please select a country");
       return;
@@ -267,11 +263,17 @@ export default function PaymentConfirm() {
 
       const userCountry = (bookingDetails.user.country || "").toLowerCase();
       const isUserInAfrica = isAfricanCountry(userCountry);
-      const selectedMethod = isUserInAfrica ? "paystack" : "stripe";
-      setPaymentMethod(selectedMethod);
 
-      if (selectedMethod === "paystack") {
-        const response = await createPaystackSession(currentBookingId).unwrap();
+      if (paymentMethod === "paystack" && isUserInAfrica) {
+        console.log("Processing Paystack payment for:", userCountry);
+        const response = await createPaystackSession({
+          bookingId: currentBookingId,
+          body: {
+            ...paymentData,
+            callback_url: successUrl,
+            metadata: paymentData.metadata,
+          },
+        }).unwrap();
 
         const checkoutUrl =
           response?.data?.checkoutUrl ||
@@ -297,7 +299,39 @@ export default function PaymentConfirm() {
         // Redirect directly to Paystack checkout
         window.location.href = checkoutUrl;
       } else {
-        const result = await createStripeSession(currentBookingId).unwrap();
+        console.log("Processing Stripe payment for:", userCountry);
+        paymentData.currency = "USD";
+
+        const result = await createStripeSession({
+          bookingId: currentBookingId,
+          body: {
+            ...paymentData,
+            line_items: [
+              {
+                price_data: {
+                  currency: "usd",
+                  product_data: {
+                    name: `Hotel Booking - ${
+                      bookingDetails.hotelName || "Hotel"
+                    }`,
+                    description: `Room Type: ${
+                      bookingDetails.roomType || "Standard"
+                    }`,
+                  },
+                  unit_amount: Math.round(total * 100),
+                },
+                quantity: 1,
+              },
+            ],
+            mode: "payment",
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            billing_address_collection: "required",
+            submit_type: "pay",
+            allow_promotion_codes: true,
+            metadata: paymentData.metadata,
+          },
+        }).unwrap();
 
         const checkoutUrl =
           result?.data?.checkoutUrl || result?.data?.url || result?.url;
