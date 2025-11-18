@@ -4,10 +4,13 @@ import { Calendar, CreditCard, ArrowLeft } from "lucide-react";
 import { useSelector } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 
+import { useCreateCarBookingMutation } from "../../redux/api/car/carApi";
+import { handleError, handleSuccess } from "./../../../toast";
+
 export default function CarCheckout() {
   const user = useSelector((state) => state?.auth?.user);
   const accessToken = useSelector((state) => state?.auth?.accessToken);
-  const userInfo = useMemo(() => {
+  const decodedUserInfo = useMemo(() => {
     if (!accessToken) return null;
     try {
       const decoded = jwtDecode(accessToken);
@@ -21,7 +24,7 @@ export default function CarCheckout() {
       return null;
     }
   }, [accessToken, user]);
-  console.log("userInfo", userInfo);
+  console.log("userInfo", decodedUserInfo);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -31,7 +34,7 @@ export default function CarCheckout() {
   const bookingState = location.state || {};
   const bookingDetails =
     bookingState.bookingDetails || bookingState.bookingData || null;
-    const carCancelationPolicy = bookingDetails?.carCancelationPolicy;
+  const carCancelationPolicy = bookingDetails?.carCancelationPolicy;
   console.log("bookingDetails from car checkout", bookingDetails);
   const [updatedUser, setUpdatedUser] = useState({
     name: user?.name || "",
@@ -41,6 +44,7 @@ export default function CarCheckout() {
   });
 
   const [serverTotal, setServerTotal] = useState(null);
+  const [createCarBooking] = useCreateCarBookingMutation();
 
   // console.log("bookingDetails);
 
@@ -83,6 +87,131 @@ export default function CarCheckout() {
 
   const handleBackToBooking = () => {
     navigate(-1);
+  };
+
+  const userInfo = {
+    id:
+      user?.id ||
+      user?._id ||
+      decodedUserInfo?.id ||
+      bookingDetails?.user?.id ||
+      updatedUser?.id ||
+      null,
+    name:
+      updatedUser?.name ||
+      bookingDetails?.user?.fullName ||
+      user?.name ||
+      decodedUserInfo?.name ||
+      "",
+    email:
+      updatedUser?.email ||
+      bookingDetails?.user?.email ||
+      user?.email ||
+      decodedUserInfo?.email ||
+      "",
+    phone:
+      updatedUser?.phone ||
+      bookingDetails?.user?.contactNumber ||
+      bookingDetails?.user?.phone ||
+      user?.phone ||
+      decodedUserInfo?.phone ||
+      "",
+    country:
+      updatedUser?.country ||
+      bookingDetails?.user?.country ||
+      user?.country ||
+      bookingDetails?.carCountry ||
+      decodedUserInfo?.country ||
+      "",
+  };
+
+  const handleContinueToPayment = async () => {
+    if (!bookingDetails?.carId) {
+      handleError("Unable to proceed: missing car selection.");
+      return;
+    }
+
+    const carIdForBooking =
+      bookingDetails.carId || bookingDetails?.id || bookingDetails?.carId;
+    if (!carIdForBooking) {
+      handleError(
+        "Car identifier is missing. Please restart the booking flow."
+      );
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const bookingPayload = {
+        name: updatedUser?.name || userInfo.name,
+        email: updatedUser?.email || userInfo.email,
+        phone: updatedUser?.phone || userInfo.phone,
+        address: updatedUser?.country || userInfo.country,
+        convertedPrice: bookingDetails.convertedPrice || bookingDetails.total,
+        displayCurrency:
+          bookingDetails.displayCurrency || bookingDetails.currency,
+        discountedPrice: bookingDetails.discountedPrice || 0,
+        carBookedFromDate: bookingDetails.pickupDate,
+        carBookedToDate: bookingDetails.returnDate,
+        total: displayFinalTotal,
+        totalPrice: displayFinalTotal,
+        currency: bookingDetails.currency,
+        location: bookingDetails.location,
+        carName: bookingDetails.carName,
+        carSeats: bookingDetails.carSeats,
+        carCountry: bookingDetails.carCountry,
+        carCancelationPolicy,
+        days: bookingDetails.days || 1,
+        guests: bookingDetails.guests || 1,
+        unitPrice: bookingDetails.unitPrice,
+        description: bookingDetails.carDescription,
+        userId: userInfo.id,
+        user: userInfo,
+      };
+
+      const response = await createCarBooking({
+        carId: carIdForBooking,
+        data: bookingPayload,
+      }).unwrap();
+
+      const createdBookingId =
+        response?.data?.bookingId ||
+        response?.data?._id ||
+        response?.data?.id ||
+        response?.bookingId ||
+        response?.id ||
+        bookingDetails?.bookingId ||
+        null;
+
+      if (!createdBookingId) {
+        throw new Error("Car booking reference missing from server response.");
+      }
+
+      const paymentDetails = {
+        ...bookingDetails,
+        bookingId: createdBookingId,
+        total: displayFinalTotal,
+        user: userInfo,
+      };
+
+      handleSuccess("Car reserve successfully!");
+      navigate("/car/payment", {
+        state: {
+          bookingDetails: paymentDetails,
+          createdBookingId,
+          carCancelationPolicy,
+        },
+      });
+    } catch (error) {
+      console.error("Car booking creation failed:", error);
+      const message =
+        error?.data?.message ||
+        error?.message ||
+        "Failed to create car booking.";
+      handleError(message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -256,17 +385,7 @@ export default function CarCheckout() {
 
                 {/* Proceed to Payment Button */}
                 <button
-                  onClick={() => {
-                    navigate("/car/payment", {
-                      state: {
-                        bookingDetails: {
-                          ...bookingDetails,
-                          carCancelationPolicy,
-                          total: displayFinalTotal,
-                        },
-                      },
-                    });
-                  }}
+                  onClick={handleContinueToPayment}
                   disabled={isProcessing}
                   className={`w-full mt-6 py-3 text-white rounded-lg font-medium ${
                     isProcessing
