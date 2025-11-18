@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 import {
   useCreateCarPaystackSessionMutation,
   useCreateCarStripeSessionMutation,
-} from "../../redux/api/car/carApi";    
+} from "../../redux/api/car/carApi";
 
 // Helper function to check if a country is in Africa
 const isAfricanCountry = (country) => {
@@ -95,8 +95,8 @@ export default function PaymentConfirm() {
     location.state?.bookingData ||
     location.state?.data ||
     null;
-    const carCancelationPolicy = location.state?.carCancelationPolicy;
-    console.log("carCancelationPolicy", carCancelationPolicy);
+  const carCancelationPolicy = location.state?.carCancelationPolicy;
+  console.log("carCancelationPolicy", carCancelationPolicy);
   console.log("Booking details from car payment page", bookingDetails);
   //   const hotelData = bookingDetails?.data || bookingDetails || {};
   //   console.log("Booking details:", bookingDetails?.cancelationPolicy);
@@ -111,10 +111,8 @@ export default function PaymentConfirm() {
   }, [bookingDetails?.user?.country]);
 
   // Payment mutations
-  const [createPaystackSession] =
-    useCreateCarPaystackSessionMutation();
-  const [createStripeSession] =
-    useCreateCarStripeSessionMutation();
+  const [createPaystackSession] = useCreateCarPaystackSessionMutation();
+  const [createStripeSession] = useCreateCarStripeSessionMutation();
 
   const calculateTotal = () => {
     const price = Number(bookingDetails?.total || 0);
@@ -185,6 +183,18 @@ export default function PaymentConfirm() {
       console.log("Payment not processed: Invalid total amount");
       return;
     }
+
+    if (!bookingDetails) {
+      toast.error("Unable to proceed: booking details are missing.");
+      return;
+    }
+
+    const user = bookingDetails.user || {};
+    if (!user.country) {
+      toast.error("Please select a country");
+      return;
+    }
+
     // Resolve a robust booking identifier for the payment session
     const currentBookingId =
       bookingId ||
@@ -192,10 +202,6 @@ export default function PaymentConfirm() {
       location.state?.createdBookingId ||
       bookingDetails?.carId ||
       null;
-    if (!bookingDetails?.user?.country) {
-      toast.error("Please select a country");
-      return;
-    }
 
     setIsLoading(true);
     try {
@@ -211,7 +217,7 @@ export default function PaymentConfirm() {
       // Use the already retrieved bookingId
 
       // Prepare user information
-      const userInfo = bookingDetails.user;
+      const userInfo = user;
 
       const { vatAmount, total } = calculateTotal();
 
@@ -245,15 +251,11 @@ export default function PaymentConfirm() {
 
       const paymentData = {
         amount: Math.round(total * 100), // smallest currency unit
-        email: bookingDetails.user.email || "",
-        name:
-          bookingDetails.user.fullName ||
-          bookingDetails.user.name ||
-          "Customer",
-        phone:
-          bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
+        email: user.email || "",
+        name: user.fullName || user.name || "Customer",
+        phone: user.contactNumber || user.phone || "",
         currency: "NGN", // default Paystack
-        userId: bookingDetails.user.id,
+        userId: user.id,
         carId: bookingDetails.carId,
         carName: bookingDetails.carName,
         successUrl,
@@ -261,11 +263,11 @@ export default function PaymentConfirm() {
         metadata: {
           bookingId: currentBookingId,
           carId: bookingDetails.carId,
-          userId: bookingDetails.user.id,
+          userId: user.id,
         },
       };
 
-      const userCountry = (bookingDetails.user.country || "").toLowerCase();
+      const userCountry = (user.country || "").toLowerCase();
       const isUserInAfrica = isAfricanCountry(userCountry);
       const selectedMethod = isUserInAfrica ? "paystack" : "stripe";
       setPaymentMethod(selectedMethod);
@@ -366,7 +368,7 @@ export default function PaymentConfirm() {
                   </div>
 
                   <div className="space-y-5 flex  gap-20">
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[250px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
@@ -398,7 +400,7 @@ export default function PaymentConfirm() {
                         </div>
                       </div>
                     </div>
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[250px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
