@@ -64,12 +64,15 @@ export default function CarBookingForm({
     if (!dateRange || !dateRange[0] || !dateRange[1]) return;
 
     const bookingDetails = {
-      bookingId: "CAR" + Math.floor(10000000 + Math.random() * 90000000),
       carId: carIdFromParams || car?.id || car?._id || car?.carId || null,
       carName: car?.name || "Selected Car",
+      carSeats: car?.seats || "",
+      carCountry: car?.country || "",
+      carCancelationPolicy: car?.carCancelationPolicy,
       pickupDate: dateRange[0].format("YYYY-MM-DD"),
       returnDate: dateRange[1].format("YYYY-MM-DD"),
       carType: car?.name || "Selected Car",
+      currency: car?.currency || "",
       total: calculateTotal(),
       days: getDays(),
       unitPrice:
@@ -84,7 +87,7 @@ export default function CarBookingForm({
       if (accessToken) {
         navigate("/car/checkout", { state: { bookingData: bookingDetails } });
       } else {
-        navigate("/hotel/guest-login", {
+        navigate("/car/guest-login", {
           state: {
             bookingData: bookingDetails,
             returnUrl: "/car/checkout",
@@ -116,7 +119,8 @@ export default function CarBookingForm({
                   {car?.location || "Location"}
                 </p>
                 <div className="mt-1 text-sm font-medium">
-                  {car?.price}{" "}
+                  {car?.currency} {""}
+                  {car?.convertedPrice}{" "}
                   <span className="text-gray-500 font-normal">/ day</span>
                 </div>
               </div>
@@ -145,20 +149,28 @@ export default function CarBookingForm({
           <h3 className="font-medium text-gray-900 mb-3">Price Details</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">{car?.price} per day</span>
+              {car?.currency} {""}
+              {car?.convertedPrice}{" "}
+              <span className="text-gray-500 font-normal">/ day</span>
             </div>
             {dateRange && dateRange[0] && dateRange[1] && (
               <div className="flex justify-between">
                 <span className="text-gray-600">
                   {getDays()} {getDays() === 1 ? "day" : "days"}
                 </span>
-                <span>${calculateTotal()}</span>
+                <span>
+                  {car?.currency} {""}
+                  {calculateTotal()}
+                </span>
               </div>
             )}
             <div className="border-t border-gray-200 my-2"></div>
             <div className="flex justify-between font-medium">
               <span>Total</span>
-              <span>${calculateTotal()}</span>
+              <span>
+                {car?.currency} {""}
+                {calculateTotal()}
+              </span>
             </div>
           </div>
         </div>

@@ -105,7 +105,7 @@ export const carApi = baseApi.injectEndpoints({
       }),
       providesTags: ["car"],
     }),
-    loginWebsite: builder.mutation({
+    carLoginWebsite: builder.mutation({
       query: (credentials) => ({
         url: `/auth/login-website`,
         method: "POST",
@@ -128,7 +128,7 @@ export const {
   useCreateCarBookingMutation,
   useGetCarBookingByIdQuery,
   useLazyGetCarBookingByIdQuery,
-  useLoginWebsiteMutation,
+  useCarLoginWebsiteMutation,
   useCreateCarPaystackSessionMutation,
   useCreateCarStripeSessionMutation,
 } = carApi;

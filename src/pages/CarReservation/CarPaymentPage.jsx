@@ -1,265 +1,504 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, Shield, CreditCard, Lock, ArrowLeft, Car, Calendar, MapPin } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+// Import the payment mutations from your API slice
+import {
+  useCreateCarPaystackSessionMutation,
+  useCreateCarStripeSessionMutation,
+} from "../../redux/api/car/carApi";    
 
-export default function CarPaymentPage() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const { bookingDetails } = location.state || {};
+// Helper function to check if a country is in Africa
+const isAfricanCountry = (country) => {
+  if (!country) return false;
+  const africanCountries = [
+    "nigeria",
+    "ghana",
+    "kenya",
+    "south africa",
+    "algeria",
+    "angola",
+    "benin",
+    "botswana",
+    "burkina faso",
+    "burundi",
+    "cameroon",
+    "cape verde",
+    "central african republic",
+    "chad",
+    "comoros",
+    "congo",
+    "democratic republic of the congo",
+    "cote d'ivoire",
+    "ivory coast",
+    "djibouti",
+    "egypt",
+    "equatorial guinea",
+    "eritrea",
+    "eswatini",
+    "ethiopia",
+    "gabon",
+    "gambia",
+    "ghana",
+    "guinea",
+    "guinea-bissau",
+    "kenya",
+    "lesotho",
+    "liberia",
+    "libya",
+    "madagascar",
+    "malawi",
+    "mali",
+    "mauritania",
+    "mauritius",
+    "morocco",
+    "mozambique",
+    "namibia",
+    "niger",
+    "nigeria",
+    "rwanda",
+    "sao tome and principe",
+    "senegal",
+    "seychelles",
+    "sierra leone",
+    "somalia",
+    "south africa",
+    "south sudan",
+    "sudan",
+    "tanzania",
+    "togo",
+    "tunisia",
+    "uganda",
+    "zambia",
+    "zimbabwe",
+  ];
+  return africanCountries.includes(country.toLowerCase().trim());
+};
 
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [cardNumber, setCardNumber] = useState('');
-    const [expiryDate, setExpiryDate] = useState('');
-    const [cvv, setCvv] = useState('');
-    const [cardName, setCardName] = useState('');
-    const [errors, setErrors] = useState({});
+import {
+  Calendar,
+  CreditCard,
+  MapPin,
+  Users,
+  Wallet,
+  ShieldCheck,
+  ArrowLeft,
+  Phone,
+} from "lucide-react";
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!cardNumber || !expiryDate || !cvv || !cardName) return;
+export default function PaymentConfirm() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("stripe");
+  const bookingDetails =
+    location.state?.bookingDetails ||
+    location.state?.bookingData ||
+    location.state?.data ||
+    null;
+    const carCancelationPolicy = location.state?.carCancelationPolicy;
+    console.log("carCancelationPolicy", carCancelationPolicy);
+  console.log("Booking details from car payment page", bookingDetails);
+  //   const hotelData = bookingDetails?.data || bookingDetails || {};
+  //   console.log("Booking details:", bookingDetails?.cancelationPolicy);
+  //   console.log("Hotel data:", hotelData);
+  //   console.log("Payment method:", paymentMethod);
+  useEffect(() => {
+    if (bookingDetails?.user?.country) {
+      const country = bookingDetails.user.country.toLowerCase();
+      const isUserInAfrica = isAfricanCountry(country);
+      setPaymentMethod(isUserInAfrica ? "paystack" : "stripe");
+    }
+  }, [bookingDetails?.user?.country]);
 
-        setIsProcessing(true);
+  // Payment mutations
+  const [createPaystackSession] =
+    useCreateCarPaystackSessionMutation();
+  const [createStripeSession] =
+    useCreateCarStripeSessionMutation();
 
-        // Simulate payment processing
-        setTimeout(() => {
-            // In a real app, you would process the payment here
-            console.log('Payment processed:', {
-                ...bookingDetails,
-                cardLast4: cardNumber.slice(-4)
-            });
+  const calculateTotal = () => {
+    const price = Number(bookingDetails?.total || 0);
+    const discount = Number(bookingDetails?.discountedPrice || 0);
+    const subtotal = price - discount;
+    const vatRate = 5; // Fixed 5% VAT
+    const vatAmount = Number(((subtotal * vatRate) / 100).toFixed(2));
+    const total = subtotal + vatAmount;
 
-            // Navigate to car booking confirmation page
-            navigate('/car/booking-confirmation', {
-                state: {
-                    bookingDetails: {
-                        ...bookingDetails,
-                        paymentStatus: 'completed',
-                        paymentDate: new Date().toISOString(),
-                        paymentMethod: `•••• •••• •••• ${cardNumber.slice(-4)}`
-                    }
-                }
-            });
-
-            setIsProcessing(false);
-        }, 2000);
+    return {
+      vatAmount,
+      total,
     };
+  };
 
-    const formatCardNumber = (value) => {
-        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        const matches = v.match(/\d{4,16}/g);
-        const match = matches && matches[0] || '';
-        const parts = [];
+  const { vatAmount, total } = calculateTotal();
 
-        for (let i = 0, len = match.length; i < len; i += 4) {
-            parts.push(match.substring(i, i + 4));
-        }
+  // Format date to be more readable
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("en-US", options);
+  };
+  // Get booking ID from URL params or state
+  const searchParams = new URLSearchParams(location.search);
 
-        if (parts.length) {
-            return parts.join(' ');
-        } else {
-            return value;
-        }
-    };
+  // Debug logging for all potential ID sources
+  console.log("Debug - Booking ID sources:", {
+    fromUrl: searchParams.get("bookingId"),
+    fromLocationState: location.state?.createdBookingId,
+    fromBookingDetails: bookingDetails?.id,
+    fullLocationState: location.state,
+    fullBookingDetails: bookingDetails,
+  });
 
-    const handleCardNumberChange = (e) => {
-        const formattedNumber = formatCardNumber(e.target.value);
-        setCardNumber(formattedNumber);
-    };
+  // Get booking ID from multiple sources with fallback
+  const bookingId = (() => {
+    // Try URL parameters first
+    const fromUrl = searchParams.get("bookingId");
+    if (fromUrl) return fromUrl;
 
-    const formatExpiryDate = (value) => {
-        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        if (v.length >= 3) {
-            return `${v.slice(0, 2)}/${v.slice(2, 4)}`;
-        }
-        return v;
-    };
+    // Then try location state
+    if (location.state?.createdBookingId) {
+      return location.state.createdBookingId;
+    }
 
-    const handleExpiryDateChange = (e) => {
-        const formattedDate = formatExpiryDate(e.target.value);
-        setExpiryDate(formattedDate);
-    };
+    // Then try booking details
+    if (bookingDetails?.id) {
+      return bookingDetails.id.toString();
+    }
 
-    return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="container mx-auto px-4 max-w-3xl">
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-                    <div className="p-6 border-b border-gray-200">
-                        <h1 className="text-2xl font-bold text-gray-900">Complete Your Car Booking</h1>
-                        <p className="text-gray-600 mt-1">Enter your payment details to confirm your car rental</p>
+    // If we have a booking reference in the URL path
+    const pathParts = window.location.pathname.split("/");
+    const possibleId = pathParts[pathParts.length - 1];
+    if (possibleId && possibleId.length > 10) {
+      // Simple validation for ID length
+      return possibleId;
+    }
+
+    return null;
+  })();
+
+  console.log("Current booking ID:", bookingId);
+
+  const handlePayment = async () => {
+    // Prevent execution if total is not valid
+    if (!total || total <= 0) {
+      console.log("Payment not processed: Invalid total amount");
+      return;
+    }
+    // Resolve a robust booking identifier for the payment session
+    const currentBookingId =
+      bookingId ||
+      bookingDetails?.bookingId ||
+      location.state?.createdBookingId ||
+      bookingDetails?.carId ||
+      null;
+    if (!bookingDetails?.user?.country) {
+      toast.error("Please select a country");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (!currentBookingId) {
+        console.error("No booking ID found in any source");
+        toast.error(
+          "Booking reference not found. Please try refreshing the page or contact support."
+        );
+        return;
+      }
+      const successUrl = `${window.location.origin}/booking-confirmation`;
+      const cancelUrl = `${window.location.origin}/car/checkout`;
+      // Use the already retrieved bookingId
+
+      // Prepare user information
+      const userInfo = bookingDetails.user;
+
+      const { vatAmount, total } = calculateTotal();
+
+      const bookingConfirmationData = {
+        bookingId: currentBookingId,
+        carName: bookingDetails.carName,
+        pickupDate: bookingDetails.pickupDate,
+        returnDate: bookingDetails.returnDate,
+        guests: bookingDetails.guests || 1,
+        total,
+        roomType: bookingDetails.roomType,
+        location: bookingDetails.location,
+        adults: bookingDetails.adults,
+        children: bookingDetails.children,
+        isRefundable: bookingDetails.isRefundable,
+        cancelationPolicy: bookingDetails.cancelationPolicy,
+        vat: bookingDetails.vat,
+        days: bookingDetails.days,
+        user: userInfo,
+        carCancelationPolicy: bookingDetails.carCancelationPolicy,
+        carSeats: bookingDetails.carSeats,
+        carCountry: bookingDetails.carCountry,
+      };
+      console.log("Booking confirmation data:", bookingConfirmationData);
+
+      // Store in session storage as fallback
+      sessionStorage.setItem(
+        "lastBooking",
+        JSON.stringify(bookingConfirmationData)
+      );
+
+      const paymentData = {
+        amount: Math.round(total * 100), // smallest currency unit
+        email: bookingDetails.user.email || "",
+        name:
+          bookingDetails.user.fullName ||
+          bookingDetails.user.name ||
+          "Customer",
+        phone:
+          bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
+        currency: "NGN", // default Paystack
+        userId: bookingDetails.user.id,
+        carId: bookingDetails.carId,
+        carName: bookingDetails.carName,
+        successUrl,
+        cancelUrl,
+        metadata: {
+          bookingId: currentBookingId,
+          carId: bookingDetails.carId,
+          userId: bookingDetails.user.id,
+        },
+      };
+
+      const userCountry = (bookingDetails.user.country || "").toLowerCase();
+      const isUserInAfrica = isAfricanCountry(userCountry);
+      const selectedMethod = isUserInAfrica ? "paystack" : "stripe";
+      setPaymentMethod(selectedMethod);
+
+      if (selectedMethod === "paystack") {
+        const response = await createPaystackSession(currentBookingId).unwrap();
+
+        const checkoutUrl =
+          response?.data?.checkoutUrl ||
+          response?.checkoutUrl ||
+          response?.data?.authorization_url ||
+          response?.authorization_url;
+
+        if (!checkoutUrl)
+          throw new Error("No valid checkout URL found in Paystack response");
+
+        // Store booking data in session storage before redirecting
+        sessionStorage.setItem(
+          "pendingBooking",
+          JSON.stringify({
+            bookingId: currentBookingId,
+            paymentMethod: "paystack",
+            timestamp: new Date().toISOString(),
+            successUrl,
+            cancelUrl,
+          })
+        );
+
+        // Redirect directly to Paystack checkout
+        window.location.href = checkoutUrl;
+      } else {
+        const result = await createStripeSession(currentBookingId).unwrap();
+
+        const checkoutUrl =
+          result?.data?.checkoutUrl || result?.data?.url || result?.url;
+
+        if (!checkoutUrl)
+          throw new Error("Could not retrieve Stripe checkout URL");
+
+        // Store booking data in session storage before redirecting
+        sessionStorage.setItem(
+          "pendingBooking",
+          JSON.stringify({
+            bookingId: currentBookingId,
+            paymentMethod: "stripe",
+            timestamp: new Date().toISOString(),
+            successUrl,
+            cancelUrl,
+          })
+        );
+
+        // Redirect directly to Stripe checkout
+        window.location.href = checkoutUrl;
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      const errorMessage =
+        error?.data?.message ||
+        error?.error ||
+        error?.message ||
+        "Payment processing failed. Please try again.";
+      toast.error(`Payment Error: ${errorMessage}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50  py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to previous page
+        </button>
+
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <h1 className="text-center text-2xl font-bold mt-4 mb-6">
+            Booking Details
+          </h1>
+          <div className="p-6 md:flex gap-8">
+            {/* Left Column - Booking Details */}
+            <div className="md:w-2/3 space-y-6">
+              <div className="pb-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-medium">
+                      Car Model: {bookingDetails?.carName || "N/A"}
+                    </h3>
+                    <div className="flex items-center text-gray-600 mt-1">
+                      <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <p className="text-sm">
+                        Location: {bookingDetails?.location || "N/A"}
+                      </p>
                     </div>
+                  </div>
 
-                    <div className="p-6 md:p-8">
-                        <div className="mb-8">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-medium text-gray-900">Booking Summary</h2>
-                            </div>
-
-                            {bookingDetails && (
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <div className="flex items-start space-x-3 mb-4">
-                                        <Car className="w-5 h-5 text-blue-600 mt-1" />
-                                        <div className="flex-1">
-                                            <h3 className="font-medium text-gray-900">{bookingDetails.carName}</h3>
-                                            <div className="flex items-center text-sm text-gray-600 mt-1">
-                                                <MapPin className="w-4 h-4 mr-1" />
-                                                <span>{bookingDetails.location}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Booking ID</span>
-                                            <span className="font-medium">{bookingDetails.bookingId}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Pickup Date</span>
-                                            <span>{new Date(bookingDetails.pickupDate).toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Return Date</span>
-                                            <span>{new Date(bookingDetails.returnDate).toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Duration</span>
-                                            <span>
-                                                {Math.ceil((new Date(bookingDetails.returnDate) - new Date(bookingDetails.pickupDate)) / (1000 * 60 * 60 * 24)) || 1} days
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between font-medium pt-2 mt-2 border-t border-gray-200">
-                                            <span>Total Amount</span>
-                                            <span className="text-lg">${bookingDetails.total}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                  <div className="space-y-5 flex  gap-20">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                      <div className="flex gap-2 items-center">
+                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Pickup Date</p>
+                          <p>
+                            {formatDate(bookingDetails.pickupDate) ||
+                              "Not specified"}
+                          </p>
                         </div>
-
-                        {/* Payment Form */}
-                        <div className="lg:col-span-2">
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                                    <h2 className="text-lg font-semibold text-gray-900">Payment Method</h2>
-                                    <div className="flex items-center space-x-3">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/124px-PayPal.svg.png" alt="PayPal" className="h-6" />
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="MasterCard" className="h-6" />
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png" alt="Visa" className="h-6" />
-                                    </div>
-                                </div>
-
-                                <form onSubmit={handleSubmit} className="p-6">
-                                    <div className="space-y-6">
-                                        {/* Card Number */}
-                                        <div>
-                                            <label htmlFor="card-number" className="block text-sm font-medium text-gray-700 mb-1">
-                                                Card Number
-                                            </label>
-                                            <div className="relative">
-                                                <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                                <input
-                                                    type="text"
-                                                    id="card-number"
-                                                    value={formatCardNumber(cardNumber)}
-                                                    onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, ''))}
-                                                    placeholder="0000 0000 0000 0000"
-                                                    maxLength={19}
-                                                    className={`w-full pl-11 pr-4 py-3 border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors`}
-                                                />
-                                            </div>
-                                            {errors.cardNumber && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.cardNumber}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Cardholder Name */}
-                                        <div>
-                                            <label htmlFor="card-name" className="block text-sm font-medium text-gray-700 mb-1">
-                                                Cardholder Name
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="card-name"
-                                                value={cardName}
-                                                onChange={(e) => setCardName(e.target.value)}
-                                                placeholder="John Doe"
-                                                className={`w-full px-4 py-3 border ${errors.cardName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors`}
-                                            />
-                                            {errors.cardName && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.cardName}</p>
-                                            )}
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            {/* Expiry Date */}
-                                            <div>
-                                                <label htmlFor="expiry-date" className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Expiry Date
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    id="expiry-date"
-                                                    value={expiryDate}
-                                                    onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
-                                                    placeholder="MM/YY"
-                                                    maxLength={5}
-                                                    className={`w-full px-4 py-3 border ${errors.expiryDate ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors`}
-                                                />
-                                                {errors.expiryDate && (
-                                                    <p className="mt-1 text-sm text-red-600">{errors.expiryDate}</p>
-                                                )}
-                                            </div>
-
-                                            {/* CVV */}
-                                            <div>
-                                                <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-1">
-                                                    CVV
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    id="cvv"
-                                                    value={cvv}
-                                                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, ''))}
-                                                    placeholder="123"
-                                                    maxLength={4}
-                                                    className={`w-full px-4 py-3 border ${errors.cvv ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors`}
-                                                />
-                                                {errors.cvv && (
-                                                    <p className="mt-1 text-sm text-red-600">{errors.cvv}</p>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Security Info */}
-                                        <div className="flex items-center text-sm text-gray-500">
-                                            <Lock className="w-4 h-4 mr-2 text-green-500" />
-                                            <span>Your payment is secured with 256-bit SSL encryption</span>
-                                        </div>
-
-                                        {/* Submit Button */}
-                                        <button
-                                            type="submit"
-                                            disabled={isProcessing}
-                                            className={`w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 flex items-center justify-center ${isProcessing ? 'opacity-75 cursor-not-allowed' : ''}`}
-                                        >
-                                            {isProcessing ? (
-                                                <>
-                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                    Processing...
-                                                </>
-                                            ) : (
-                                                'Pay Now'
-                                            )}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+                      </div>
+                      <div className="flex mt-2 gap-2 items-center">
+                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Return Date</p>
+                          <p>
+                            {formatDate(bookingDetails.returnDate) ||
+                              "Not specified"}
+                          </p>
                         </div>
+                      </div>
+                      <div className="flex mt-2 gap-2 items-center">
+                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Days</p>
+                          <p>
+                            {bookingDetails.days || "1"} day
+                            {bookingDetails.days !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                      </div>
                     </div>
+                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                      <div className="flex gap-2 items-center">
+                        <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-gray-500">Seats</p>
+                          <p>{bookingDetails?.carSeats || "N/A"}</p>
+                        </div>
+                      </div>
+                      <div className="flex mt-2 gap-2 items-center">
+                        <ShieldCheck className="w-5 h-5 text-gray-500 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Booking Condition
+                          </p>
+                          <p
+                            className={
+                              bookingDetails?.carCancelationPolicy
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }
+                          >
+                            {bookingDetails?.carCancelationPolicy
+                              ? "Refundable"
+                              : "Non Refundable "}
+                          </p>
+                          <span className="text-red-600 text-xs">
+                            {bookingDetails?.carCancelationPolicy || ""}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex mt-2 gap-2 items-center">
+                        <Phone className="w-5 h-5 text-gray-500 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-500">Country: </p>
+                          <p>{bookingDetails?.carCountry || "N/A"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
             </div>
+
+            {/* Right Column - Price Summary */}
+            <div className="md:w-1/3 mt-10 md:mt-0">
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 sticky top-6">
+                <h2 className="text-lg font-semibold mb-8">Price Details</h2>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Rental Price</span>
+                    <span>
+                      {bookingDetails?.currency}{" "}
+                      {Number(bookingDetails?.total || 0).toFixed(2)}
+                    </span>
+                  </div>
+
+                  {Number(bookingDetails?.discountedPrice || 0) > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount</span>
+                      <span>
+                        -{bookingDetails?.currency}{" "}
+                        {Number(bookingDetails?.discountedPrice || 0).toFixed(
+                          2
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between">
+                    <span>VAT (5%)</span>
+                    <span>
+                      {bookingDetails?.currency} {vatAmount.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <div className="border-t w-full border-gray-200 pt-3 mt-3">
+                      <div className="flex justify-between font-semibold text-lg">
+                        <span>Total</span>
+                        <span>
+                          {bookingDetails?.currency} {total.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 space-y-3">
+                    <button
+                      onClick={handlePayment}
+                      disabled={isLoading}
+                      className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center disabled:opacity-70"
+                    >
+                      {isLoading ? "Processing..." : "Continue"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 }

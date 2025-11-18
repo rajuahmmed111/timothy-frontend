@@ -72,6 +72,8 @@ export default function CarDetails() {
     { skip: false }
   );
 
+  console.log("carsData from car details", carsData);
+
   const transformCarData = (car) => ({
     id: car.id,
     name: car.car_Rental?.carName || car.carModel,
@@ -80,7 +82,10 @@ export default function CarDetails() {
       `${car.carCity}, ${car.carCountry}`,
     location: `${car.carCity}, ${car.carCountry}`,
     image: car.carImages?.[0] || "/car/default-car.png",
+
     price: `$${car.carPriceDay}`,
+    currency: car?.currency || "",
+    convertedPrice: car?.convertedPrice || "",
     rating: parseFloat(car.carRating) || 4.5,
     type: car.carType,
     seats: car.carSeats,
@@ -210,7 +215,11 @@ export default function CarDetails() {
       {/* Cars Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto py-10">
         {cars.map((car, index) => (
-          <CarCard key={`${car.id}-${index}`} car={car} queryString={location.search} />
+          <CarCard
+            key={`${car.id}-${index}`}
+            car={car}
+            queryString={location.search}
+          />
         ))}
       </div>
 

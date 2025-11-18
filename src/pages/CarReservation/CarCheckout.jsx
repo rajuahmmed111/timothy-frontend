@@ -23,15 +23,16 @@ export default function CarCheckout() {
   }, [accessToken, user]);
   console.log("userInfo", userInfo);
 
-
   const location = useLocation();
   const navigate = useNavigate();
   console.log("user", user);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const bookingState = location.state || {};
-  const bookingDetails = bookingState.bookingDetails || bookingState.bookingData || null;
-  console.log("bookingDetails", bookingDetails);
+  const bookingDetails =
+    bookingState.bookingDetails || bookingState.bookingData || null;
+    const carCancelationPolicy = bookingDetails?.carCancelationPolicy;
+  console.log("bookingDetails from car checkout", bookingDetails);
   const [updatedUser, setUpdatedUser] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -41,7 +42,7 @@ export default function CarCheckout() {
 
   const [serverTotal, setServerTotal] = useState(null);
 
-  console.log(bookingDetails);
+  // console.log("bookingDetails);
 
   // Calculate additional details
   const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
@@ -56,7 +57,8 @@ export default function CarCheckout() {
         )
       )
     : 0;
-  const carPrice = bookingDetails && days > 0 ? round2(bookingDetails.total / days) : 0;
+  const carPrice =
+    bookingDetails && days > 0 ? round2(bookingDetails.total / days) : 0;
   const taxes = bookingDetails ? round2(bookingDetails.total * 0.05) : 0;
   const finalTotal = bookingDetails ? round2(bookingDetails.total + taxes) : 0;
 
@@ -114,7 +116,9 @@ export default function CarCheckout() {
               <h2 className="text-3xl font-semibold mb-5">Booking Summary</h2>
               {/* Guest Information / User Info (parity with Hotel) */}
               <div className="bg-blue-50 rounded-lg p-5">
-                <h2 className="text-xl font-semibold mb-5">Guest Information</h2>
+                <h2 className="text-xl font-semibold mb-5">
+                  Guest Information
+                </h2>
                 <form className="space-y-4">
                   <div>
                     <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
@@ -169,14 +173,6 @@ export default function CarCheckout() {
               {/* Booking Summary Card */}
               <div className="">
                 <div className="space-y-4">
-                  {/* Booking ID */}
-                  <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                    <span className="text-gray-600">Booking ID</span>
-                    <span className="font-medium text-gray-900">
-                      {bookingDetails.bookingId}
-                    </span>
-                  </div>
-
                   {/* Car Type */}
                   <div className="flex justify-between items-center py-3 border-b border-gray-100">
                     <span className="text-gray-600">Car Model</span>
@@ -184,7 +180,6 @@ export default function CarCheckout() {
                       {bookingDetails.carName}
                     </span>
                   </div>
-
                   {/* Location */}
                   <div className="flex justify-between items-center py-3 border-b border-gray-100">
                     <span className="text-gray-600">Pickup Location</span>
@@ -192,32 +187,21 @@ export default function CarCheckout() {
                       {bookingDetails.location}
                     </span>
                   </div>
-
-                  {/* Car Description */}
-                  <div className="py-3 border-b border-gray-100">
-                    <span className="text-gray-600 block mb-2">
-                      Vehicle Description
-                    </span>
-                    <span className="text-gray-900">
-                      {bookingDetails.carDescription}
-                    </span>
-                  </div>
-
                   {/* Dates */}
                   <div className="py-3 border-b border-gray-100">
-                    <div className="flex items-center mb-3">
-                      <Calendar className="w-4 h-4 text-gray-500 mr-2" />
-                      <span className="text-gray-600">Rental Period</span>
-                    </div>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Pickup Date</span>
+                        <span className="text-sm text-gray-500">
+                          Pickup Date
+                        </span>
                         <span className="text-sm font-medium text-gray-900">
                           {formatDate(bookingDetails.pickupDate)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Return Date</span>
+                        <span className="text-sm text-gray-500">
+                          Return Date
+                        </span>
                         <span className="text-sm font-medium text-gray-900">
                           {formatDate(bookingDetails.returnDate)}
                         </span>
@@ -246,7 +230,10 @@ export default function CarCheckout() {
                     <span className="text-gray-600">
                       {carPrice} × {days} {days === 1 ? "day" : "days"}
                     </span>
-                    <span className="text-gray-900">{bookingDetails.total}</span>
+                    <span className="text-gray-900">
+                      {bookingDetails?.currency}
+                      {""} {bookingDetails.total}
+                    </span>
                   </div>
 
                   <div className="flex justify-between">
@@ -260,7 +247,8 @@ export default function CarCheckout() {
                         Total Amount
                       </span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {displayFinalTotal}/=
+                        {bookingDetails?.currency}
+                        {""} {displayFinalTotal}
                       </span>
                     </div>
                   </div>
@@ -273,26 +261,20 @@ export default function CarCheckout() {
                       state: {
                         bookingDetails: {
                           ...bookingDetails,
+                          carCancelationPolicy,
                           total: displayFinalTotal,
                         },
                       },
                     });
                   }}
                   disabled={isProcessing}
-                  className={`w-full mt-6 bg-[#0064D2] text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center ${
+                  className={`w-full mt-6 py-3 text-white rounded-lg font-medium ${
                     isProcessing
-                      ? "opacity-70 cursor-not-allowed"
-                      : "hover:bg-[#0053ad]"
+                      ? "bg-blue-400 cursor-not-allowed"
+                      : "bg-blue-700 hover:bg-blue-800"
                   }`}
                 >
-                  {isProcessing ? (
-                    "Processing..."
-                  ) : (
-                    <>
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      Continue
-                    </>
-                  )}
+                  {isProcessing ? "Processing..." : "Continue"}
                 </button>
               </div>
             </div>

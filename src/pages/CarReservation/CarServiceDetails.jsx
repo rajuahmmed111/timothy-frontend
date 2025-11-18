@@ -31,6 +31,7 @@ export default function CarServiceDetails() {
   const rawCar = Array.isArray(carData?.data)
     ? carData?.data?.[0]
     : carData?.data;
+    console.log("rawCar from car service details", rawCar);
 
   const car = rawCar
     ? {
@@ -43,8 +44,12 @@ export default function CarServiceDetails() {
           .join(", "),
         images: rawCar?.carImages || ["/car/default-car.png"],
         price: `$${Number(rawCar?.carPriceDay ?? 0)}`,
+        currency: rawCar?.currency,
+        convertedPrice: Number(rawCar?.convertedPrice),
         pricePerDay: Number(rawCar?.carPriceDay) || 0,
         rating: parseFloat(rawCar?.carRating) || 0,
+        carCancelationPolicy: rawCar?.car_Rental?.carCancelationPolicy,
+
         carReviewCount: rawCar?.carReviewCount,
         availability:
           rawCar?.isBooked === "AVAILABLE" ? "Available" : "Unavailable",
@@ -58,6 +63,7 @@ export default function CarServiceDetails() {
           : [],
       }
     : null;
+    console.log("car data of raw car from car service details", car);
 
   const facilityIconMap = {
     AC: Wind,
