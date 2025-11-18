@@ -255,10 +255,6 @@ export default function BookingForm({ hotel }) {
               </>
             )}
           </div>
-          {/* <div className="flex items-center text-sm text-gray-600">
-            <Star className="w-4 h-4 text-yellow-400 mr-1" />
-            <span>{selectedRoomData.rating}</span>
-          </div> */}
         </div>
         <span className="text-gray-600">
           Per night{roomsCount > 1 ? ` · for ${roomsCount} rooms` : ""}
