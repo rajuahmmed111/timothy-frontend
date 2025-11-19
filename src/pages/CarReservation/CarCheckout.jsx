@@ -367,7 +367,7 @@ export default function CarCheckout() {
 
                   <div className="flex justify-between">
                     <span className="text-gray-600">VAT 5%</span>
-                    <span className="text-gray-900">{displayVat}</span>
+                    <span className="text-gray-900">  {bookingDetails?.currency}{" "}{displayVat}</span>
                   </div>
 
                   <div className="border-t border-gray-200 pt-3">

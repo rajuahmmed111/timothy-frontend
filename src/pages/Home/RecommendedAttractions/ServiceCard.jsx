@@ -35,7 +35,7 @@ export default function ServiceCardForRecommendedAttractions({ service }) {
                     </div>
                 </div>
                 <div className="border border-[#C0C0C0] p-2 rounded-full">
-                    <Link to="/security-details">
+                    <Link to="/attraction-details">
                         <ArrowRight className="w-6 h-6" />
                     </Link>
                 </div>

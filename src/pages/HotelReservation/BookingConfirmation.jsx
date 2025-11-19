@@ -26,30 +26,6 @@ const defaultBookingData = {
 
 export default function BookingConfirmation() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const startTime = useRef(Date.now());
-
-  // useEffect(() => {
-  //   // Only run this effect on the client side
-  //   if (typeof window !== "undefined") {
-  //     const minVisible = 2000; // ms
-  //     const elapsed = Date.now() - startTime.current;
-  //     const remaining = Math.max(minVisible - elapsed, 0);
-
-  //     const timer = setTimeout(() => {
-  //       try {
-  //         if (window.opener) {
-  //           window.close();
-  //         }
-  //       } catch (e) {
-  //         console.log("Could not close window:", e);
-  //       }
-  //     }, remaining + 250);
-
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, []);
-
   const [bookingData] = useState(() => {
     if (location.state?.bookingData) return location.state.bookingData;
     try {
@@ -69,7 +45,8 @@ export default function BookingConfirmation() {
           </div>
           <h1 className="text-4xl font-bold mb-2">Transaction Successful</h1>
           <p className="text-blue-100 text-lg">
-            Your payment has been processed successfully and you will shortly receive a confirmation email.
+            Thank you for your order. You will receive a confirmation email
+            shortly.
           </p>
           <p className="mt-2 text-blue-100">
             Booking ID: {bookingData.bookingId}

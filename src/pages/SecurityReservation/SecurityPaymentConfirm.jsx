@@ -432,7 +432,7 @@ export default function PaymentConfirm() {
                                 ? "Refundable"
                                 : "Non Refundable "}
                             </p>
-                            <span className="text-red-600 text-xs">
+                            <span className="text-[#000]">
                               {cancelationPolicy}
                             </span>
                           </div>

@@ -363,10 +363,10 @@ export default function PaymentConfirm() {
       <div className="max-w-6xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
+          className="flex items-center text-gray-600 hover:text-gray-900 cursor-pointer my-10"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to previous page
+         <p className="text-2xl font-bold text-gray-900"> Booking Details</p>
         </button>
 
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -391,7 +391,7 @@ export default function PaymentConfirm() {
                   </div>
 
                   <div className="space-y-5 flex  gap-20">
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[250px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
@@ -423,7 +423,7 @@ export default function PaymentConfirm() {
                         </div>
                       </div>
                     </div>
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[250px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
