@@ -187,8 +187,8 @@ export default function BookingForm({ hotel }) {
       const bookedToDate = checkOutDate ? checkOutDate.toISOString() : null;
 
       const subtotal = Math.round(nightlyPrice * nights * roomsCount);
-      const vat = Math.round(subtotal * 0.12);
-      const total = subtotal + vat;
+      
+      const total = subtotal 
 
       const payload = {
         hotelId: hotel?._id ?? hotel?.id ?? hotel?.hotelId ?? null,
@@ -206,7 +206,6 @@ export default function BookingForm({ hotel }) {
         user: userInfo,
         subtotal,
         total,
-        vat,
         bookedFromDate,
         bookedToDate,
         checkIn: bookedFromDate,
@@ -513,23 +512,20 @@ export default function BookingForm({ hotel }) {
               {Number(nightlyPrice * nights * roomsCount).toFixed(2)}
             </span>
           </div>
-
+{/* 
           <div className="flex justify-between text-sm">
-            <span>VAT (12%)</span>
+            <span>VAT (5%)</span>
             <span>
               {getCurrencySymbol(selectedRoomData?.displayCurrency)}
-              {Number(nightlyPrice * nights * roomsCount * 0.12).toFixed(2)}
+              {Number(nightlyPrice * nights * roomsCount * 0.05).toFixed(2)}
             </span>
-          </div>
+          </div> */}
           <div className="border-t pt-2">
             <div className="flex justify-between font-semibold text-lg">
               <span>Total</span>
               <span>
                 {getCurrencySymbol(selectedRoomData?.displayCurrency)}
-                {(
-                  Number(nightlyPrice * nights * roomsCount) +
-                  Number(nightlyPrice * nights * roomsCount * 0.12)
-                ).toFixed(2)}
+                {Number(nightlyPrice * nights * roomsCount).toFixed(2)}
               </span>
             </div>
           </div>

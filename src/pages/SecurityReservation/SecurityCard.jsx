@@ -2,10 +2,13 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Star } from "lucide-react";
 
-function SecurityCard({ data = [] }) {
+function SecurityCard({ data = [], securityProvider, to }) {
   const { search } = useLocation();
-  const list = Array.isArray(data) ? data : [];
-  console.log("data", data);
+  const list = Array.isArray(data)
+    ? data
+    : securityProvider
+    ? [securityProvider]
+    : [];
   return (
     <>
       {list.map((b, idx) => {
@@ -22,10 +25,12 @@ function SecurityCard({ data = [] }) {
         const symbol = b?.currency || "BDT";
         const rating = Number(b?.securityRating) || 0;
 
+        const target = `${to || `/security-service-details/${b?.id}`}${search}`;
+
         return (
           <Link
             key={b?.id || idx}
-            to={`/security-service-details/${b?.id}${search}`}
+            to={target}
             className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block"
           >
             {/* Card Image */}

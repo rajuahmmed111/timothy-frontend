@@ -32,6 +32,16 @@ export default function Checkout() {
     rooms: bookingData?.rooms || 1,
   };
 
+  const vatRate = Number(bookingData?.vat) || 5;
+  const subtotal =
+    Number(bookingData.convertedPrice || 0) *
+    (bookingData.nights || 1) *
+    safeGuests.rooms;
+  const vatAmount = subtotal * (vatRate / 100);
+  const discountAmount = Number(bookingData.discountedPrice || 0);
+  const serviceFee = Number(bookingData.serviceFee || 0);
+  const totalAmount = subtotal + vatAmount - discountAmount + serviceFee;
+
   const [updatedUser, setUpdatedUser] = useState({
     name: guestInfo.fullName || user?.name || bookingData?.user?.fullName || "",
     email: guestInfo.email || user?.email || bookingData?.user?.email || "",
@@ -131,7 +141,12 @@ export default function Checkout() {
         adults: bookingData.adults,
         children: bookingData.children || 0,
         rooms: bookingData.rooms || 1,
-        vat: bookingData.vat || 0,
+        vat: bookingData.vat || vatRate,
+        subtotal,
+        vatAmount,
+        total: totalAmount,
+        discountedPrice: discountAmount,
+        serviceFee,
         isRefundable: bookingData.isRefundable || false,
         user: {
           ...res.user,
@@ -252,7 +267,7 @@ export default function Checkout() {
                       name="address"
                       value={updatedUser.address}
                       readOnly
-                      className="mt-1 w-full outline-none rounded-md border-gray-300 shadow-sm p-2 border"
+                      className="mt-1 w-full outline-none select-none  rounded-md border-gray-300 shadow-sm p-2 border"
                     />
                   </div>
                 </form>
@@ -311,16 +326,11 @@ export default function Checkout() {
                 <div className="flex justify-between">
                   <span>
                     {bookingData.displayCurrency} :-{" "}
-                    {bookingData.convertedPrice} × {bookingData.nights} nights ×{" "}
+                    {bookingData.convertedPrice}× {bookingData.nights} nights ×{" "}
                     {safeGuests.rooms}
                   </span>
                   <span>
-                    {bookingData.displayCurrency} :-{" "}
-                    {(
-                      bookingData.convertedPrice *
-                      bookingData.nights *
-                      safeGuests.rooms
-                    ).toFixed(2)}
+                    {bookingData.displayCurrency} :- {subtotal.toFixed(2)}
                   </span>
                 </div>
 
@@ -335,15 +345,9 @@ export default function Checkout() {
                 )}
 
                 <div className="flex justify-between">
-                  <span>VAT ({bookingData.vat || 0}%)</span>
+                  <span>VAT ({vatRate}%)</span>
                   <span>
-                    {bookingData.displayCurrency} :-{" "}
-                    {(
-                      bookingData.convertedPrice *
-                      bookingData.nights *
-                      safeGuests.rooms *
-                      ((bookingData.vat || 0) / 100)
-                    ).toFixed(2)}
+                    {bookingData.displayCurrency} :- {vatAmount.toFixed(2)}
                   </span>
                 </div>
 
@@ -359,18 +363,7 @@ export default function Checkout() {
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
                   <span>Total</span>
                   <span>
-                    {bookingData.displayCurrency} :-{" "}
-                    {(
-                      bookingData.convertedPrice *
-                        bookingData.nights *
-                        safeGuests.rooms +
-                      bookingData.convertedPrice *
-                        bookingData.nights *
-                        safeGuests.rooms *
-                        ((bookingData.vat || 0) / 100) -
-                      (bookingData.discountedPrice || 0) +
-                      (bookingData.serviceFee || 0)
-                    ).toFixed(2)}
+                    {bookingData.displayCurrency} :- {totalAmount.toFixed(2)}
                   </span>
                 </div>
 

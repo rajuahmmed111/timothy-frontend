@@ -112,6 +112,13 @@ export const securityApi = baseApi.injectEndpoints({
       }),
       providesTags: ['security'],
     }),
+    guestLogin: builder.mutation({
+      query: (guestData) => ({
+        url: "/auth/login-website",
+        method: "POST",
+        body: guestData,
+      }),
+    }),
   }),
 });
 
@@ -129,4 +136,5 @@ export const {
   useAddSecurityBusinessMutation,
   useGetAllSecurityProtocolsWithGuardsQuery,
   useGetSecurityPartnerQuery,
+  useGuestLoginMutation,
 } = securityApi;

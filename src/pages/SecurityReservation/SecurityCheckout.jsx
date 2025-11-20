@@ -356,7 +356,12 @@ export default function SecurityCheckout() {
                     {currencyCode} {subtotal.toFixed(2)}
                   </span>
                 </div>
-
+                <div className="flex justify-between">
+                  <span>Vat</span>
+                  <span>
+                    {currencyCode} {subtotal.toFixed(2)}
+                  </span>
+                </div>
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
                   <span>Total</span>
                   <span>

@@ -5,7 +5,10 @@ import SecurityCard from "./SecurityCard";
 import { useGetSecurityProtocolsQuery } from "../../redux/api/security/getAllSecurityApi";
 
 export default function AvailableService() {
-  const { data, isLoading, isError } = useGetSecurityProtocolsQuery({ limit: 50, page: 1 });
+  const { data, isLoading, isError } = useGetSecurityProtocolsQuery({
+    limit: 50,
+    page: 1,
+  });
   console.log("Security protocols from AvailableService", data);
   const services = [
     {
@@ -13,7 +16,7 @@ export default function AvailableService() {
       image: "/security/1.png",
       // icon: House,
       description: "24 available",
-      to: `/security/services/${encodeURIComponent("Personal Bodyguard")}?securityProtocolType=${encodeURIComponent(
+      to: `/security-details?securityType=${encodeURIComponent(
         "Personal Bodyguard"
       )}`,
     },
@@ -22,7 +25,7 @@ export default function AvailableService() {
       image: "/security/2.png",
       // icon: Car,
       description: "12 available",
-      to: `/security/services/${encodeURIComponent("Security Guard")}?securityProtocolType=${encodeURIComponent(
+      to: `/security-details?securityType=${encodeURIComponent(
         "Security Guard"
       )}`,
     },
@@ -31,7 +34,7 @@ export default function AvailableService() {
       image: "/security/3.png",
       // icon: Shield,
       description: "20 available",
-      to: `/security/services/${encodeURIComponent("Executive Protection")}?securityProtocolType=${encodeURIComponent(
+      to: `/security-details?securityType=${encodeURIComponent(
         "Executive Protection"
       )}`,
     },
@@ -40,7 +43,7 @@ export default function AvailableService() {
       image: "/security/4.png",
       // icon: MapPin,
       description: "25 available",
-      to: `/security/services/${encodeURIComponent("Event Security")}?securityProtocolType=${encodeURIComponent(
+      to: `/security-details?securityType=${encodeURIComponent(
         "Event Security"
       )}`,
     },
@@ -49,7 +52,7 @@ export default function AvailableService() {
       image: "/security/5.jpg",
       // icon: MapPin,
       description: "25 available",
-      to: `/security/services/${encodeURIComponent("Security Escort")}?securityProtocolType=${encodeURIComponent(
+      to: `/security-details?securityType=${encodeURIComponent(
         "Security Escort"
       )}`,
     },
@@ -79,7 +82,11 @@ export default function AvailableService() {
 
         {/* Dynamic Guards (from API) */}
         {(() => {
-          const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+          const list = Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data)
+            ? data
+            : [];
           if (!list.length) return null;
           const providers = list.map((b) => ({
             id: b?.id || b?._id,
@@ -89,7 +96,11 @@ export default function AvailableService() {
                 ? b.securityImages[0]
                 : undefined) ||
               "/placeholder.svg",
-            name: b?.securityBusinessName || b?.securityName || b?.securityGuardName || "Security Provider",
+            name:
+              b?.securityBusinessName ||
+              b?.securityName ||
+              b?.securityGuardName ||
+              "Security Provider",
             location:
               b?.securityBusinessType ||
               b?.securityProtocolType ||
@@ -104,9 +115,18 @@ export default function AvailableService() {
             <div className="mt-10">
               <h3 className="text-xl font-semibold mb-4">Security Guards</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {providers.map((p) => (
-                  <SecurityCard key={p.id} securityProvider={p} to={`/security-service-details/${p.id}`} />
-                ))}
+                {providers.map((p) => {
+                  const typeValue = p.type || p.location || "Security Provider";
+                  return (
+                    <SecurityCard
+                      key={p.id}
+                      securityProvider={p}
+                      to={`/security-details?securityType=${encodeURIComponent(
+                        typeValue
+                      )}`}
+                    />
+                  );
+                })}
               </div>
             </div>
           );

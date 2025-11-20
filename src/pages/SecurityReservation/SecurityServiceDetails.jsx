@@ -300,10 +300,10 @@ export default function SecurityServiceDetails() {
                     )}
                     {cancelationPolicy && (
                       <div>
-                        <span className="font-semibold text-xs">
+                        <span className="font-semibold">
                           Cancelation Policy:{" "}
                         </span>
-                        <span className="text-xs text-red-600">
+                        <span className=" text-gray-600">
                           {cancelationPolicy}
                         </span>
                       </div>
