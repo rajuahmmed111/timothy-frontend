@@ -56,7 +56,9 @@ export default function SecurityCheckout() {
   const unitPrice = Number(bookingDetails?.pricePerDay || 0);
   const personnelCount = Number(bookingDetails?.personnelCount || 1);
   const subtotal = unitPrice * days * personnelCount;
-  const total = subtotal; // adjust if taxes/fees apply
+  const vatRate = 5;
+  const vatAmount = subtotal * (vatRate / 100);
+  const total = subtotal + vatAmount;
 
   // Derive guest fields from multiple possible shapes
   const deriveGuest = () => ({
@@ -357,9 +359,9 @@ export default function SecurityCheckout() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Vat</span>
+                  <span>VAT ({vatRate}%)</span>
                   <span>
-                    {currencyCode} {subtotal.toFixed(2)}
+                    {currencyCode} {vatAmount.toFixed(2)}
                   </span>
                 </div>
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
