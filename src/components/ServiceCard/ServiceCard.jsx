@@ -1,12 +1,21 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+// no API calls needed here
 
 export default function ServiceCard({ service }) {
+    console.log("Service:", service);
     const IconComponent = service.icon;
+    // No data fetch needed in card; avoid logging undefined while loading
 
     return (
-        <Link to={service.to || '#'} className="block">
+        <Link
+            to={
+                service.to ||
+                `/security/services/${encodeURIComponent(service?.title || "")}`
+            }
+            className="block"
+        >
             <div className="bg-white rounded-xl overflow-hidden shadow-md  transition-all duration-300 cursor-pointer group transform hover:-translate-y-1">
                 {/* Image */}
                 <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
@@ -25,15 +34,7 @@ export default function ServiceCard({ service }) {
                             {service.title}
                         </h3>
 
-                        {/* Service Icon and Description */}
-                        {/* <div className="flex items-center gap-1 mb-4">
-                            {IconComponent && (
-                                <IconComponent className="w-4 h-4 text-[#0064D2] flex-shrink-0" />
-                            )}
-                            <p className="text-gray-600 text-sm leading-relaxed">
-                                {service.description}
-                            </p>
-                        </div> */}
+                      
                     </div>
                     <div className="border border-[#C0C0C0] p-2 rounded-full">
                         <ArrowRight className="w-6 h-6" />

@@ -308,7 +308,7 @@ export default function SecurityServiceDetails() {
                         </span>
                       </div>
                     )}
-                    {business?.isBooked && (
+                    {/* {business?.isBooked && (
                       <div>
                         <span className="font-semibold">Status: </span>
                         <span
@@ -321,7 +321,7 @@ export default function SecurityServiceDetails() {
                           {business.isBooked}
                         </span>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>

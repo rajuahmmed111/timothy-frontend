@@ -192,7 +192,7 @@ export default function CarServiceDetails() {
                         <p className="font-medium">{car.mileage || "N/A"}</p>
                       </div>
                     </div>
-                    <div className="flex items-center">
+                    {/* <div className="flex items-center">
                       <Clock className="w-5 h-5 text-sky-600 mr-2 flex-shrink-0" />
                       <div>
                         <p className="text-sm text-gray-500">Availability</p>
@@ -208,7 +208,7 @@ export default function CarServiceDetails() {
                           </span>
                         </p>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>

@@ -16,6 +16,7 @@ export default function SecurityProviders() {
     "Security Guard",
     "Executive Protection",
     "Event Security",
+    "Security Escort",
   ];
   const byType = types
     .map((t) => all.find((b) => b?.securityProtocolType === t))

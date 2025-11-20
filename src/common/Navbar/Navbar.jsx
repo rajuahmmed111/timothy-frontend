@@ -156,7 +156,7 @@ export default function Navbar() {
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
             {/* Language Dropdown - Hidden on mobile */}
-            <div className="relative hidden sm:block">
+            {/* <div className="relative hidden sm:block">
               <button
                 onClick={() => setIsLanguageOpen(!isLanguageOpen)}
                 className="flex items-center space-x-1 p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -199,7 +199,7 @@ export default function Navbar() {
                   ))}
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* Cart - Hidden on mobile */}
       
@@ -337,7 +337,7 @@ export default function Navbar() {
               </div>
 
               {/* Mobile Language Selector */}
-              <div className="border-t border-gray-200 pt-3">
+              {/* <div className="border-t border-gray-200 pt-3">
                 <div className="relative">
                   <button
                     onClick={() => setIsLanguageOpen(!isLanguageOpen)}
@@ -380,7 +380,7 @@ export default function Navbar() {
                     </div>
                   )}
                 </div>
-              </div>
+              </div> */}
 
               {/* Mobile Actions */}
               <div className="border-t border-gray-200 pt-3 space-y-2">

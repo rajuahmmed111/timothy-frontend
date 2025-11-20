@@ -268,7 +268,7 @@ export default function SecurityCheckout() {
 
                   <div>
                     <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                      <MapPin className="w-4 h-4" /> <span>Address</span>
+                      <MapPin className="w-4 h-4" /> <span>Country</span>
                     </label>
                     <input
                       type="text"
