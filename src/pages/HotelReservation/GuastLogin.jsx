@@ -445,16 +445,7 @@ export default function GuestLogin() {
               </div>
             </form>
 
-            <div className="mt-4 text-xs text-gray-500">
-              <p>
-                Debug: If auto-detect fails, check browser console & network
-                tab.
-              </p>
-              <p>
-                Common issues: blocked by CORS, running on http://localhost
-                without HTTPS, or provider rate-limit.
-              </p>
-            </div>
+           
           </div>
         </div>
       </div>

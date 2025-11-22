@@ -21,14 +21,16 @@ export default function SecurityServiceDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { data } = useGetSecurityProtocolsQuery();
+  console.log("data of hasan", data);
   const guards = Array.isArray(data?.data?.data) ? data.data.data : [];
   const business = React.useMemo(
     () => guards.find((g) => String(g?.id) === String(id)),
     [guards, id]
   );
   const cancelationPolicy = business?.security?.securityCancelationPolicy;
-  console.log("cancelationPolicy", cancelationPolicy);
-  console.log("business", business);
+  // console.log("cancelationPolicy", cancelationPolicy);
+  // console.log("business", business);
+  console.log("business of hasan", business);
 
   const guardAddressParts = [
     business?.securityAddress,
