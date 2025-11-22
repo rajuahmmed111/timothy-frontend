@@ -357,13 +357,7 @@ export default function PaymentConfirm() {
                      "Not provided"}
                  </span>
                </div>
-{/* 
-               {bookingDetails?.bookingStatus && (
-                 <div className="flex items-center mt-2 text-gray-600">
-                   <ShieldCheck className="w-5 h-5 mr-2" />
-                   <span>Status: {bookingDetails.bookingStatus}</span>
-                 </div>
-               )} */}
+
              </div>
 
              {/* GRID CARDS */}
@@ -432,7 +426,7 @@ export default function PaymentConfirm() {
                        {cancelationPolicy}
                      </p>
                    </div>
-                 </div>
+                 </div> 
 
                  <div className="flex items-center gap-3">
                    <Phone className="w-5 h-5 text-gray-500" />

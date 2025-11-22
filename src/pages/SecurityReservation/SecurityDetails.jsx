@@ -1,6 +1,6 @@
 import React from "react";
 import { DatePicker } from "antd";
-import { useGetSecurityProtocolsQuery } from "../../redux/api/security/getAllSecurityApi";
+import { useGetSecurityProtocolsRootQuery } from "../../redux/api/security/getAllSecurityApi";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
 import SecurityCard from "./SecurityCard";
@@ -44,22 +44,44 @@ export default function SecurityDetails() {
     ? dayjs(toDateState)
     : null;
 
-  const { data } = useGetSecurityProtocolsQuery();
+  const { data } = useGetSecurityProtocolsRootQuery();
   console.log("data", data);
   const securityBusinessData = Array.isArray(data?.data?.data)
     ? data.data.data
     : [];
+  console.log("security bus", securityBusinessData);
+
+  const guardLocation = React.useMemo(() => {
+    const guard = securityBusinessData?.[0]?.security_Guard?.[0];
+    return guard
+      ? [guard.securityCity, guard.securityCountry].filter(Boolean).join(", ")
+      : "";
+  }, [securityBusinessData]);
 
   // Local UI state for inputs (used directly for filtering)
   const [locText, setLocText] = React.useState(displayLocation);
   const [typeValue, setTypeValue] = React.useState(securityType || "All");
+  const [appliedFilters, setAppliedFilters] = React.useState({
+    location: displayLocation,
+    type: securityType || "All",
+  });
+
+  React.useEffect(() => {
+    if (!displayLocation && guardLocation) {
+      setLocText(guardLocation);
+      setAppliedFilters((prev) => ({
+        ...prev,
+        location: prev.location || guardLocation,
+      }));
+    }
+  }, [displayLocation, guardLocation]);
 
   // Build filters from router state (location and protocol type only)
   const filters = React.useMemo(() => {
     // Parse current location input; format supports "Country, City" or just "City"
     let fCountry = "";
     let fCity = "";
-    const loc = (locText || "").trim();
+    const loc = (appliedFilters.location || "").trim();
     if (loc) {
       const parts = loc
         .split(",")
@@ -72,13 +94,13 @@ export default function SecurityDetails() {
         fCity = parts[0];
       }
     }
-    const fType = (typeValue || "").trim();
+    const fType = (appliedFilters.type || "").trim();
     return {
       country: fCountry.toLowerCase(),
       city: fCity.toLowerCase(),
       type: fType.toLowerCase(),
     };
-  }, [locText, typeValue]);
+  }, [appliedFilters]);
 
   const filteredBusinesses = React.useMemo(() => {
     const hasCity = Boolean(filters.city);
@@ -89,14 +111,25 @@ export default function SecurityDetails() {
     return securityBusinessData.filter((b) => {
       // protocol type filter (from nested security object)
       if (hasType) {
-        const bt = (b?.security?.securityProtocolType || "").toLowerCase();
+        const bt = (
+          b?.security?.securityProtocolType ||
+          b?.securityProtocolType ||
+          ""
+        ).toLowerCase();
         if (!bt.includes(filters.type)) return false;
       }
 
       // location filter using guard's own city/country
       if (hasCity || hasCountry) {
-        const gc = (b?.securityCountry || "").toLowerCase();
-        const gi = (b?.securityCity || "").toLowerCase();
+        const guard = Array.isArray(b?.security_Guard)
+          ? b.security_Guard[0]
+          : null;
+        const gc = (
+          b?.securityCountry ||
+          guard?.securityCountry ||
+          ""
+        ).toLowerCase();
+        const gi = (b?.securityCity || guard?.securityCity || "").toLowerCase();
         if (hasCity && hasCountry)
           return gc.includes(filters.country) && gi.includes(filters.city);
         if (hasCity)
@@ -108,6 +141,13 @@ export default function SecurityDetails() {
       return true;
     });
   }, [securityBusinessData, filters]);
+
+  const handleSearch = React.useCallback(() => {
+    setAppliedFilters({
+      location: locText,
+      type: typeValue,
+    });
+  }, [locText, typeValue]);
   return (
     <div className="py-16 container mx-auto">
       {/* Filter Section */}
@@ -150,12 +190,14 @@ export default function SecurityDetails() {
 
         {/* Search Button */}
         <div>
-          <button className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold hover:bg-[#0051ad] transition">
+          <button
+            onClick={handleSearch}
+            className="w-full bg-[#0064D2] text-white py-3 rounded-lg font-bold hover:bg-[#0051ad] transition"
+          >
             Search
           </button>
         </div>
       </div>
-
       {/* Results Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto py-10">
         <SecurityCard data={filteredBusinesses} />
