@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Calendar, CreditCard, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useSelector } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 
@@ -8,7 +8,13 @@ import { useCreateCarBookingMutation } from "../../redux/api/car/carApi";
 import { handleError, handleSuccess } from "./../../../toast";
 
 export default function CarCheckout() {
+  const location = useLocation();
+  const guest = location.state?.guestInfo || {};
+  console.log("guestInfo of car checkout", guest);
+
   const user = useSelector((state) => state?.auth?.user);
+  console.log("user of car checkout", user);
+
   const accessToken = useSelector((state) => state?.auth?.accessToken);
   const decodedUserInfo = useMemo(() => {
     if (!accessToken) return null;
@@ -24,31 +30,21 @@ export default function CarCheckout() {
       return null;
     }
   }, [accessToken, user]);
-  console.log("userInfo", decodedUserInfo);
+  console.log("decodedUserInfo of car checkout", decodedUserInfo);
 
-  const location = useLocation();
   const navigate = useNavigate();
   console.log("user", user);
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const bookingState = location.state || {};
+  const rawState = location.state ?? null;
+  console.log("rawState of car checkout", rawState);
   const bookingDetails =
-    bookingState.bookingDetails || bookingState.bookingData || null;
+    rawState?.bookingDetails ?? rawState?.bookingData ?? rawState ?? null;
   const carCancelationPolicy = bookingDetails?.carCancelationPolicy;
   console.log("bookingDetails from car checkout", bookingDetails);
-  const [updatedUser, setUpdatedUser] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-    country: user?.country || "",
-  });
 
   const [serverTotal, setServerTotal] = useState(null);
   const [createCarBooking] = useCreateCarBookingMutation();
-
-  // console.log("bookingDetails);
-
-  // Calculate additional details
   const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
   const msPerDay = 1000 * 60 * 60 * 24;
   const days = bookingDetails
@@ -63,13 +59,11 @@ export default function CarCheckout() {
     : 0;
   const carPrice =
     bookingDetails && days > 0 ? round2(bookingDetails.total / days) : 0;
-  const taxes = bookingDetails ? round2(bookingDetails.total * 0.05) : 0;
-  const finalTotal = bookingDetails ? round2(bookingDetails.total + taxes) : 0;
 
-  const displayFinalTotal = serverTotal ?? finalTotal;
-  const displayVat = serverTotal
-    ? round2(displayFinalTotal - round2(displayFinalTotal / 1.05))
-    : taxes;
+  const finalTotal = bookingDetails ? round2(bookingDetails.total) : 0;
+
+  const displayVat = bookingDetails ? round2(bookingDetails.total * 0.05) : 0;
+  const displayFinalTotal = finalTotal + displayVat;
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -88,6 +82,37 @@ export default function CarCheckout() {
   const handleBackToBooking = () => {
     navigate(-1);
   };
+
+  const [updatedUser, setUpdatedUser] = useState({
+    name:
+      guest.fullName ||
+      user?.fullName ||
+      user?.name ||
+      bookingDetails?.user?.fullName ||
+      decodedUserInfo?.name ||
+      "",
+    email:
+      guest.email ||
+      user?.email ||
+      bookingDetails?.user?.email ||
+      decodedUserInfo?.email ||
+      "",
+    phone:
+      guest.phone ||
+      user?.contactNumber ||
+      user?.phone ||
+      bookingDetails?.user?.contactNumber ||
+      bookingDetails?.user?.phone ||
+      decodedUserInfo?.phone ||
+      "",
+    country:
+      guest?.country ||
+      user?.country ||
+      bookingDetails?.user?.country ||
+      bookingDetails?.carCountry ||
+      decodedUserInfo?.country ||
+      "",
+  });
 
   const userInfo = {
     id:
@@ -124,6 +149,7 @@ export default function CarCheckout() {
       decodedUserInfo?.country ||
       "",
   };
+  console.log("userInfo of car checkout", userInfo);
 
   const handleContinueToPayment = async () => {
     if (!bookingDetails?.carId) {
@@ -200,6 +226,7 @@ export default function CarCheckout() {
           bookingDetails: paymentDetails,
           createdBookingId,
           carCancelationPolicy,
+          
         },
       });
     } catch (error) {
@@ -292,7 +319,7 @@ export default function CarCheckout() {
                     <input
                       type="text"
                       name="country"
-                      value={updatedUser.country}
+                      value={updatedUser?.country}
                       readOnly
                       className="mt-1 w-full rounded-md border-gray-300 p-2 border focus:outline-none"
                     />
@@ -367,7 +394,10 @@ export default function CarCheckout() {
 
                   <div className="flex justify-between">
                     <span className="text-gray-600">VAT 5%</span>
-                    <span className="text-gray-900">  {bookingDetails?.currency}{" "}{displayVat}</span>
+                    <span className="text-gray-900">
+                      {" "}
+                      {bookingDetails?.currency} {displayVat}
+                    </span>
                   </div>
 
                   <div className="border-t border-gray-200 pt-3">

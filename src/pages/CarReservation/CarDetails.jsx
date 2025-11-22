@@ -84,7 +84,7 @@ export default function CarDetails() {
     image: car.carImages?.[0] || "/car/default-car.png",
 
     price: `$${car.carPriceDay}`,
-    currency: car?.currency || "",
+    currency: car?.displayCurrency || "",
     convertedPrice: car?.convertedPrice || "",
     rating: parseFloat(car.carRating) || 4.5,
     type: car.carType,

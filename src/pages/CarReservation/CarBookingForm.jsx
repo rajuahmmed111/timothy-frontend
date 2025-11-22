@@ -40,7 +40,7 @@ export default function CarBookingForm({
         )
       ) || 1;
     const price =
-      Number(car?.pricePerDay) ||
+      Number(car?.convertedPrice) ||
       parseInt(car?.price?.replace("$", "") || "50");
     return price * days;
   };
@@ -76,7 +76,7 @@ export default function CarBookingForm({
       total: calculateTotal(),
       days: getDays(),
       unitPrice:
-        Number(car?.pricePerDay) ||
+        Number(car?.convertedPrice) ||
         parseInt(car?.price?.replace("$", "") || "50"),
       carDescription: car?.description || "Car rental booking",
       location: car?.location || "Selected Location",
