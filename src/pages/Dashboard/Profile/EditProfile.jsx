@@ -6,6 +6,7 @@ import Loader from "../../../shared/Loader/Loader";
 
 export default function EditProfile() {
   const { data, isLoading } = useGetMyProfileQuery();
+  console.log("data of hasan from edit profile", data);
   const [updateMyProfile, { isLoading: isUpdating }] =
     useUpdateMyProfileMutation();
 

@@ -21,6 +21,7 @@ export const baseApi = createApi({
     "security",
     "car",
     "voucher",
-    "payment"
+    "payment",
+    "User",
   ],
 });
