@@ -176,7 +176,7 @@ export default function CarDetails() {
     setPage(1);
     setCars([]);
     setHasMore(true);
-    navigate(`/car-service-details?${params.toString()}`);
+    navigate(`/car-details?${params.toString()}`);
   };
 
   return (
