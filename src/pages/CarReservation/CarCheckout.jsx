@@ -37,6 +37,7 @@ export default function CarCheckout() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const rawState = location.state ?? null;
+  console.log("rawState of car checkout", rawState);
   const bookingDetails =
     rawState?.bookingDetails ?? rawState?.bookingData ?? rawState ?? null;
   const carCancelationPolicy = bookingDetails?.carCancelationPolicy;
@@ -58,13 +59,11 @@ export default function CarCheckout() {
     : 0;
   const carPrice =
     bookingDetails && days > 0 ? round2(bookingDetails.total / days) : 0;
-  const taxes = bookingDetails ? round2(bookingDetails.total * 0.05) : 0;
-  const finalTotal = bookingDetails ? round2(bookingDetails.total + taxes) : 0;
 
-  const displayFinalTotal = serverTotal ?? finalTotal;
-  const displayVat = serverTotal
-    ? round2(displayFinalTotal - round2(displayFinalTotal / 1.05))
-    : taxes;
+  const finalTotal = bookingDetails ? round2(bookingDetails.total) : 0;
+
+  const displayVat = bookingDetails ? round2(bookingDetails.total * 0.05) : 0;
+  const displayFinalTotal = finalTotal + displayVat;
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -83,6 +82,7 @@ export default function CarCheckout() {
   const handleBackToBooking = () => {
     navigate(-1);
   };
+
   const [updatedUser, setUpdatedUser] = useState({
     name:
       guest.fullName ||
@@ -113,8 +113,6 @@ export default function CarCheckout() {
       decodedUserInfo?.country ||
       "",
   });
-
-  console.log("updatedUser of car checkout", updatedUser);
 
   const userInfo = {
     id:
@@ -151,6 +149,7 @@ export default function CarCheckout() {
       decodedUserInfo?.country ||
       "",
   };
+  console.log("userInfo of car checkout", userInfo);
 
   const handleContinueToPayment = async () => {
     if (!bookingDetails?.carId) {
@@ -227,6 +226,7 @@ export default function CarCheckout() {
           bookingDetails: paymentDetails,
           createdBookingId,
           carCancelationPolicy,
+          
         },
       });
     } catch (error) {

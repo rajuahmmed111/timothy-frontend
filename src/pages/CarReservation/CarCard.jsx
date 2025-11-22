@@ -3,6 +3,7 @@ import { Star, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function CarCard({ car, queryString }) {
+  console.log("car of car card", car);
   return (
     <Link
       to={`/car-service-details/${car?.id}${queryString || ""}`}

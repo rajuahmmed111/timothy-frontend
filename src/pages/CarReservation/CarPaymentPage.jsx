@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 import {
   useCreateCarPaystackSessionMutation,
   useCreateCarStripeSessionMutation,
-} from "../../redux/api/car/carApi";    
+} from "../../redux/api/car/carApi";
 
 // Helper function to check if a country is in Africa
 const isAfricanCountry = (country) => {
@@ -76,10 +76,8 @@ const isAfricanCountry = (country) => {
 
 import {
   Calendar,
-  CreditCard,
   MapPin,
   Users,
-  Wallet,
   ShieldCheck,
   ArrowLeft,
   Phone,
@@ -95,13 +93,12 @@ export default function PaymentConfirm() {
     location.state?.bookingData ||
     location.state?.data ||
     null;
-    const carCancelationPolicy = location.state?.carCancelationPolicy;
-    console.log("carCancelationPolicy", carCancelationPolicy);
-  console.log("Booking details from car payment page", bookingDetails);
-  //   const hotelData = bookingDetails?.data || bookingDetails || {};
-  //   console.log("Booking details:", bookingDetails?.cancelationPolicy);
-  //   console.log("Hotel data:", hotelData);
-  //   console.log("Payment method:", paymentMethod);
+  console.log("Booking details of aman", bookingDetails);
+  console.log("Booking details of aman2", bookingDetails?.user?.country);
+
+  const carCancelationPolicy = location.state?.carCancelationPolicy;
+  // console.log("carCancelationPolicy", carCancelationPolicy);
+  // console.log("Booking details from car payment page", bookingDetails);
   useEffect(() => {
     if (bookingDetails?.user?.country) {
       const country = bookingDetails.user.country.toLowerCase();
@@ -111,26 +108,21 @@ export default function PaymentConfirm() {
   }, [bookingDetails?.user?.country]);
 
   // Payment mutations
-  const [createPaystackSession] =
-    useCreateCarPaystackSessionMutation();
-  const [createStripeSession] =
-    useCreateCarStripeSessionMutation();
+  const [createPaystackSession] = useCreateCarPaystackSessionMutation();
+  const [createStripeSession] = useCreateCarStripeSessionMutation();
 
   const calculateTotal = () => {
-    const price = Number(bookingDetails?.total || 0);
-    const discount = Number(bookingDetails?.discountedPrice || 0);
-    const subtotal = price - discount;
-    const vatRate = 5; // Fixed 5% VAT
-    const vatAmount = Number(((subtotal * vatRate) / 100).toFixed(2));
-    const total = subtotal + vatAmount;
-
+    const total = Number(bookingDetails?.total || 0);
     return {
-      vatAmount,
       total,
     };
   };
+  console.log("calculateTotal of car payment pagevcxvxzcv", calculateTotal());
 
-  const { vatAmount, total } = calculateTotal();
+  const userInfo = location.state?.userInfo;
+  console.log("userInfo of car payment page", userInfo);
+
+  const { total } = calculateTotal();
 
   // Format date to be more readable
   const formatDate = (dateString) => {
@@ -213,7 +205,7 @@ export default function PaymentConfirm() {
       // Prepare user information
       const userInfo = bookingDetails.user;
 
-      const { vatAmount, total } = calculateTotal();
+      const { total } = calculateTotal();
 
       const bookingConfirmationData = {
         bookingId: currentBookingId,
@@ -233,7 +225,7 @@ export default function PaymentConfirm() {
         user: userInfo,
         carCancelationPolicy: bookingDetails.carCancelationPolicy,
         carSeats: bookingDetails.carSeats,
-        carCountry: bookingDetails.carCountry,
+        carCountry: userInfo?.country,
       };
       console.log("Booking confirmation data:", bookingConfirmationData);
 
@@ -244,7 +236,7 @@ export default function PaymentConfirm() {
       );
 
       const paymentData = {
-        amount: Math.round(total * 100), // smallest currency unit
+       
         email: bookingDetails.user.email || "",
         name:
           bookingDetails.user.fullName ||
@@ -252,7 +244,7 @@ export default function PaymentConfirm() {
           "Customer",
         phone:
           bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
-        currency: "NGN", // default Paystack
+        currency: bookingDetails.currency, // default Paystack
         userId: bookingDetails.user.id,
         carId: bookingDetails.carId,
         carName: bookingDetails.carName,
@@ -264,6 +256,8 @@ export default function PaymentConfirm() {
           userId: bookingDetails.user.id,
         },
       };
+
+      console.log("Payment data of car payment", paymentData);
 
       const userCountry = (bookingDetails.user.country || "").toLowerCase();
       const isUserInAfrica = isAfricanCountry(userCountry);
@@ -338,16 +332,13 @@ export default function PaymentConfirm() {
       <div className="max-w-6xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
+          className="flex items-center text-xl text-[#000] font-bold my-5"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to previous page
+          Booking Details
         </button>
 
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <h1 className="text-center text-2xl font-bold mt-4 mb-6">
-            Booking Details
-          </h1>
           <div className="p-6 md:flex gap-8">
             {/* Left Column - Booking Details */}
             <div className="md:w-2/3 space-y-6">
@@ -366,7 +357,7 @@ export default function PaymentConfirm() {
                   </div>
 
                   <div className="space-y-5 flex  gap-20">
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[240px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
@@ -398,7 +389,7 @@ export default function PaymentConfirm() {
                         </div>
                       </div>
                     </div>
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[240px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
@@ -423,7 +414,7 @@ export default function PaymentConfirm() {
                               ? "Refundable"
                               : "Non Refundable "}
                           </p>
-                          <span className="text-red-600 text-xs">
+                          <span className="text-md">
                             {bookingDetails?.carCancelationPolicy || ""}
                           </span>
                         </div>
@@ -432,7 +423,7 @@ export default function PaymentConfirm() {
                         <Phone className="w-5 h-5 text-gray-500 mr-2" />
                         <div>
                           <p className="text-sm text-gray-500">Country: </p>
-                          <p>{bookingDetails?.carCountry || "N/A"}</p>
+                          <p>{bookingDetails?.user?.country}</p>
                         </div>
                       </div>
                     </div>
@@ -447,7 +438,7 @@ export default function PaymentConfirm() {
                 <h2 className="text-lg font-semibold mb-8">Price Details</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Rental Price</span>
+                    <span className="text-gray-600">Rental Price (Incl VAT)</span>
                     <span>
                       {bookingDetails?.currency}{" "}
                       {Number(bookingDetails?.total || 0).toFixed(2)}
@@ -466,17 +457,11 @@ export default function PaymentConfirm() {
                     </div>
                   )}
 
-                  <div className="flex justify-between">
-                    <span>VAT (5%)</span>
-                    <span>
-                      {bookingDetails?.currency} {vatAmount.toFixed(2)}
-                    </span>
-                  </div>
 
                   <div className="flex justify-between">
                     <div className="border-t w-full border-gray-200 pt-3 mt-3">
                       <div className="flex justify-between font-semibold text-lg">
-                        <span>Total</span>
+                        <span>Total Price</span>
                         <span>
                           {bookingDetails?.currency} {total.toFixed(2)}
                         </span>
