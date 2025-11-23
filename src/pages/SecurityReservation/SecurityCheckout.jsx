@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowLeft,
@@ -17,11 +17,10 @@ export default function SecurityCheckout() {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const user = useSelector((state) => state?.auth?.user);
-  // Accept booking data from multiple shapes
-  // - From SecurityBookingForm when logged-in: { state: { payload } }
-  // - From SecurityGuestLogin redirect: { state: { bookingData } }
-  // - From other flows: { state: { data|resp|payload } } possibly wrapped with .data
+
+  // Accept data from multiple shapes
   const raw = location.state || {};
   const bookingDetails =
     raw.payload ||
@@ -32,13 +31,17 @@ export default function SecurityCheckout() {
     raw.resp ||
     raw.payload?.data ||
     {};
-  const guestInfo = location.state?.guestInfo || {};
-  const [isProcessing, setIsProcessing] = useState(false);
-  const cancelationPolicy = bookingDetails?.cancelationPolicy || null;
+
+  const guestInfo = raw.guestInfo || {};
+
   const [createSecurityBooking, { isLoading }] =
     useCreateSecurityBookingMutation();
 
-  // Days between start and end dates
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // =============================
+  // Calculate Days
+  // =============================
   const days = (() => {
     const start = bookingDetails?.startDate
       ? new Date(bookingDetails.startDate)
@@ -46,21 +49,47 @@ export default function SecurityCheckout() {
     const end = bookingDetails?.endDate
       ? new Date(bookingDetails.endDate)
       : null;
+
     if (!start || !end) return 1;
+
     const diff = Math.ceil(
       (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
     );
+
     return diff > 0 ? diff : 1;
   })();
-  const currencyCode = bookingDetails?.currency ;
-  const unitPrice = Number(bookingDetails?.pricePerDay || 0);
-  const personnelCount = Number(bookingDetails?.personnelCount || 1);
-  const subtotal = unitPrice * days * personnelCount;
-  const vatRate = 5;
-  const vatAmount = subtotal * (vatRate / 100);
-  const total = subtotal + vatAmount;
 
-  // Derive guest fields from multiple possible shapes
+  // =============================
+  // STATIC VAT CALCULATION
+  // =============================
+  const currencyCode = bookingDetails?.currency;
+
+  // fallback values (price always comes)
+  const pricePerDay =
+    Number(bookingDetails?.pricePerDay) ||
+    Number(bookingDetails?.securityPriceDay) ||
+    Number(bookingDetails?.unitPrice) ||
+    0;
+
+  const personnelCount = Number(bookingDetails?.personnelCount || 1);
+
+  // Always fresh subtotal
+  const calculatedSubtotal = pricePerDay * days * personnelCount;
+
+  // Static 5% VAT
+  const vatRate = 5;
+  const vatAmount = Number((calculatedSubtotal * 0.05).toFixed(2));
+
+  // Final Total = subtotal + VAT
+  const finalTotal = Number((calculatedSubtotal + vatAmount).toFixed(2));
+
+  console.log("💰 Subtotal =", calculatedSubtotal);
+  console.log("💰 VAT =", vatAmount);
+  console.log("💰 Final Total =", finalTotal);
+
+  // =============================
+  // Guest Information
+  // =============================
   const deriveGuest = () => ({
     name:
       guestInfo?.name ||
@@ -91,7 +120,6 @@ export default function SecurityCheckout() {
 
   const [updatedUser, setUpdatedUser] = useState(deriveGuest());
 
-  // Keep form synced if route state or user changes
   React.useEffect(() => {
     setUpdatedUser(deriveGuest());
   }, [
@@ -102,12 +130,12 @@ export default function SecurityCheckout() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setUpdatedUser((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setUpdatedUser((prev) => ({ ...prev, [name]: value }));
   };
 
+  // =============================
+  // Confirm Booking
+  // =============================
   const handleReserveConfirm = async () => {
     if (!bookingDetails?.guardId) {
       handleError("Guard information is missing");
@@ -118,59 +146,56 @@ export default function SecurityCheckout() {
     setIsProcessing(true);
 
     try {
-      // Build body as API expects for security booking
-      const total =
-        bookingDetails?.total ||
-        Number(bookingDetails?.pricePerDay || 0) *
-          days *
-          Number(bookingDetails?.personnelCount || 1);
       const body = {
-        // Core booking fields (prefer explicit fields from page, fallback to existing)
+        // Booking Info
         number_of_security:
           bookingDetails?.number_of_security ??
           bookingDetails?.personnelCount ??
           1,
+
         securityBookedFromDate:
           bookingDetails?.securityBookedFromDate || bookingDetails?.startDate,
+
         securityBookedToDate:
           bookingDetails?.securityBookedToDate || bookingDetails?.endDate,
-        totalPrice: total,
-        convertedPrice: bookingDetails?.convertedPrice ?? total,
-        displayCurrency:
-          bookingDetails?.displayCurrency ||
-          bookingDetails?.currency ||
-          currencyCode,
+
+        // TOTAL PRICE ALWAYS SUBTOTAL + VAT
+        totalPrice: finalTotal,
+        vatAmount: vatAmount,
+        vatRate: 5,
+
+        convertedPrice: bookingDetails?.convertedPrice,
+        displayCurrency: bookingDetails?.displayCurrency,
+
         discountedPrice: bookingDetails?.discountedPrice ?? 0,
-        cancelationPolicy,
+        cancelationPolicy: bookingDetails?.cancellationPolicy,
+
         // Identification
         guardId: bookingDetails?.guardId,
         guardName: bookingDetails?.guardName,
         serviceType: bookingDetails?.serviceType || "Security",
         serviceDescription: bookingDetails?.serviceDescription,
-        pricePerDay: bookingDetails?.pricePerDay,
+        pricePerDay: pricePerDay,
 
-        // User contact details from form
-        name: updatedUser?.name || "",
-        email: updatedUser?.email || "",
-        phone: updatedUser?.phone || "",
-        address: updatedUser?.address || "",
+        // Contact / User
+        name: updatedUser?.name,
+        email: updatedUser?.email,
+        phone: updatedUser?.phone,
+        address: updatedUser?.address,
 
-        // Status flags
         status: "pending",
         paymentStatus: "pending",
       };
 
-      console.log("Creating security booking with:", {
-        id: bookingDetails?.guardId,
-        body,
-      });
+      console.log("📤 FINAL BOOKING BODY →", body);
+
       const resp = await createSecurityBooking({
         id: bookingDetails?.guardId,
         body,
       }).unwrap();
-      console.log("createSecurityBooking resp:", resp);
 
       handleSuccess("Security service reserved successfully!");
+
       const createdBookingId = resp?.data?.id || resp?.id || "";
 
       navigate(
@@ -178,7 +203,7 @@ export default function SecurityCheckout() {
           createdBookingId
         )}`,
         {
-          state: { data: resp, cancelationPolicy },
+          state: { data: resp, data2: bookingDetails },
           replace: true,
         }
       );
@@ -203,6 +228,10 @@ export default function SecurityCheckout() {
       day: "numeric",
     });
 
+  // =============================
+  // UI
+  // =============================
+
   return (
     <div className="min-h-screen items-center bg-gray-50 py-4 md:py-8">
       <div className="max-w-7xl mx-auto px-4">
@@ -217,7 +246,7 @@ export default function SecurityCheckout() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left section */}
+          {/* LEFT SIDE */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <h2 className="text-xl font-semibold mb-4">Booking Summary</h2>
@@ -225,87 +254,78 @@ export default function SecurityCheckout() {
               {/* Guest Info */}
               <div className="bg-blue-50 rounded-lg p-4 mb-4">
                 <h3 className="text-md font-medium mb-3">Guest Information</h3>
+
                 <form className="space-y-4">
                   <div>
-                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                      <User className="w-4 h-4" /> <span>Full Name</span>
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <User className="w-4 h-4" /> Full Name
                     </label>
                     <input
                       type="text"
                       name="name"
                       value={updatedUser.name}
                       onChange={handleInputChange}
-                      placeholder="Full name"
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 p-2 border"
                     />
                   </div>
 
                   <div>
-                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                      <Mail className="w-4 h-4" /> <span>Email</span>
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <Mail className="w-4 h-4" /> Email
                     </label>
                     <input
                       type="email"
                       name="email"
                       value={updatedUser.email}
                       onChange={handleInputChange}
-                      placeholder="Email address"
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 p-2 border"
                     />
                   </div>
 
                   <div>
-                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                      <Phone className="w-4 h-4" /> <span>Phone</span>
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <Phone className="w-4 h-4" /> Phone
                     </label>
                     <input
                       type="text"
                       name="phone"
                       value={updatedUser.phone}
                       onChange={handleInputChange}
-                      placeholder="Phone number"
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 p-2 border"
                     />
                   </div>
 
                   <div>
-                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                      <MapPin className="w-4 h-4" /> <span>Country</span>
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <MapPin className="w-4 h-4" /> Country
                     </label>
                     <input
                       type="text"
                       name="address"
                       value={updatedUser.address}
                       readOnly
-                      placeholder="Address / Country"
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm outline-none p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 p-2 border bg-gray-100"
                     />
                   </div>
                 </form>
               </div>
 
-              {/* Selected Guard Info */}
+              {/* Guard Info */}
               <div className="flex items-start gap-4">
                 {bookingDetails?.photo && (
                   <img
                     src={bookingDetails.photo}
-                    alt={bookingDetails.guardName || "Guard"}
+                    alt={bookingDetails.guardName}
                     className="w-16 h-16 rounded-lg object-cover"
                   />
                 )}
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-medium text-gray-900 truncate">
-                      {bookingDetails.guardName || "Selected Guard"}
-                    </h3>
-                    {bookingDetails?.serviceType && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-xs">
-                        {bookingDetails.serviceType}
-                      </span>
-                    )}
-                  </div>
+
+                <div>
+                  <h3 className="font-medium text-gray-900">
+                    {bookingDetails.guardName}
+                  </h3>
                   <p className="text-gray-600 mt-1">
-                    {currencyCode} {unitPrice} / day
+                    {currencyCode} {pricePerDay} / day
                   </p>
                 </div>
               </div>
@@ -324,25 +344,22 @@ export default function SecurityCheckout() {
                 </div>
               </div>
 
-              {/* Guests */}
+              {/* Guards */}
               <div className="flex items-center space-x-4 mt-4">
                 <Users className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-gray-900">
-                    {bookingDetails?.personnelCount || 1}{" "}
-                    {Number(bookingDetails?.personnelCount || 1) === 1
-                      ? "guard"
-                      : "guards"}
+                    {personnelCount} {personnelCount === 1 ? "guard" : "guards"}
                   </p>
                   <p className="text-gray-600">
-                    {bookingDetails?.serviceDescription || "Security service"}
+                    {bookingDetails?.serviceDescription}
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* RIGHT SIDEBAR */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-8">
               <h3 className="text-lg font-semibold mb-4">Price Summary</h3>
@@ -350,43 +367,39 @@ export default function SecurityCheckout() {
               <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>
-                    {currencyCode} {unitPrice} × {days}{" "}
-                    {days === 1 ? "day" : "days"} × {personnelCount}{" "}
-                    {personnelCount === 1 ? "guard" : "guards"}
+                    {currencyCode} {pricePerDay} × {days} × {personnelCount}
                   </span>
                   <span>
-                    {currencyCode} {subtotal.toFixed(2)}
+                    {currencyCode} {calculatedSubtotal.toFixed(2)}
                   </span>
                 </div>
+
                 <div className="flex justify-between">
                   <span>VAT ({vatRate}%)</span>
                   <span>
                     {currencyCode} {vatAmount.toFixed(2)}
                   </span>
                 </div>
+
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
                   <span>Total</span>
                   <span>
-                    {currencyCode} {total.toFixed(2)}
+                    {currencyCode} {finalTotal.toFixed(2)}
                   </span>
                 </div>
 
-                <p className="text-xs text-gray-500 mt-1">
-                  Taxes and fees included if applicable
-                </p>
+                <button
+                  onClick={handleReserveConfirm}
+                  disabled={isProcessing || isLoading}
+                  className={`w-full mt-6 py-3 text-white rounded-lg font-medium ${
+                    isProcessing || isLoading
+                      ? "bg-blue-400 cursor-not-allowed"
+                      : "bg-blue-700 hover:bg-blue-800"
+                  }`}
+                >
+                  {isProcessing || isLoading ? "Processing..." : "Continue"}
+                </button>
               </div>
-
-              <button
-                onClick={handleReserveConfirm}
-                disabled={isProcessing || isLoading}
-                className={`w-full mt-6 py-3 text-white rounded-lg font-medium ${
-                  isProcessing || isLoading
-                    ? "bg-blue-400 cursor-not-allowed"
-                    : "bg-blue-700 hover:bg-blue-800"
-                }`}
-              >
-                {isProcessing || isLoading ? "Processing..." : "Continue"}
-              </button>
             </div>
           </div>
         </div>

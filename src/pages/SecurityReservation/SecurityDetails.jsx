@@ -45,18 +45,11 @@ export default function SecurityDetails() {
     : null;
 
   const { data } = useGetSecurityProtocolsRootQuery();
-  console.log("data", data);
+
   const securityBusinessData = Array.isArray(data?.data?.data)
     ? data.data.data
     : [];
-  console.log("security bus", securityBusinessData);
 
-  const guardLocation = React.useMemo(() => {
-    const guard = securityBusinessData?.[0]?.security_Guard?.[0];
-    return guard
-      ? [guard.securityCity, guard.securityCountry].filter(Boolean).join(", ")
-      : "";
-  }, [securityBusinessData]);
 
   // Local UI state for inputs (used directly for filtering)
   const [locText, setLocText] = React.useState(displayLocation);
@@ -65,16 +58,6 @@ export default function SecurityDetails() {
     location: displayLocation,
     type: securityType || "All",
   });
-
-  React.useEffect(() => {
-    if (!displayLocation && guardLocation) {
-      setLocText(guardLocation);
-      setAppliedFilters((prev) => ({
-        ...prev,
-        location: prev.location || guardLocation,
-      }));
-    }
-  }, [displayLocation, guardLocation]);
 
   // Build filters from router state (location and protocol type only)
   const filters = React.useMemo(() => {
