@@ -227,7 +227,7 @@ export default function EventPaymentConfirm() {
     setIsLoading(true);
     try {
       const successUrl = `${window.location.origin}/booking-confirmation`;
-      const cancelUrl = `${window.location.origin}/event/checkout`;
+      const cancelUrl = `${window.location.origin}/booking-cancellation`;
 
       const { total } = calculateTotal();
 

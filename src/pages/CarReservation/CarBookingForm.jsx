@@ -40,10 +40,12 @@ export default function CarBookingForm({
         )
       ) || 1;
     const price =
-      Number(car?.convertedPrice) ||
-      parseInt(car?.price?.replace("$", "") || "50");
+      Number(car?.convertedPrice)
     return price * days;
   };
+
+
+  console.log("calculation price in ",calculateTotal())
 
   const getDays = () => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) return 0;
@@ -55,7 +57,7 @@ export default function CarBookingForm({
           (dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) /
             msPerDay
         )
-      ) || 1
+      )
     );
   };
 
@@ -73,30 +75,33 @@ export default function CarBookingForm({
       returnDate: dateRange[1].format("YYYY-MM-DD"),
       carType: car?.name || "Selected Car",
       currency: car?.currency || "",
-      total: calculateTotal(),
+      // per‑day price (100)
+      unitPrice: Number(car?.convertedPrice) || 0,
+
+      // full total for display ONLY (unitPrice * days)
+      total: calculateTotal(), // where calculateTotal = unitPrice * days
       days: getDays(),
-      unitPrice:
-        Number(car?.convertedPrice) ||
-        parseInt(car?.price?.replace("$", "") || "50"),
       carDescription: car?.description || "Car rental booking",
       location: car?.location || "Selected Location",
     };
-    navigate("/car/checkout", { state: { bookingDetails } });
+    console.log("booking details in booking form",bookingDetails)
 
-    try {
-      if (accessToken) {
-        navigate("/car/checkout", { state: { bookingData: bookingDetails } });
-      } else {
-        navigate("/car/guest-login", {
-          state: {
-            bookingData: bookingDetails,
-            returnUrl: "/car/checkout",
-          },
-        });
-      }
-    } finally {
-      setIsBooking(false);
-    }
+ if (accessToken) {
+   navigate("/car/checkout", {
+     state: {
+       bookingDetails: bookingDetails, // ALWAYS bookingDetails
+     },
+   });
+ } else {
+   navigate("/car/guest-login", {
+     state: {
+       bookingDetails: bookingDetails,
+       returnUrl: "/car/checkout",
+     },
+   });
+ }
+
+ setIsBooking(false);
   };
 
   return (

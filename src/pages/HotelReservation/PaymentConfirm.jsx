@@ -211,7 +211,7 @@ export default function PaymentConfirm() {
         return;
       }
       const successUrl = `${window.location.origin}/booking-confirmation`;
-      const cancelUrl = `${window.location.origin}/hotel/checkout`;
+      const cancelUrl = `${window.location.origin}/booking-cancellation`;
       // Use the already retrieved bookingId
 
       // Prepare user information

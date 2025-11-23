@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 export default function ImageGallery({ images }) {
+  console.log(images,"show all image")
   // Normalize inputs: accept either array of URLs via `images`,
   // or array of guards (each may contain securityImages[])
   const isArray = Array.isArray(images);

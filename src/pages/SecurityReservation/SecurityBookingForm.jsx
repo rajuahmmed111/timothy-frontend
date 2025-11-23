@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useBooking } from "../../context/BookingContext";
 
-export default function SecurityBookingForm({ data }) {
+export default function SecurityBookingForm({ data, policy }) {
   const navigate = useNavigate();
   const { search } = useLocation();
   const { bookingData, updateBookingData, updateGuests } = useBooking();
@@ -17,7 +17,7 @@ export default function SecurityBookingForm({ data }) {
   const [dateRange, setDateRange] = useState(null);
   const [isBooking, setIsBooking] = useState(false);
   const [personnelCount, setPersonnelCount] = useState(1);
-
+const cancellationPolicy = policy[0].securityCancelationPolicy;
   const { RangePicker } = DatePicker;
   const params = new URLSearchParams(search || "");
   const fromDateParam = params.get("fromDate");
@@ -26,6 +26,9 @@ export default function SecurityBookingForm({ data }) {
   const toDate = toDateParam ? dayjs(toDateParam) : null;
   const user = useSelector((state) => state?.auth?.user);
   const accessToken = useSelector((state) => state?.auth?.accessToken);
+
+
+
   const userInfo = useMemo(() => {
     if (!accessToken) return null;
     try {
@@ -53,13 +56,9 @@ export default function SecurityBookingForm({ data }) {
   }, [JSON.stringify(guards)]);
 
   const selectedGuard = guards[selectedGuardIndex] || null;
-  const cancelationPolicy =
-    selectedGuard?.security?.securityCancelationPolicy ||
-    selectedGuard?.securityCancelationPolicy ||
-    null;
+ 
 
-  console.log("booking-form:selectedGuard", selectedGuard);
-  console.log("booking-form:cancelationPolicy", cancelationPolicy);
+ 
   const guardId = selectedGuard?.id ?? selectedGuard?._id ?? null;
   const guardName =
     selectedGuard?.securityGuardName ||
@@ -131,7 +130,7 @@ export default function SecurityBookingForm({ data }) {
     const endDate = dateRange[1].format("YYYY-MM-DD");
     const people = Number(personnelCount || 1);
     const perDay = Number(unitPrice || 0);
-    const computedTotal = Number(calculateTotal() || perDay * people);
+    const computedTotal = Number(calculateTotal());
 
     const payload = {
       // Dates
@@ -147,18 +146,18 @@ export default function SecurityBookingForm({ data }) {
       number_of_security: people, // alias used by downstream
       pricePerDay: perDay,
       total: computedTotal,
-      convertedPrice: computedTotal, // alias used by PaymentConfirm
+      convertedPrice: data.convertedPrice, // alias used by PaymentConfirm
 
       // Display currency aliases
       currency: currencyCode,
       displayCurrency: currencyCode,
-      cancelationPolicy,
+      cancellationPolicy,
       // Guard info
       guardId,
       guardName,
       photo,
     };
-    console.log("booking-form:payload", payload);
+   
     if (accessToken) {
       // If user is logged in, navigate to checkout
       navigate("/security/checkout", { state: { payload } });
@@ -326,7 +325,7 @@ export default function SecurityBookingForm({ data }) {
               : "hover:bg-blue-700"
           }`}
         >
-          {isBooking ? "Processing..." : "Reserve Now"}
+          {isBooking ? "Processing..." : "Reserve"}
         </button>
       </form>
     </div>

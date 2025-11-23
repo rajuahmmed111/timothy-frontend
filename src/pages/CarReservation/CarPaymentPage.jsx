@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+// Import the payment mutations from your API slice
 import {
   useCreateCarPaystackSessionMutation,
   useCreateCarStripeSessionMutation,
@@ -93,8 +94,10 @@ export default function PaymentConfirm() {
     location.state?.data ||
     null;
   console.log("Booking details of aman", bookingDetails);
-  console.log("Booking details of aman2", bookingDetails?.user?.country);
 
+  const carCancelationPolicy = location.state?.carCancelationPolicy;
+  // console.log("carCancelationPolicy", carCancelationPolicy);
+  // console.log("Booking details from car payment page", bookingDetails);
   useEffect(() => {
     if (bookingDetails?.user?.country) {
       const country = bookingDetails.user.country.toLowerCase();
@@ -103,62 +106,101 @@ export default function PaymentConfirm() {
     }
   }, [bookingDetails?.user?.country]);
 
-  // Payment
+  // Payment mutations
   const [createPaystackSession] = useCreateCarPaystackSessionMutation();
   const [createStripeSession] = useCreateCarStripeSessionMutation();
 
-  const calculateTotal = () => {
-    const total = Number(bookingDetails?.total || 0);
-    return {
-      total,
-    };
-  };
+  // Derive base amount and VAT so UI clearly shows tax breakdown
+  const days = useMemo(
+    () => Number(bookingDetails?.days || 1),
+    [bookingDetails]
+  );
 
-  const { total } = calculateTotal();
+  const unitPrice = useMemo(
+    () => Number(bookingDetails?.unitPrice || 0),
+    [bookingDetails]
+  );
 
-  // Format date
+  const baseTotal = useMemo(() => unitPrice * days, [unitPrice, days]);
+
+  const vatAmount = useMemo(
+    () => Number((baseTotal * 0.05).toFixed(2)),
+    [baseTotal]
+  );
+
+  const total = useMemo(
+    () => Number((baseTotal + vatAmount).toFixed(2)),
+    [baseTotal, vatAmount]
+  );
+
+  const userInfo = location.state?.userInfo;
+  console.log("userInfo of car payment page", userInfo);
+
+  // Format date to be more readable
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const options = { year: "numeric", month: "short", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
-  // Get booking ID
+  // Get booking ID from URL params or state
   const searchParams = new URLSearchParams(location.search);
 
-  // Get booking ID
+  // Debug logging for all potential ID sources
+  console.log("Debug - Booking ID sources:", {
+    fromUrl: searchParams.get("bookingId"),
+    fromLocationState: location.state?.createdBookingId,
+    fromBookingDetails: bookingDetails?.id,
+    fullLocationState: location.state,
+    fullBookingDetails: bookingDetails,
+  });
+
+  // Get booking ID from multiple sources with fallback
   const bookingId = (() => {
+    // Try URL parameters first
     const fromUrl = searchParams.get("bookingId");
     if (fromUrl) return fromUrl;
+
+    // Then try location state
     if (location.state?.createdBookingId) {
       return location.state.createdBookingId;
     }
+
+    // Then try booking details
     if (bookingDetails?.id) {
       return bookingDetails.id.toString();
     }
+
+    // If we have a booking reference in the URL path
     const pathParts = window.location.pathname.split("/");
     const possibleId = pathParts[pathParts.length - 1];
     if (possibleId && possibleId.length > 10) {
+      // Simple validation for ID length
       return possibleId;
     }
+
     return null;
   })();
+
+  console.log("Current booking ID:", bookingId);
 
   const handlePayment = async () => {
     if (!total || total <= 0) {
       console.log("Payment not processed: Invalid total amount");
       return;
     }
+
+    // Resolve a robust booking identifier for the payment session
     const currentBookingId =
       bookingId ||
       bookingDetails?.bookingId ||
       location.state?.createdBookingId ||
       bookingDetails?.carId ||
       null;
-    
     if (!bookingDetails?.user?.country) {
       toast.error("Please select a country");
       return;
     }
+
     setIsLoading(true);
     try {
       if (!currentBookingId) {
@@ -169,11 +211,11 @@ export default function PaymentConfirm() {
         return;
       }
       const successUrl = `${window.location.origin}/booking-confirmation`;
-      const cancelUrl = `${window.location.origin}/car/checkout`;
+      const cancelUrl = `${window.location.origin}/booking-cancellation`;
+      // Use the already retrieved bookingId
 
       // Prepare user information
       const userInfo = bookingDetails.user;
-      const { total } = calculateTotal();
 
       const bookingConfirmationData = {
         bookingId: currentBookingId,
@@ -181,7 +223,7 @@ export default function PaymentConfirm() {
         pickupDate: bookingDetails.pickupDate,
         returnDate: bookingDetails.returnDate,
         guests: bookingDetails.guests || 1,
-        total,
+        total, // VAT-inclusive total used for confirmation display
         roomType: bookingDetails.roomType,
         location: bookingDetails.location,
         adults: bookingDetails.adults,
@@ -195,11 +237,13 @@ export default function PaymentConfirm() {
         carSeats: bookingDetails.carSeats,
         carCountry: userInfo?.country,
       };
+      console.log("Booking confirmation data:", bookingConfirmationData);
+
+      // Store in session storage as fallback
       sessionStorage.setItem(
         "lastBooking",
         JSON.stringify(bookingConfirmationData)
       );
-
       const paymentData = {
         email: bookingDetails.user.email || "",
         name:
@@ -208,10 +252,16 @@ export default function PaymentConfirm() {
           "Customer",
         phone:
           bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
-        currency: bookingDetails.currency, // default Paystack
+        currency: bookingDetails.currency,
         userId: bookingDetails.user.id,
         carId: bookingDetails.carId,
         carName: bookingDetails.carName,
+
+        // These are for logging/metadata only; Stripe/Paystack still use bookingId
+        total, // VAT-inclusive total for reference
+        vat: vatAmount,
+        days: Number(bookingDetails.days),
+
         successUrl,
         cancelUrl,
         metadata: {
@@ -220,6 +270,8 @@ export default function PaymentConfirm() {
           userId: bookingDetails.user.id,
         },
       };
+
+      console.log("Payment data of car payment", paymentData);
 
       const userCountry = (bookingDetails.user.country || "").toLowerCase();
       const isUserInAfrica = isAfricanCountry(userCountry);
@@ -238,6 +290,7 @@ export default function PaymentConfirm() {
         if (!checkoutUrl)
           throw new Error("No valid checkout URL found in Paystack response");
 
+        // Store booking data in session storage before redirecting
         sessionStorage.setItem(
           "pendingBooking",
           JSON.stringify({
@@ -248,6 +301,8 @@ export default function PaymentConfirm() {
             cancelUrl,
           })
         );
+
+        // Redirect directly to Paystack checkout
         window.location.href = checkoutUrl;
       } else {
         const result = await createStripeSession(currentBookingId).unwrap();
@@ -258,6 +313,7 @@ export default function PaymentConfirm() {
         if (!checkoutUrl)
           throw new Error("Could not retrieve Stripe checkout URL");
 
+        // Store booking data in session storage before redirecting
         sessionStorage.setItem(
           "pendingBooking",
           JSON.stringify({
@@ -268,6 +324,8 @@ export default function PaymentConfirm() {
             cancelUrl,
           })
         );
+
+        // Redirect directly to Stripe checkout
         window.location.href = checkoutUrl;
       }
     } catch (error) {
@@ -394,36 +452,10 @@ export default function PaymentConfirm() {
                 <h2 className="text-lg font-semibold mb-8">Price Details</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Rental Price (Incl VAT)
-                    </span>
+                    <span className="text-gray-600">Total Price</span>
                     <span>
-                      {bookingDetails?.currency}{" "}
-                      {Number(bookingDetails?.total || 0).toFixed(2)}
+                      {bookingDetails?.currency} {total}
                     </span>
-                  </div>
-
-                  {Number(bookingDetails?.discountedPrice || 0) > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>
-                        -{bookingDetails?.currency}{" "}
-                        {Number(bookingDetails?.discountedPrice || 0).toFixed(
-                          2
-                        )}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between">
-                    <div className="border-t w-full border-gray-200 pt-3 mt-3">
-                      <div className="flex justify-between font-semibold text-lg">
-                        <span>Total Price</span>
-                        <span>
-                          {bookingDetails?.currency} {total.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
                   </div>
 
                   <div className="mt-6 space-y-3">

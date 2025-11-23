@@ -2,35 +2,42 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Star } from "lucide-react";
 
-function SecurityCard({ data = [], securityProvider, to }) {
+function SecurityCard({ data, securityProvider, to }) {
+  console.log(data);
   const { search } = useLocation();
   const list = Array.isArray(data)
     ? data
     : securityProvider
     ? [securityProvider]
     : [];
+  // const location = list.
   return (
     <>
-      {list.map((b, idx) => {
-        const location = [b?.securityCity, b?.securityCountry]
+      {list.map((data) => {
+        const guard = Array.isArray(data?.security_Guard)
+          ? data.security_Guard[0]
+          : null;
+        const location = [guard?.securityCity, guard?.securityCountry]
           .filter(Boolean)
           .join(", ");
-        const name =
-          b?.securityGuardName || b?.security?.securityName || "Security Guard";
+        const name = data?.securityBusinessName;
         const image =
-          (Array.isArray(b?.securityImages) && b.securityImages[0]) ||
-          b?.user?.profileImage ||
+          (Array.isArray(data?.securityImages) && data.securityImages[0]) ||
+          data?.user?.profileImage ||
           "/placeholder.svg";
-        const price = b?.securityPriceDay ?? 0;
-        const symbol = b?.currency || "BDT";
-        const rating = Number(b?.securityRating) || 0;
+        const price = data?.averagePrice;
+        const symbol = data?.displayCurrency;
+        const rating = Number(data?.averageRating);
 
-        const target = `${to || `/security-service-details/${b?.id}`}${search}`;
+        const target = `${
+          to || `/security-service-details/${data?.id}`
+        }${search}`;
 
         return (
           <Link
-            key={b?.id || idx}
+            key={data?.id}
             to={target}
+            state={{ security: list }}
             className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block"
           >
             {/* Card Image */}
