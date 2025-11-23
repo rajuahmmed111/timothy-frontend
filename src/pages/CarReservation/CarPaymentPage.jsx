@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 // Import the payment mutations from your API slice
@@ -94,7 +94,6 @@ export default function PaymentConfirm() {
     location.state?.data ||
     null;
   console.log("Booking details of aman", bookingDetails);
-  console.log("Booking details of aman2", bookingDetails?.user?.country);
 
   const carCancelationPolicy = location.state?.carCancelationPolicy;
   // console.log("carCancelationPolicy", carCancelationPolicy);
@@ -111,18 +110,31 @@ export default function PaymentConfirm() {
   const [createPaystackSession] = useCreateCarPaystackSessionMutation();
   const [createStripeSession] = useCreateCarStripeSessionMutation();
 
-  const calculateTotal = () => {
-    const total = Number(bookingDetails?.total || 0);
-    return {
-      total,
-    };
-  };
-  console.log("calculateTotal of car payment pagevcxvxzcv", calculateTotal());
+  // Derive base amount and VAT so UI clearly shows tax breakdown
+  const days = useMemo(
+    () => Number(bookingDetails?.days || 1),
+    [bookingDetails]
+  );
+
+  const unitPrice = useMemo(
+    () => Number(bookingDetails?.unitPrice || 0),
+    [bookingDetails]
+  );
+
+  const baseTotal = useMemo(() => unitPrice * days, [unitPrice, days]);
+
+  const vatAmount = useMemo(
+    () => Number((baseTotal * 0.05).toFixed(2)),
+    [baseTotal]
+  );
+
+  const total = useMemo(
+    () => Number((baseTotal + vatAmount).toFixed(2)),
+    [baseTotal, vatAmount]
+  );
 
   const userInfo = location.state?.userInfo;
   console.log("userInfo of car payment page", userInfo);
-
-  const { total } = calculateTotal();
 
   // Format date to be more readable
   const formatDate = (dateString) => {
@@ -172,11 +184,11 @@ export default function PaymentConfirm() {
   console.log("Current booking ID:", bookingId);
 
   const handlePayment = async () => {
-    // Prevent execution if total is not valid
     if (!total || total <= 0) {
       console.log("Payment not processed: Invalid total amount");
       return;
     }
+
     // Resolve a robust booking identifier for the payment session
     const currentBookingId =
       bookingId ||
@@ -205,15 +217,13 @@ export default function PaymentConfirm() {
       // Prepare user information
       const userInfo = bookingDetails.user;
 
-      const { total } = calculateTotal();
-
       const bookingConfirmationData = {
         bookingId: currentBookingId,
         carName: bookingDetails.carName,
         pickupDate: bookingDetails.pickupDate,
         returnDate: bookingDetails.returnDate,
         guests: bookingDetails.guests || 1,
-        total,
+        total, // VAT-inclusive total used for confirmation display
         roomType: bookingDetails.roomType,
         location: bookingDetails.location,
         adults: bookingDetails.adults,
@@ -234,9 +244,7 @@ export default function PaymentConfirm() {
         "lastBooking",
         JSON.stringify(bookingConfirmationData)
       );
-
       const paymentData = {
-       
         email: bookingDetails.user.email || "",
         name:
           bookingDetails.user.fullName ||
@@ -244,10 +252,16 @@ export default function PaymentConfirm() {
           "Customer",
         phone:
           bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
-        currency: bookingDetails.currency, // default Paystack
+        currency: bookingDetails.currency,
         userId: bookingDetails.user.id,
         carId: bookingDetails.carId,
         carName: bookingDetails.carName,
+
+        // These are for logging/metadata only; Stripe/Paystack still use bookingId
+        total, // VAT-inclusive total for reference
+        vat: vatAmount,
+        days: Number(bookingDetails.days),
+
         successUrl,
         cancelUrl,
         metadata: {
@@ -438,35 +452,10 @@ export default function PaymentConfirm() {
                 <h2 className="text-lg font-semibold mb-8">Price Details</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Rental Price (Incl VAT)</span>
+                    <span className="text-gray-600">Total Price</span>
                     <span>
-                      {bookingDetails?.currency}{" "}
-                      {Number(bookingDetails?.total || 0).toFixed(2)}
+                      {bookingDetails?.currency} {total}
                     </span>
-                  </div>
-
-                  {Number(bookingDetails?.discountedPrice || 0) > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>
-                        -{bookingDetails?.currency}{" "}
-                        {Number(bookingDetails?.discountedPrice || 0).toFixed(
-                          2
-                        )}
-                      </span>
-                    </div>
-                  )}
-
-
-                  <div className="flex justify-between">
-                    <div className="border-t w-full border-gray-200 pt-3 mt-3">
-                      <div className="flex justify-between font-semibold text-lg">
-                        <span>Total Price</span>
-                        <span>
-                          {bookingDetails?.currency} {total.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
                   </div>
 
                   <div className="mt-6 space-y-3">

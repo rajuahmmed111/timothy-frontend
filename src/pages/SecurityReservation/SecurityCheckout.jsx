@@ -52,7 +52,7 @@ export default function SecurityCheckout() {
     );
     return diff > 0 ? diff : 1;
   })();
-  const currencyCode = bookingDetails?.currency || "USD";
+  const currencyCode = bookingDetails?.currency ;
   const unitPrice = Number(bookingDetails?.pricePerDay || 0);
   const personnelCount = Number(bookingDetails?.personnelCount || 1);
   const subtotal = unitPrice * days * personnelCount;
