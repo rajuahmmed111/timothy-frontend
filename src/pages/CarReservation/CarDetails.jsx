@@ -19,7 +19,6 @@ export default function CarDetails() {
   const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
-  console.log("queryParams", queryParams);
   const searchTerm = queryParams.get("searchTerm") || "";
   const fromDate = queryParams.get("fromDate") || "";
   const toDate = queryParams.get("toDate") || "";
@@ -83,7 +82,7 @@ export default function CarDetails() {
     location: `${car.carCity}, ${car.carCountry}`,
     image: car.carImages?.[0] || "/car/default-car.png",
 
-    price: `$${car.carPriceDay}`,
+    price: car.carPriceDay,
     currency: car?.displayCurrency || "",
     convertedPrice: car?.convertedPrice || "",
     rating: parseFloat(car.carRating) || 4.5,

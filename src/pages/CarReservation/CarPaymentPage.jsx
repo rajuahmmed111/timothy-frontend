@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-// Import the payment mutations from your API slice
 import {
   useCreateCarPaystackSessionMutation,
   useCreateCarStripeSessionMutation,
@@ -96,9 +95,6 @@ export default function PaymentConfirm() {
   console.log("Booking details of aman", bookingDetails);
   console.log("Booking details of aman2", bookingDetails?.user?.country);
 
-  const carCancelationPolicy = location.state?.carCancelationPolicy;
-  // console.log("carCancelationPolicy", carCancelationPolicy);
-  // console.log("Booking details from car payment page", bookingDetails);
   useEffect(() => {
     if (bookingDetails?.user?.country) {
       const country = bookingDetails.user.country.toLowerCase();
@@ -107,7 +103,7 @@ export default function PaymentConfirm() {
     }
   }, [bookingDetails?.user?.country]);
 
-  // Payment mutations
+  // Payment
   const [createPaystackSession] = useCreateCarPaystackSessionMutation();
   const [createStripeSession] = useCreateCarStripeSessionMutation();
 
@@ -117,78 +113,52 @@ export default function PaymentConfirm() {
       total,
     };
   };
-  console.log("calculateTotal of car payment pagevcxvxzcv", calculateTotal());
-
-  const userInfo = location.state?.userInfo;
-  console.log("userInfo of car payment page", userInfo);
 
   const { total } = calculateTotal();
 
-  // Format date to be more readable
+  // Format date
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const options = { year: "numeric", month: "short", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
-  // Get booking ID from URL params or state
+  // Get booking ID
   const searchParams = new URLSearchParams(location.search);
 
-  // Debug logging for all potential ID sources
-  console.log("Debug - Booking ID sources:", {
-    fromUrl: searchParams.get("bookingId"),
-    fromLocationState: location.state?.createdBookingId,
-    fromBookingDetails: bookingDetails?.id,
-    fullLocationState: location.state,
-    fullBookingDetails: bookingDetails,
-  });
-
-  // Get booking ID from multiple sources with fallback
+  // Get booking ID
   const bookingId = (() => {
-    // Try URL parameters first
     const fromUrl = searchParams.get("bookingId");
     if (fromUrl) return fromUrl;
-
-    // Then try location state
     if (location.state?.createdBookingId) {
       return location.state.createdBookingId;
     }
-
-    // Then try booking details
     if (bookingDetails?.id) {
       return bookingDetails.id.toString();
     }
-
-    // If we have a booking reference in the URL path
     const pathParts = window.location.pathname.split("/");
     const possibleId = pathParts[pathParts.length - 1];
     if (possibleId && possibleId.length > 10) {
-      // Simple validation for ID length
       return possibleId;
     }
-
     return null;
   })();
 
-  console.log("Current booking ID:", bookingId);
-
   const handlePayment = async () => {
-    // Prevent execution if total is not valid
     if (!total || total <= 0) {
       console.log("Payment not processed: Invalid total amount");
       return;
     }
-    // Resolve a robust booking identifier for the payment session
     const currentBookingId =
       bookingId ||
       bookingDetails?.bookingId ||
       location.state?.createdBookingId ||
       bookingDetails?.carId ||
       null;
+    
     if (!bookingDetails?.user?.country) {
       toast.error("Please select a country");
       return;
     }
-
     setIsLoading(true);
     try {
       if (!currentBookingId) {
@@ -200,11 +170,9 @@ export default function PaymentConfirm() {
       }
       const successUrl = `${window.location.origin}/booking-confirmation`;
       const cancelUrl = `${window.location.origin}/car/checkout`;
-      // Use the already retrieved bookingId
 
       // Prepare user information
       const userInfo = bookingDetails.user;
-
       const { total } = calculateTotal();
 
       const bookingConfirmationData = {
@@ -227,16 +195,12 @@ export default function PaymentConfirm() {
         carSeats: bookingDetails.carSeats,
         carCountry: userInfo?.country,
       };
-      console.log("Booking confirmation data:", bookingConfirmationData);
-
-      // Store in session storage as fallback
       sessionStorage.setItem(
         "lastBooking",
         JSON.stringify(bookingConfirmationData)
       );
 
       const paymentData = {
-       
         email: bookingDetails.user.email || "",
         name:
           bookingDetails.user.fullName ||
@@ -257,8 +221,6 @@ export default function PaymentConfirm() {
         },
       };
 
-      console.log("Payment data of car payment", paymentData);
-
       const userCountry = (bookingDetails.user.country || "").toLowerCase();
       const isUserInAfrica = isAfricanCountry(userCountry);
       const selectedMethod = isUserInAfrica ? "paystack" : "stripe";
@@ -276,7 +238,6 @@ export default function PaymentConfirm() {
         if (!checkoutUrl)
           throw new Error("No valid checkout URL found in Paystack response");
 
-        // Store booking data in session storage before redirecting
         sessionStorage.setItem(
           "pendingBooking",
           JSON.stringify({
@@ -287,8 +248,6 @@ export default function PaymentConfirm() {
             cancelUrl,
           })
         );
-
-        // Redirect directly to Paystack checkout
         window.location.href = checkoutUrl;
       } else {
         const result = await createStripeSession(currentBookingId).unwrap();
@@ -299,7 +258,6 @@ export default function PaymentConfirm() {
         if (!checkoutUrl)
           throw new Error("Could not retrieve Stripe checkout URL");
 
-        // Store booking data in session storage before redirecting
         sessionStorage.setItem(
           "pendingBooking",
           JSON.stringify({
@@ -310,8 +268,6 @@ export default function PaymentConfirm() {
             cancelUrl,
           })
         );
-
-        // Redirect directly to Stripe checkout
         window.location.href = checkoutUrl;
       }
     } catch (error) {
@@ -438,7 +394,9 @@ export default function PaymentConfirm() {
                 <h2 className="text-lg font-semibold mb-8">Price Details</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Rental Price (Incl VAT)</span>
+                    <span className="text-gray-600">
+                      Rental Price (Incl VAT)
+                    </span>
                     <span>
                       {bookingDetails?.currency}{" "}
                       {Number(bookingDetails?.total || 0).toFixed(2)}
@@ -456,7 +414,6 @@ export default function PaymentConfirm() {
                       </span>
                     </div>
                   )}
-
 
                   <div className="flex justify-between">
                     <div className="border-t w-full border-gray-200 pt-3 mt-3">
