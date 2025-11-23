@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 // Import the payment mutations from your API slice
 import {
-  useCreateCarPaystackSessionMutation,
-  useCreateCarStripeSessionMutation,
-} from "../../redux/api/car/carApi";
+  useCreateHotelPaystackCheckoutSessionMutation,
+  useCreateHotelStripeCheckoutSessionWebsiteMutation,
+} from "../../redux/api/hotel/hotelApi";
 
 // Helper function to check if a country is in Africa
 const isAfricanCountry = (country) => {
@@ -76,8 +76,10 @@ const isAfricanCountry = (country) => {
 
 import {
   Calendar,
+  CreditCard,
   MapPin,
   Users,
+  Wallet,
   ShieldCheck,
   ArrowLeft,
   Phone,
@@ -88,16 +90,11 @@ export default function PaymentConfirm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("stripe");
-  const bookingDetails =
-    location.state?.bookingDetails ||
-    location.state?.bookingData ||
-    location.state?.data ||
-    null;
-  console.log("Booking details of aman", bookingDetails);
+  const bookingDetails = location.state?.data;
+  const hotelData = bookingDetails?.data || bookingDetails || {};
+  console.log("Booking details:", bookingDetails);
 
-  const carCancelationPolicy = location.state?.carCancelationPolicy;
-  // console.log("carCancelationPolicy", carCancelationPolicy);
-  // console.log("Booking details from car payment page", bookingDetails);
+  // Set payment method based on country when component mounts or country changes
   useEffect(() => {
     if (bookingDetails?.user?.country) {
       const country = bookingDetails.user.country.toLowerCase();
@@ -107,34 +104,42 @@ export default function PaymentConfirm() {
   }, [bookingDetails?.user?.country]);
 
   // Payment mutations
-  const [createPaystackSession] = useCreateCarPaystackSessionMutation();
-  const [createStripeSession] = useCreateCarStripeSessionMutation();
+  const [createPaystackSession] =
+    useCreateHotelPaystackCheckoutSessionMutation();
+  const [createStripeSession] =
+    useCreateHotelStripeCheckoutSessionWebsiteMutation();
 
-  // Derive base amount and VAT so UI clearly shows tax breakdown
-  const days = useMemo(
-    () => Number(bookingDetails?.days || 1),
-    [bookingDetails]
-  );
+  const calculateTotal = () => {
+    const parsedSubtotal = Number(
+      bookingDetails?.subtotal ?? hotelData?.subtotal ?? 0
+    );
+    const discount = Number(
+      bookingDetails?.discountedPrice ?? hotelData?.discountedPrice ?? 0
+    );
+    const vatRate = Number(bookingDetails?.vat ?? hotelData?.vat ?? 12) || 12;
+    const baseVatAmount = parsedSubtotal * (vatRate / 100);
+    const vatAmount =
+      Number(bookingDetails?.vatAmount ?? hotelData?.vatAmount ?? 0) ||
+      baseVatAmount;
+    const serviceFee = Number(
+      bookingDetails?.serviceFee ?? hotelData?.serviceFee ?? 0
+    );
+    const fallbackTotal = parsedSubtotal + vatAmount - discount + serviceFee;
+    const total =
+      Number(bookingDetails?.total ?? hotelData?.total ?? 0) || fallbackTotal;
 
-  const unitPrice = useMemo(
-    () => Number(bookingDetails?.unitPrice || 0),
-    [bookingDetails]
-  );
+    return {
+      subtotal: parsedSubtotal,
+      discount,
+      vatRate,
+      vatAmount,
+      serviceFee,
+      total,
+    };
+  };
 
-  const baseTotal = useMemo(() => unitPrice * days, [unitPrice, days]);
-
-  const vatAmount = useMemo(
-    () => Number((baseTotal * 0.05).toFixed(2)),
-    [baseTotal]
-  );
-
-  const total = useMemo(
-    () => Number((baseTotal + vatAmount).toFixed(2)),
-    [baseTotal, vatAmount]
-  );
-
-  const userInfo = location.state?.userInfo;
-  console.log("userInfo of car payment page", userInfo);
+  const { subtotal, discount, vatRate, vatAmount, serviceFee, total } =
+    calculateTotal();
 
   // Format date to be more readable
   const formatDate = (dateString) => {
@@ -184,18 +189,13 @@ export default function PaymentConfirm() {
   console.log("Current booking ID:", bookingId);
 
   const handlePayment = async () => {
+    // Prevent execution if total is not valid
     if (!total || total <= 0) {
       console.log("Payment not processed: Invalid total amount");
       return;
     }
-
-    // Resolve a robust booking identifier for the payment session
-    const currentBookingId =
-      bookingId ||
-      bookingDetails?.bookingId ||
-      location.state?.createdBookingId ||
-      bookingDetails?.carId ||
-      null;
+    // Use the already retrieved bookingId
+    const currentBookingId = bookingId;
     if (!bookingDetails?.user?.country) {
       toast.error("Please select a country");
       return;
@@ -211,7 +211,7 @@ export default function PaymentConfirm() {
         return;
       }
       const successUrl = `${window.location.origin}/booking-confirmation`;
-      const cancelUrl = `${window.location.origin}/booking-cancellation`;
+      const cancelUrl = `${window.location.origin}/hotel/checkout`;
       // Use the already retrieved bookingId
 
       // Prepare user information
@@ -219,32 +219,31 @@ export default function PaymentConfirm() {
 
       const bookingConfirmationData = {
         bookingId: currentBookingId,
-        carName: bookingDetails.carName,
-        pickupDate: bookingDetails.pickupDate,
-        returnDate: bookingDetails.returnDate,
+        hotelName: bookingDetails.hotelName,
+        checkIn: bookingDetails.checkIn,
+        checkOut: bookingDetails.checkOut,
         guests: bookingDetails.guests || 1,
-        total, // VAT-inclusive total used for confirmation display
+        total,
         roomType: bookingDetails.roomType,
         location: bookingDetails.location,
+        rooms: bookingDetails.rooms,
         adults: bookingDetails.adults,
         children: bookingDetails.children,
         isRefundable: bookingDetails.isRefundable,
         cancelationPolicy: bookingDetails.cancelationPolicy,
         vat: bookingDetails.vat,
-        days: bookingDetails.days,
+        nights: bookingDetails.nights,
         user: userInfo,
-        carCancelationPolicy: bookingDetails.carCancelationPolicy,
-        carSeats: bookingDetails.carSeats,
-        carCountry: userInfo?.country,
       };
-      console.log("Booking confirmation data:", bookingConfirmationData);
 
       // Store in session storage as fallback
       sessionStorage.setItem(
         "lastBooking",
         JSON.stringify(bookingConfirmationData)
       );
+
       const paymentData = {
+        amount: Math.round(total * 100), // smallest currency unit
         email: bookingDetails.user.email || "",
         name:
           bookingDetails.user.fullName ||
@@ -252,34 +251,33 @@ export default function PaymentConfirm() {
           "Customer",
         phone:
           bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
-        currency: bookingDetails.currency,
+        currency: "NGN", // default Paystack
+        hotelId: bookingDetails.hotelId,
+        roomId: bookingDetails.roomId,
         userId: bookingDetails.user.id,
-        carId: bookingDetails.carId,
-        carName: bookingDetails.carName,
-
-        // These are for logging/metadata only; Stripe/Paystack still use bookingId
-        total, // VAT-inclusive total for reference
-        vat: vatAmount,
-        days: Number(bookingDetails.days),
-
         successUrl,
         cancelUrl,
         metadata: {
           bookingId: currentBookingId,
-          carId: bookingDetails.carId,
+          hotelId: bookingDetails.hotelId,
+          roomId: bookingDetails.roomId,
           userId: bookingDetails.user.id,
         },
       };
 
-      console.log("Payment data of car payment", paymentData);
-
       const userCountry = (bookingDetails.user.country || "").toLowerCase();
       const isUserInAfrica = isAfricanCountry(userCountry);
-      const selectedMethod = isUserInAfrica ? "paystack" : "stripe";
-      setPaymentMethod(selectedMethod);
 
-      if (selectedMethod === "paystack") {
-        const response = await createPaystackSession(currentBookingId).unwrap();
+      if (paymentMethod === "paystack" && isUserInAfrica) {
+        console.log("Processing Paystack payment for:", userCountry);
+        const response = await createPaystackSession({
+          bookingId: currentBookingId,
+          body: {
+            ...paymentData,
+            callback_url: successUrl,
+            metadata: paymentData.metadata,
+          },
+        }).unwrap();
 
         const checkoutUrl =
           response?.data?.checkoutUrl ||
@@ -305,7 +303,39 @@ export default function PaymentConfirm() {
         // Redirect directly to Paystack checkout
         window.location.href = checkoutUrl;
       } else {
-        const result = await createStripeSession(currentBookingId).unwrap();
+        console.log("Processing Stripe payment for:", userCountry);
+        paymentData.currency = "USD";
+
+        const result = await createStripeSession({
+          bookingId: currentBookingId,
+          body: {
+            ...paymentData,
+            line_items: [
+              {
+                price_data: {
+                  currency: "usd",
+                  product_data: {
+                    name: `Hotel Booking - ${
+                      bookingDetails.hotelName || "Hotel"
+                    }`,
+                    description: `Room Type: ${
+                      bookingDetails.roomType || "Standard"
+                    }`,
+                  },
+                  unit_amount: Math.round(total * 100),
+                },
+                quantity: 1,
+              },
+            ],
+            mode: "payment",
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            billing_address_collection: "required",
+            submit_type: "pay",
+            allow_promotion_codes: true,
+            metadata: paymentData.metadata,
+          },
+        }).unwrap();
 
         const checkoutUrl =
           result?.data?.checkoutUrl || result?.data?.url || result?.url;
@@ -342,132 +372,177 @@ export default function PaymentConfirm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50  py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-6xl mx-auto">
+        {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-xl text-[#000] font-bold my-5"
+          className="flex items-center text-gray-700 hover:text-gray-900 mb-8"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Booking Details
+          <span className="text-lg font-semibold">Back to Booking</span>
         </button>
 
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="p-6 md:flex gap-8">
-            {/* Left Column - Booking Details */}
-            <div className="md:w-2/3 space-y-6">
-              <div className="pb-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-medium">
-                      Car Model: {bookingDetails?.carName || "N/A"}
-                    </h3>
-                    <div className="flex items-center text-gray-600 mt-1">
-                      <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <p className="text-sm">
-                        Location: {bookingDetails?.location || "N/A"}
+        {/* Main Card */}
+        <div className="bg-white rounded-xl shadow-md">
+          <h1 className="text-center text-2xl font-bold py-6 border-b">
+            Booking Details
+          </h1>
+
+          <div className="p-6 md:flex gap-10">
+            {/* LEFT COLUMN */}
+            <div className="md:w-2/3 space-y-8">
+              {/* Hotel Info */}
+              <div className="bg-gray-50 p-5 rounded-lg ">
+                <h3 className="text-xl font-semibold mb-2">
+                  {bookingDetails?.hotelName || hotelData?.name}
+                </h3>
+                <div className="flex items-center text-gray-600">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  <span>{bookingDetails?.location}</span>
+                </div>
+              </div>
+
+              {/* Booking Grid */}
+              <div className="grid sm:grid-cols-2 gap-6">
+                {/* Date Card */}
+                <div className="bg-white  rounded-lg p-4 shadow-sm space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Check-in</p>
+                      <p className="font-medium">
+                        {formatDate(hotelData.bookedFromDate) ||
+                          "Not specified"}
                       </p>
                     </div>
                   </div>
 
-                  <div className="space-y-5 flex  gap-20">
-                    <div className="shadow-sm p-4 border border-gray-200 h-[240px] w-[300px] rounded-lg">
-                      <div className="flex gap-2 items-center">
-                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-gray-500">Pickup Date</p>
-                          <p>
-                            {formatDate(bookingDetails.pickupDate) ||
-                              "Not specified"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex mt-2 gap-2 items-center">
-                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-gray-500">Return Date</p>
-                          <p>
-                            {formatDate(bookingDetails.returnDate) ||
-                              "Not specified"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex mt-2 gap-2 items-center">
-                        <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-gray-500">Days</p>
-                          <p>
-                            {bookingDetails.days || "1"} day
-                            {bookingDetails.days !== 1 ? "s" : ""}
-                          </p>
-                        </div>
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Check-out</p>
+                      <p className="font-medium">
+                        {formatDate(hotelData.bookedToDate) || "Not specified"}
+                      </p>
                     </div>
-                    <div className="shadow-sm p-4 border border-gray-200 h-[240px] w-[300px] rounded-lg">
-                      <div className="flex gap-2 items-center">
-                        <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-gray-500">Seats</p>
-                          <p>{bookingDetails?.carSeats || "N/A"}</p>
-                        </div>
-                      </div>
-                      <div className="flex mt-2 gap-2 items-center">
-                        <ShieldCheck className="w-5 h-5 text-gray-500 mr-2" />
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Booking Condition
-                          </p>
-                          <p
-                            className={
-                              bookingDetails?.carCancelationPolicy
-                                ? "text-green-600"
-                                : "text-red-600"
-                            }
-                          >
-                            {bookingDetails?.carCancelationPolicy
-                              ? "Refundable"
-                              : "Non Refundable "}
-                          </p>
-                          <span className="text-md">
-                            {bookingDetails?.carCancelationPolicy || ""}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex mt-2 gap-2 items-center">
-                        <Phone className="w-5 h-5 text-gray-500 mr-2" />
-                        <div>
-                          <p className="text-sm text-gray-500">Country: </p>
-                          <p>{bookingDetails?.user?.country}</p>
-                        </div>
-                      </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Nights</p>
+                      <p className="font-medium">
+                        {bookingDetails.nights} night
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Guest/Card */}
+                <div className="bg-white  rounded-lg p-4 shadow-sm space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Guests</p>
+                      <p className="font-medium">
+                        {hotelData.adults || 1} Adult
+                        {hotelData.adults > 1 ? "s" : ""}
+                        {hotelData.children
+                          ? `, ${hotelData.children} ${
+                              hotelData.children > 1 ? "Children" : "Child"
+                            }`
+                          : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck className="w-5 h-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Booking Policy</p>
+                      <p
+                        className={`font-semibold ${
+                          bookingDetails?.isRefundable ||
+                          hotelData?.isRefundable
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {bookingDetails?.isRefundable || hotelData?.isRefundable
+                          ? "Refundable"
+                          : "Non-Refundable"}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {bookingDetails?.cancelationPolicy ||
+                          hotelData?.cancelationPolicy ||
+                          "Non-refundable booking."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-5 h-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Country</p>
+                      <p className="font-medium">
+                        {bookingDetails?.user?.country || "Not provided"}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Column - Price Summary */}
+            {/* RIGHT COLUMN - PRICE */}
             <div className="md:w-1/3 mt-10 md:mt-0">
-              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 sticky top-6">
-                <h2 className="text-lg font-semibold mb-8">Price Details</h2>
-                <div className="space-y-3">
+              <div className="bg-white p-6  rounded-lg shadow-sm sticky top-6">
+                <h2 className="text-xl font-semibold mb-5">Price Summary</h2>
+
+                <div className="space-y-3 text-gray-700">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Total Price</span>
+                    <span>Room Price (Incl. VAT)</span>
                     <span>
-                      {bookingDetails?.currency} {total}
+                      {hotelData.displayCurrency} {total.toFixed(2)}
                     </span>
                   </div>
 
-                  <div className="mt-6 space-y-3">
-                    <button
-                      onClick={handlePayment}
-                      disabled={isLoading}
-                      className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center disabled:opacity-70"
-                    >
-                      {isLoading ? "Processing..." : "Continue"}
-                    </button>
+                  {/* {discount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount</span>
+                      <span>
+                        -{hotelData.displayCurrency} {discount.toFixed(2)}
+                      </span>
+                    </div>
+                  )} */}
+
+                  {serviceFee > 0 && (
+                    <div className="flex justify-between">
+                      <span>Service Fee</span>
+                      <span>
+                        {hotelData.displayCurrency} {serviceFee.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Divider */}
+                  <div className="border-t pt-3 mt-3">
+                    <div className="flex justify-between text-lg font-semibold">
+                      <span>Total</span>
+                      <span>
+                        {hotelData.displayCurrency} {total.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
+
+                <button
+                  onClick={handlePayment}
+                  disabled={isLoading}
+                  className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-60"
+                >
+                  {isLoading ? "Processing..." : "Confirm & Pay"}
+                </button>
               </div>
             </div>
           </div>
