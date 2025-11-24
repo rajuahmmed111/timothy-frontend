@@ -4,7 +4,7 @@ import { useRegisterUserMutation } from "../../redux/services/authApi";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 
-export default function SignUp() {
+export default function ServiceProviderSignup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -15,6 +15,7 @@ export default function SignUp() {
     email: "",
     password: "",
     country: "",
+    serviceType: "",
   });
 
   const [rememberMe, setRememberMe] = useState(false);
@@ -30,12 +31,20 @@ export default function SignUp() {
     e.preventDefault();
 
     try {
+      const serviceFlags = {
+        isHotel: form.serviceType === "hotel",
+        isSecurity: form.serviceType === "security",
+        isCar: form.serviceType === "car",
+        isAttraction: form.serviceType === "attraction",
+      };
+
       const body = {
         fullName: form.fullName,
         email: form.email,
         password: form.password,
-        role: form.role || "USER",
+        role: "BUSINESS_PARTNER",
         country: form.country,
+        ...serviceFlags,
       };
 
       const res = await registerUser(body).unwrap();
@@ -66,7 +75,7 @@ export default function SignUp() {
         <div className="flex justify-center items-center">
           <div className="w-full lg:w-1/2 bg-white p-5 md:px-18 md:py-28 shadow-[0px_10px_30px_rgba(0,0,0,0.1)] rounded-2xl">
             <h2 className="text-[#0D0D0D] text-2xl font-bold text-center mb-5">
-              Create your account
+              Create your business account
             </h2>
             <p className="text-[#6A6D76] text-center mb-10">
               Fill in the details to sign up.
@@ -104,6 +113,25 @@ export default function SignUp() {
                   required
                 />
               </div>
+              {/* Service Type */}
+              <div className="w-full">
+                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
+                  Service Type
+                </label>
+                <select
+                  name="serviceType"
+                  value={form.serviceType}
+                  onChange={handleChange}
+                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
+                  required
+                >
+                  <option value="">Select service type</option>
+                  <option value="hotel">Hotel</option>
+                  <option value="security">Security</option>
+                  <option value="car">Car Rental</option>
+                  <option value="attraction">Attraction</option>
+                </select>
+              </div>
 
               {/* Password */}
               <div className="w-full">
@@ -120,8 +148,6 @@ export default function SignUp() {
                   required
                 />
               </div>
-
-             
 
               {/* Country */}
               <div className="w-full">

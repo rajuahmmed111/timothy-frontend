@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
-    <footer className="relative bg-[#BCBCBC] text-white relative overflow-hidden">
+    <footer className="relative bg-[#BCBCBC] text-white  overflow-hidden">
       <div className="container mx-auto px-6 pt-12">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-5">
           {/* Company Section */}
@@ -18,7 +18,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/dashboard/hotel-management"
+                  to="/service-provider/sign-up"
                   className="text-[#090909] font-semibold"
                 >
                   Partnerships
@@ -30,7 +30,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-[#090909] font-semibold">
+                <Link to="/dashboard" className="text-[#090909] font-semibold">
                   List Your Property
                 </Link>
               </li>
