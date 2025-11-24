@@ -4,6 +4,8 @@ import { useRegisterUserMutation } from "../../redux/services/authApi";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 
+import { countries } from "../../components/country";
+
 export default function ServiceProviderSignup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ export default function ServiceProviderSignup() {
 
   const [rememberMe, setRememberMe] = useState(false);
 
-  // 🌍 Providers for auto-detect country
+  // Auto-detect providers
   const providers = [
     {
       name: "ipapi.co",
@@ -39,38 +41,9 @@ export default function ServiceProviderSignup() {
     },
   ];
 
-  // 🌍 Auto detect country with fallback
+  // Auto detect country
   useEffect(() => {
     const detectCountry = async () => {
-      const availableCountries = [
-        "US",
-        "GB",
-        "CA",
-        "AU",
-        "BD",
-        "IN",
-        "PK",
-        "DE",
-        "FR",
-        "JP",
-        "CN",
-        "BR",
-        "MX",
-        "IT",
-        "ES",
-        "NL",
-        "SG",
-        "MY",
-        "TH",
-        "KR",
-        "RU",
-        "ZA",
-        "EG",
-        "NG",
-        "KE",
-        "GH",
-      ];
-
       for (const provider of providers) {
         try {
           const res = await fetch(provider.url);
@@ -79,30 +52,22 @@ export default function ServiceProviderSignup() {
           const json = await res.json();
           const { iso } = provider.parse(json);
 
-          if (iso && availableCountries.includes(iso)) {
+          if (iso) {
             setForm((prev) => ({ ...prev, country: iso }));
             break;
-          } else if (iso) {
-            // If detected country is not in our list, set to "Other"
-            setForm((prev) => ({ ...prev, country: "Other" }));
-            break;
           }
-        } catch (err) {
-          continue;
-        }
+        } catch {}
       }
     };
 
     detectCountry();
   }, []);
 
-  // Handle Change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Submit Form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -200,21 +165,7 @@ export default function ServiceProviderSignup() {
                 </select>
               </div>
 
-              {/* Password */}
-              <div className="w-full">
-                <label className="text-xl font-bold">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="**********"
-                  className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
-                  required
-                />
-              </div>
-
-              {/* Country Dropdown (AUTO DETECTED) */}
+              {/* Country Dropdown - FULL LIST */}
               <div className="w-full">
                 <label className="text-xl font-bold">Country</label>
                 <select
@@ -225,33 +176,11 @@ export default function ServiceProviderSignup() {
                   required
                 >
                   <option value="">Select your country</option>
-                  <option value="US">United States</option>
-                  <option value="GB">United Kingdom</option>
-                  <option value="CA">Canada</option>
-                  <option value="AU">Australia</option>
-                  <option value="BD">Bangladesh</option>
-                  <option value="IN">India</option>
-                  <option value="PK">Pakistan</option>
-                  <option value="DE">Germany</option>
-                  <option value="FR">France</option>
-                  <option value="JP">Japan</option>
-                  <option value="CN">China</option>
-                  <option value="BR">Brazil</option>
-                  <option value="MX">Mexico</option>
-                  <option value="IT">Italy</option>
-                  <option value="ES">Spain</option>
-                  <option value="NL">Netherlands</option>
-                  <option value="SG">Singapore</option>
-                  <option value="MY">Malaysia</option>
-                  <option value="TH">Thailand</option>
-                  <option value="KR">South Korea</option>
-                  <option value="RU">Russia</option>
-                  <option value="ZA">South Africa</option>
-                  <option value="EG">Egypt</option>
-                  <option value="NG">Nigeria</option>
-                  <option value="KE">Kenya</option>
-                  <option value="GH">Ghana</option>
-                  <option value="Other">Other</option>
+                  {countries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
