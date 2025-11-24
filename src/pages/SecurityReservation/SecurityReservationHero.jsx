@@ -112,6 +112,7 @@ export default function SecurityReservationHero() {
                   </option>
                   <option value="Event Security">Event Security</option>
                   <option value="Escort">Escort</option>
+                  <option value="vip">Vip Protection</option>
                 </select>
               </div>
             </div>

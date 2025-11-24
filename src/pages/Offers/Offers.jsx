@@ -140,52 +140,7 @@ const Offers = () => {
           </p>
         </div>
 
-        {/* Hotel Offers Section */}
-        <section className="mb-16">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Hotel Deals</h2>
-            {/* <Link to="/hotel-reservation" className="text-blue-600 hover:text-blue-800 font-medium">
-              View All Hotel Offers →
-            </Link> */}
-          </div>
-
-          {hotelLoading ? (
-            <div className="text-center py-8">Loading hotel deals...</div>
-          ) : hotelError ? (
-            <div className="text-center py-8 text-red-500">
-              Failed to load hotel deals
-            </div>
-          ) : hotelOffers.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No hotel deals available at the moment
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {hotelOffers.map((room) => (
-                <div key={room.id} className="relative">
-                  <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md z-10">
-                    {room.discountPercentage}% OFF
-                  </div>
-                  <HotelCard
-                    hotel={{
-                      id: room.id,
-                      name: room.hotelName,
-                      location: `${room.hotelAddress}, ${room.hotelCity}`,
-                      price: room.discountedPrice,
-                      originalPrice: room.originalPrice,
-                      rating: room.hotelRating,
-                      image: room.hotelImages?.[0] || room.hotelImages?.[0],
-                      roomType: room.hotelRoomType,
-                      displayCurrency: room.displayCurrency,
-                      currencySymbol: room.currencySymbol,
-                      reviewCount: room.hotelReviewCount,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+      
 
         {/* Security Service Offers Section */}
         <section className="mb-16">
