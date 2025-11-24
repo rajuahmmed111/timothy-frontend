@@ -8,6 +8,7 @@ export const contactUsApi = baseApi.injectEndpoints({
                 method: "POST",
                 body,
             }),
+            
         }),
     }),
 })
