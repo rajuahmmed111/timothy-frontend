@@ -14,9 +14,9 @@ import {
   ChevronRight,
   ExternalLink,
 } from "lucide-react";
-import img1 from "/burj.png";
 import { useGetAttractionAppealByIdQuery } from "../../redux/api/attraction/attractionApi";
 import ImageGallery from "./ImageGallery";
+import Loader from "../../shared/Loader/Loader";
 
 export default function EventReservationPage() {
   const navigate = useNavigate();
@@ -30,8 +30,6 @@ export default function EventReservationPage() {
 
   const displayCurrency = a?.displayCurrency;
   const adultPrice = a?.convertedAdultPrice ?? a?.attractionAdultPrice ?? 0;
-
-  // ---------- Location & Map Helpers ----------
   const attractionAddressParts = [
     a?.attractionAddress,
     a?.attractionCity,
@@ -40,6 +38,9 @@ export default function EventReservationPage() {
   const fullAddress = attractionAddressParts.join(", ");
   const encodedQuery = encodeURIComponent(fullAddress || "");
   const displayRating = Number(a?.attractionRating) || 0;
+  const reviewCount = Number(
+    a?.attractionReviewCount ?? a?.totalReviews ?? a?.reviewCount ?? a?.reviewsCount ?? 0
+  );
 
   const openFullMap = () => {
     if (fullAddress) {
@@ -61,8 +62,6 @@ export default function EventReservationPage() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-
-  // ---------- Calendar Generation ----------
   const generateCalendar = () => {
     const firstDay = new Date(currentYear, currentMonth, 1);
     const startDate = new Date(firstDay);
@@ -131,7 +130,6 @@ export default function EventReservationPage() {
       children: childCount,
       unitPrice,
       total,
-      // send both adult and child prices forward
       convertedAdultPrice: a?.convertedAdultPrice ?? unitPrice,
       convertedChildPrice: a?.convertedChildPrice ?? childPrice,
       displayCurrency,
@@ -153,7 +151,6 @@ export default function EventReservationPage() {
     }
   };
 
-  // ---------- Selected weekday (derived from selected date) ----------
   const selectedWeekday = useMemo(() => {
     if (!selectedDate) return "";
     try {
@@ -165,7 +162,6 @@ export default function EventReservationPage() {
     }
   }, [selectedDate]);
 
-  // ---------- Update available slots when selected date changes ----------
   useEffect(() => {
     if (!selectedDate || !a?.attractionSchedule) return;
     const weekday = new Date(selectedDate).toLocaleDateString("en-US", {
@@ -178,22 +174,6 @@ export default function EventReservationPage() {
     setAvailableSlots(daySchedule?.slots || []);
   }, [selectedDate, a]);
 
-  // ---------- Days available from schedule ----------
-  const scheduleDays = useMemo(() => {
-    const days = (a?.attractionSchedule || [])
-      .map((s) => s?.day)
-      .filter(Boolean);
-    return [...new Set(days)];
-  }, [a]);
-
-  // ---------- Default Images ----------
-  const images = useMemo(() => {
-    const arr = a?.attractionImages || [];
-    if (arr.length > 0) return arr;
-    return [img1, img1, img1];
-  }, [a]);
-
-  // ---------- Amenities ----------
   const amenities = useMemo(
     () => [
       {
@@ -221,18 +201,7 @@ export default function EventReservationPage() {
   );
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen container mx-auto px-5 md:px-0 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl shadow p-6 animate-pulse h-48"
-            ></div>
-          ))}
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error || !a) {
@@ -242,8 +211,6 @@ export default function EventReservationPage() {
       </div>
     );
   }
-
-  // ---------- UI ----------
   return (
     <div className="min-h-screen container mx-auto px-5 md:px-0 py-10">
       {/* Header */}
@@ -253,35 +220,28 @@ export default function EventReservationPage() {
             <h1 className="text-3xl font-bold mb-2">
               {a?.attractionDestinationType}
             </h1>
-            <p className="text-gray-600">{a?.attractionDescription}</p>
           </div>
-          {/* <button
-            onClick={() => navigate(`/attraction-details?appealId=${appealId}`)}
-            disabled={!appealId}
-            className={`px-4 py-2 rounded-lg font-medium border ${
-              !appealId
-                ? "opacity-60 cursor-not-allowed"
-                : "bg-[#0064D2] text-white border-[#0064D2] hover:bg-blue-700"
-            }`}
-          >
-            View Attraction Details
-          </button> */}
+        </div>
+        <div className="flex items-center gap-1">
+          <MapPin className="h-4 w-4 text-gray-600" />
+          <span className="text-gray-600">
+            {a?.attractionCity}, {a?.attractionCountry}
+          </span>
         </div>
 
-        <div className="flex items-center gap-4 mt-2">
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-current text-yellow-500" />
-            <span className="font-medium">{a?.attractionRating}</span>
-            <span className="text-gray-600">
-              ({a?.attractionReviewCount} reviews)
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4 text-gray-600" />
-            <span className="text-gray-600">
-              {a?.attractionCity}, {a?.attractionCountry}
-            </span>
-          </div>
+        <div className="flex items-center mt-3 gap-2">
+          <span className="text-xl font-normal ">Average Rating : </span>
+          {[1, 2, 3, 4, 5].map((s, i) => (
+            <Star
+              key={s}
+              className={`w-5 h-5 ${
+                i < Math.round(displayRating)
+                  ? "fill-yellow-400 text-yellow-400"
+                  : "text-gray-300"
+              }`}
+            />
+          ))}
+          <span className="text-sm text-gray-700">{displayRating.toFixed(1)}</span>
         </div>
       </div>
 
@@ -316,7 +276,28 @@ export default function EventReservationPage() {
           </div>
           <div>
             <h2 className="text-xl font-semibold mb-3">Booking Policy</h2>
-            <p className="text-red-600 leading-relaxed">{cancelationPolicy}</p>
+            <p className="text-black text-lg leading-relaxed">{cancelationPolicy}</p>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="text-xl font-semibold">Guest Reviews</h2>
+              <span className="inline-flex items-center rounded-full bg-green-100 text-green-800 px-3 py-1 text-sm font-medium">
+                Rating {displayRating.toFixed(1)} · {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((s, i) => (
+                <Star
+                  key={s}
+                  className={`w-5 h-5 ${
+                    i < Math.round(displayRating)
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-gray-300"
+                  }`}
+                />
+              ))}
+              <span className="text-sm text-gray-600">({displayRating.toFixed(1)})</span>
+            </div>
           </div>
         </div>
 
@@ -535,7 +516,7 @@ export default function EventReservationPage() {
                         className={`px-3 py-2 text-sm rounded-lg border transition-all ${
                           selectedTime === `${slot.from} - ${slot.to}`
                             ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white hover:bg-gray-50 border-gray-200"
+                            : "bg-white border-gray-200"
                         }`}
                       >
                         {slot.from} - {slot.to}
@@ -631,10 +612,7 @@ export default function EventReservationPage() {
                     ).toFixed(2)}
                   </span>
                 </div>
-                {/* <div className="flex justify-between text-sm">
-                  <span>Service fee</span>
-                  <span>$50</span>
-                </div> */}
+               
                 <div className="border-t border-gray-200 my-2"></div>
                 <div className="flex justify-between font-medium text-lg">
                   <span>Total</span>
@@ -661,7 +639,7 @@ export default function EventReservationPage() {
                     : "hover:bg-blue-700"
                 }`}
               >
-                Continue
+                Reserve
               </button>
             </div>
           </div>

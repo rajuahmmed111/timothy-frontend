@@ -4,9 +4,7 @@ import { useSelector } from "react-redux";
 import { useGetMyProfileQuery } from "../../redux/services/authApi";
 
 import {
-  Lock,
   MessageSquare,
-  CreditCard,
   List,
   Pin,
   Mail,
@@ -27,6 +25,8 @@ export default function Sidebar() {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const user = useSelector((s) => s?.auth?.user);
+console.log( "user from sidebar", user)
   // Payment dropdown
   const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
   const [stripeStatus, setStripeStatus] = useState(null);
@@ -189,46 +189,61 @@ export default function Sidebar() {
           </Section>
         )}
 
+        
+
+        
+
         {/* BUSINESS PARTNER Dashboard */}
         {role === "BUSINESS_PARTNER" && (
           <Section
-            isActive={isSectionActive(location.pathname, [
-              "/dashboard/hotel-management",
-              "/dashboard/security-management",
-              "/dashboard/car-management",
-              "/dashboard/attraction-management",
-            ])}
+            isActive={isSectionActive(
+              location.pathname,
+              [
+                user?.isHotel && "/dashboard/hotel-management",
+                user?.isSecurity && "/dashboard/security-management",
+                user?.isCar && "/dashboard/car-management",
+                user?.isAttraction && "/dashboard/attraction-management",
+              ].filter(Boolean)
+            )}
           >
-            <SidebarButton
-              to="/dashboard/hotel-management"
-              icon={<List size={18} />}
-              text="Hotel Management"
-              onClick={isMobile ? toggleSidebar : undefined}
-            />
-
-            <SidebarButton
-              to="/dashboard/security-management"
-              icon={<Package size={18} />}
-              text="Security Management"
-              onClick={isMobile ? toggleSidebar : undefined}
-            />
-
-            <SidebarButton
-              to="/dashboard/car-management"
-              icon={<Pin size={18} />}
-              text="Car Management"
-              onClick={isMobile ? toggleSidebar : undefined}
-            />
-
-            {/* Attraction + Payment Dropdown */}
-            <div className="relative">
+            {user?.isHotel && (
               <SidebarButton
-                to="/dashboard/attraction-management"
-                icon={<Mail size={18} />}
-                text="Attraction Management"
+                to="/dashboard/hotel-management"
+                icon={<List size={18} />}
+                text="Hotel Management"
                 onClick={isMobile ? toggleSidebar : undefined}
               />
-            </div>
+            )}
+
+            {user?.isSecurity && (
+              <SidebarButton
+                to="/dashboard/security-management"
+                icon={<Package size={18} />}
+                text="Security Management"
+                onClick={isMobile ? toggleSidebar : undefined}
+              />
+            )}
+
+            {user?.isCar && (
+              <SidebarButton
+                to="/dashboard/car-management"
+                icon={<Pin size={18} />}
+                text="Car Management"
+                onClick={isMobile ? toggleSidebar : undefined}
+              />
+            )}
+
+            {/* Attraction + Payment Dropdown */}
+            {user?.isAttraction && (
+              <div className="relative">
+                <SidebarButton
+                  to="/dashboard/attraction-management"
+                  icon={<Mail size={18} />}
+                  text="Attraction Management"
+                  onClick={isMobile ? toggleSidebar : undefined}
+                />
+              </div>
+            )}
 
             <div>
               {/* Dropdown toggle */}
