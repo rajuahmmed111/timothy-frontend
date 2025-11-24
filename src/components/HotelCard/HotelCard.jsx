@@ -3,7 +3,6 @@ import { Star, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function HotelCard({ hotel }) {
-
   const hotelImage =
     hotel?.hotelImages?.[0] ||
     hotel?.raw?.hotelImages?.[0] ||

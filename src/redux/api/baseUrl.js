@@ -23,5 +23,6 @@ export const baseApi = createApi({
     "voucher",
     "payment",
     "User",
+    "Con"
   ],
 });

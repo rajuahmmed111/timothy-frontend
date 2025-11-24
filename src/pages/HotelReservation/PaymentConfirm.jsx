@@ -211,7 +211,7 @@ export default function PaymentConfirm() {
         return;
       }
       const successUrl = `${window.location.origin}/booking-confirmation`;
-      const cancelUrl = `${window.location.origin}/booking-cancellation`;
+      const cancelUrl = `${window.location.origin}/hotel/checkout`;
       // Use the already retrieved bookingId
 
       // Prepare user information
@@ -399,11 +399,7 @@ export default function PaymentConfirm() {
                 </h3>
                 <div className="flex items-center text-gray-600">
                   <MapPin className="w-5 h-5 mr-2" />
-                  <span>
-                    {hotelData?.location ||
-                      hotelData?.address ||
-                      "Not available"}
-                  </span>
+                  <span>{bookingDetails?.location}</span>
                 </div>
               </div>
 
@@ -437,8 +433,7 @@ export default function PaymentConfirm() {
                     <div>
                       <p className="text-sm text-gray-500">Nights</p>
                       <p className="font-medium">
-                        {hotelData.nights || 1} night
-                        {hotelData.nights > 1 ? "s" : ""}
+                        {bookingDetails.nights} night
                       </p>
                     </div>
                   </div>
@@ -468,17 +463,20 @@ export default function PaymentConfirm() {
                       <p className="text-sm text-gray-500">Booking Policy</p>
                       <p
                         className={`font-semibold ${
-                          bookingDetails?.cancelationPolicy
+                          bookingDetails?.isRefundable ||
+                          hotelData?.isRefundable
                             ? "text-green-600"
                             : "text-red-600"
                         }`}
                       >
-                        {bookingDetails?.cancelationPolicy
+                        {bookingDetails?.isRefundable || hotelData?.isRefundable
                           ? "Refundable"
                           : "Non-Refundable"}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {bookingDetails.cancelationPolicy}
+                        {bookingDetails?.cancelationPolicy ||
+                          hotelData?.cancelationPolicy ||
+                          "Non-refundable booking."}
                       </p>
                     </div>
                   </div>
@@ -509,14 +507,14 @@ export default function PaymentConfirm() {
                     </span>
                   </div>
 
-                  {discount > 0 && (
+                  {/* {discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
                       <span>
                         -{hotelData.displayCurrency} {discount.toFixed(2)}
                       </span>
                     </div>
-                  )}
+                  )} */}
 
                   {serviceFee > 0 && (
                     <div className="flex justify-between">
