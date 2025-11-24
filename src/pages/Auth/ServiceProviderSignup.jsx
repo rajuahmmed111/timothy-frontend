@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useRegisterUserMutation } from "../../redux/services/authApi";
 import { useDispatch } from "react-redux";
@@ -20,13 +20,89 @@ export default function ServiceProviderSignup() {
 
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Handle input change
+  // 🌍 Providers for auto-detect country
+  const providers = [
+    {
+      name: "ipapi.co",
+      url: "https://ipapi.co/json/",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+    {
+      name: "extreme-ip-lookup",
+      url: "https://extreme-ip-lookup.com/json/",
+      parse: (data) => ({ iso: data.countryCode, raw: data }),
+    },
+    {
+      name: "ipinfo.io",
+      url: "https://ipinfo.io/json",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+  ];
+
+  // 🌍 Auto detect country with fallback
+  useEffect(() => {
+    const detectCountry = async () => {
+      const availableCountries = [
+        "US",
+        "GB",
+        "CA",
+        "AU",
+        "BD",
+        "IN",
+        "PK",
+        "DE",
+        "FR",
+        "JP",
+        "CN",
+        "BR",
+        "MX",
+        "IT",
+        "ES",
+        "NL",
+        "SG",
+        "MY",
+        "TH",
+        "KR",
+        "RU",
+        "ZA",
+        "EG",
+        "NG",
+        "KE",
+        "GH",
+      ];
+
+      for (const provider of providers) {
+        try {
+          const res = await fetch(provider.url);
+          if (!res.ok) continue;
+
+          const json = await res.json();
+          const { iso } = provider.parse(json);
+
+          if (iso && availableCountries.includes(iso)) {
+            setForm((prev) => ({ ...prev, country: iso }));
+            break;
+          } else if (iso) {
+            // If detected country is not in our list, set to "Other"
+            setForm((prev) => ({ ...prev, country: "Other" }));
+            break;
+          }
+        } catch (err) {
+          continue;
+        }
+      }
+    };
+
+    detectCountry();
+  }, []);
+
+  // Handle Change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Submit form
+  // Submit Form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -50,10 +126,8 @@ export default function ServiceProviderSignup() {
       const res = await registerUser(body).unwrap();
       const { accessToken, refreshToken, user } = res?.data || {};
 
-      // Save redux credentials
       dispatch(setCredentials({ accessToken, refreshToken, user }));
 
-      // Remember me
       if (rememberMe) {
         localStorage.setItem(
           "rememberCredentials",
@@ -84,45 +158,38 @@ export default function ServiceProviderSignup() {
             <form className="space-y-5" onSubmit={handleSubmit}>
               {/* Full Name */}
               <div className="w-full">
-                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
-                  Full name
-                </label>
+                <label className="text-xl font-bold">Full name</label>
                 <input
                   type="text"
                   name="fullName"
                   value={form.fullName}
                   onChange={handleChange}
-                  placeholder="e.g. Mehedi Hasan"
-                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
+                  className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
                   required
                 />
               </div>
 
               {/* Email */}
               <div className="w-full">
-                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
-                  Email
-                </label>
+                <label className="text-xl font-bold">Email</label>
                 <input
                   type="email"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="enter your gmail"
-                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
+                  className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
                   required
                 />
               </div>
+
               {/* Service Type */}
               <div className="w-full">
-                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
-                  Service Type
-                </label>
+                <label className="text-xl font-bold">Service Type</label>
                 <select
                   name="serviceType"
                   value={form.serviceType}
                   onChange={handleChange}
-                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
+                  className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
                   required
                 >
                   <option value="">Select service type</option>
@@ -135,68 +202,89 @@ export default function ServiceProviderSignup() {
 
               {/* Password */}
               <div className="w-full">
-                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
-                  Password
-                </label>
+                <label className="text-xl font-bold">Password</label>
                 <input
                   type="password"
                   name="password"
                   value={form.password}
                   onChange={handleChange}
                   placeholder="**********"
-                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
+                  className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
                   required
                 />
               </div>
 
-              {/* Country */}
+              {/* Country Dropdown (AUTO DETECTED) */}
               <div className="w-full">
-                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
-                  Country
-                </label>
-                <input
-                  type="text"
+                <label className="text-xl font-bold">Country</label>
+                <select
                   name="country"
                   value={form.country}
                   onChange={handleChange}
-                  placeholder="e.g. Bangladesh"
-                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
+                  className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
                   required
-                />
+                >
+                  <option value="">Select your country</option>
+                  <option value="US">United States</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="CA">Canada</option>
+                  <option value="AU">Australia</option>
+                  <option value="BD">Bangladesh</option>
+                  <option value="IN">India</option>
+                  <option value="PK">Pakistan</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                  <option value="JP">Japan</option>
+                  <option value="CN">China</option>
+                  <option value="BR">Brazil</option>
+                  <option value="MX">Mexico</option>
+                  <option value="IT">Italy</option>
+                  <option value="ES">Spain</option>
+                  <option value="NL">Netherlands</option>
+                  <option value="SG">Singapore</option>
+                  <option value="MY">Malaysia</option>
+                  <option value="TH">Thailand</option>
+                  <option value="KR">South Korea</option>
+                  <option value="RU">Russia</option>
+                  <option value="ZA">South Africa</option>
+                  <option value="EG">Egypt</option>
+                  <option value="NG">Nigeria</option>
+                  <option value="KE">Kenya</option>
+                  <option value="GH">Ghana</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
 
               {/* Remember Me */}
-              <div className="flex items-center gap-2 mt-3">
+              <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4"
                 />
-                <span className="text-[#6A6D76]">Remember credentials</span>
+                <span className="text-gray-600">Remember credentials</span>
               </div>
 
               {/* Buttons */}
-              <div className="flex justify-center items-center gap-4">
+              <div className="flex justify-center gap-4">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-1/3 bg-[#0064D2] text-white font-bold py-3 rounded-lg shadow-lg cursor-pointer mt-5 disabled:opacity-60"
+                  className="w-1/3 bg-blue-600 text-white font-bold py-3 rounded-lg disabled:opacity-60"
                 >
                   {isLoading ? "Creating..." : "Create account"}
                 </button>
 
                 <Link
                   to="/logIn"
-                  className="w-1/3 text-center border border-[#0064D2] text-[#0064D2] font-bold py-3 rounded-lg shadow-lg cursor-pointer mt-5"
+                  className="w-1/3 text-center border border-blue-600 text-blue-600 font-bold py-3 rounded-lg"
                 >
                   Log in
                 </Link>
               </div>
 
-              {/* Error */}
               {error && (
-                <p className="text-red-500 text-center mt-4 text-sm">
+                <p className="text-red-500 text-center mt-4">
                   {error?.data?.message || "Registration failed"}
                 </p>
               )}

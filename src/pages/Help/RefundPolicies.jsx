@@ -52,6 +52,92 @@ export default function RefundPolicies() {
           <div className="prose prose-lg max-w-none">
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Fasify – Refund Policy
+              </h2>
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <p className="text-gray-700 mb-6">
+                  This Refund Policy outlines the conditions under which refunds
+                  may be issued to users of Fasify.
+                </p>
+
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      1. Guest Cancellations
+                    </h3>
+                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                      <li>
+                        Free cancellation within 24-48 hours before check-in
+                      </li>
+                      <li>
+                        50% refund for cancellations less than 24 hours before
+                        check-in
+                      </li>
+                      <li>
+                        No refund within 12 hours of check-in except for special
+                        circumstances
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      2. Host Cancellations
+                    </h3>
+                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                      <li>100% refund to guest</li>
+                      <li>Fasify provides priority rebooking support</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      3. Property Not as Described
+                    </h3>
+                    <p className="text-gray-700 mb-2">
+                      Refunds or relocations may be offered if:
+                    </p>
+                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                      <li>Property access is denied</li>
+                      <li>Listing is materially inaccurate</li>
+                      <li>Property is unsafe or uninhabitable</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      4. Special Circumstances
+                    </h3>
+                    <p className="text-gray-700 mb-2">
+                      May require documentation:
+                    </p>
+                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                      <li>Medical emergencies</li>
+                      <li>Natural disasters</li>
+                      <li>Government restrictions</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      5. Refund Processing
+                    </h3>
+                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                      <li>Refunds issued within 5–10 business days</li>
+                    </ul>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <p className="text-gray-700">
+                      <strong>Contact:</strong> support@fasifys.com
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Refund Timeline
               </h2>
               <div className="bg-gray-50 p-6 rounded-lg">
