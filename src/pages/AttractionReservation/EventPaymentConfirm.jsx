@@ -402,7 +402,7 @@ export default function EventPaymentConfirm() {
                   </div>
 
                   <div className="space-y-5 flex  gap-20">
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[250px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
@@ -430,7 +430,7 @@ export default function EventPaymentConfirm() {
                         </div>
                       </div>
                     </div>
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[250px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
@@ -467,7 +467,7 @@ export default function EventPaymentConfirm() {
                               ? "Refundable"
                               : "Non Refundable "}
                           </p>
-                          <span className="text-red-600 text-xs">
+                          <span className="text-black text-lg">
                             {cancelationPolicy}
                           </span>
                         </div>
