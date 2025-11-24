@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useContactUsMutation } from "../../redux/api/contactUs/contactUsApi";
 
 export default function ContactUs() {
   const [formData, setFormData] = useState({
@@ -8,7 +9,8 @@ export default function ContactUs() {
     subject: "",
     message: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [contactUs, { isLoading, isSuccess, error }] = useContactUsMutation();
   const [submitStatus, setSubmitStatus] = useState(null);
 
   const handleChange = (e) => {
@@ -16,18 +18,23 @@ export default function ContactUs() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    // Simulate form submission
-    setTimeout(() => {
-      console.log("Form submitted:", formData);
-      setIsSubmitting(false);
+    try {
+      await contactUs(formData).unwrap();
       setSubmitStatus("success");
-      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+      setFormData({
+        fullName: "",
+        email: "",
+        description: "",
+        
+      });
       setTimeout(() => setSubmitStatus(null), 5000);
-    }, 1500);
+    } catch (err) {
+      setSubmitStatus("error");
+      setTimeout(() => setSubmitStatus(null), 5000);
+    }
   };
 
   return (
@@ -168,6 +175,12 @@ export default function ContactUs() {
               </div>
             )}
 
+            {submitStatus === "error" && (
+              <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md">
+                Failed to send message. Please try again later.
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label
@@ -247,10 +260,10 @@ export default function ContactUs() {
               <div>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isLoading}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? "Sending..." : "Send Message"}
+                  {isLoading ? "Sending..." : "Send Message"}
                 </button>
               </div>
             </form>
