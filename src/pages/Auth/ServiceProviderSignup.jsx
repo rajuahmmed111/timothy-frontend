@@ -3,10 +3,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { useRegisterUserMutation } from "../../redux/services/authApi";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
+import { Eye, EyeOff } from "lucide-react";
 
 import { countries } from "../../components/country";
 
 export default function ServiceProviderSignup() {
+    const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -145,6 +147,29 @@ export default function ServiceProviderSignup() {
                   className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
                   required
                 />
+              </div>
+              {/* password */}
+              <div className="w-full">
+                <label className="text-xl font-bold">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2 pr-12"
+                    required
+                  />
+
+                  {/* Eye Icon */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-4 top-[50%] translate-y-[-50%] text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                  </button>
+                </div>
               </div>
 
               {/* Service Type */}
