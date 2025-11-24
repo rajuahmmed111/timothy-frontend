@@ -167,6 +167,8 @@ export default function SecurityDetails() {
               <option value="Executive Protection">Executive Protection</option>
               <option value="Event Security">Event Security</option>
               <option value="Escort">Escort</option>
+              <option value="vip">Vip Protection</option>
+              
             </select>
           </div>
         </div>
