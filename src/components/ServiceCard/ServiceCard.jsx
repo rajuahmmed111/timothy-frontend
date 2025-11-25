@@ -1,46 +1,37 @@
-import React from 'react';
-import { ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 // no API calls needed here
 
 export default function ServiceCard({ service }) {
-    console.log("Service:", service);
-    const IconComponent = service.icon;
-    // No data fetch needed in card; avoid logging undefined while loading
+  console.log("Service:", service);
+  const IconComponent = service.icon;
 
-    return (
-        <Link
-            to={
-                service.to ||
-                `/security/services/${encodeURIComponent(service?.title || "")}`
-            }
-            className="block"
-        >
-            <div className="bg-white rounded-xl overflow-hidden shadow-md  transition-all duration-300 cursor-pointer group transform hover:-translate-y-1">
-                {/* Image */}
-                <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
-                    <img
-                        src={service.image || "/placeholder.svg"}
-                        alt={service.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
+  return (
+    <Link to={`/security-details`} className="block">
+      <div className="bg-white rounded-xl overflow-hidden shadow-md  transition-all duration-300 cursor-pointer group transform hover:-translate-y-1">
+        {/* Image */}
+        <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
+          <img
+            src={service.image || "/placeholder.svg"}
+            alt={service.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        </div>
 
-                {/* Content */}
-                <div className="p-5 flex items-center justify-between" >
-                    <div>
-                        <h3 className="font-bold text-xl text-gray-900 mb-2">
-                            {service.title}
-                        </h3>
-
-                      
-                    </div>
-                    <div className="border border-[#C0C0C0] p-2 rounded-full">
-                        <ArrowRight className="w-6 h-6" />
-                    </div>
-                </div>
-            </div>
-        </Link>
-    );
+        {/* Content */}
+        <div className="p-5 flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-xl text-gray-900 mb-2">
+              {service.title}
+            </h3>
+          </div>
+          <div className="border border-[#C0C0C0] p-2 rounded-full">
+            <ArrowRight className="w-6 h-6" />
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
 }

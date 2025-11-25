@@ -6,10 +6,13 @@ import { UserOutlined, TeamOutlined, HomeOutlined } from "@ant-design/icons";
 import { DatePicker } from "antd";
 import { useBooking } from "../../context/BookingContext";
 import { jwtDecode } from "jwt-decode";
-
 import { useSelector, useDispatch } from "react-redux";
+import { currencyByCountry } from "../../components/curenci";
 
 export default function BookingForm({ hotel }) {
+  const [userCurrency, setUserCurrency] = useState("USD");
+  const [userCountry, setUserCountry] = useState(null);
+  const [conversionRate, setConversionRate] = useState(1);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -104,6 +107,52 @@ export default function BookingForm({ hotel }) {
     ];
   }, [hotel]);
 
+  // Currency detection and conversion
+  const basePrice = hotel?.averagePrice ?? hotel?.roomPrice ?? 0;
+  const baseCurrency = hotel?.roomCurrency ?? "USD";
+  console.log("basePrice", basePrice, "baseCurrency", baseCurrency);
+
+  useEffect(() => {
+    const detect = async () => {
+      try {
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        const country = data.country;
+
+        if (country && currencyByCountry[country]) {
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: baseCurrency → user's currency
+          let rate = 1;
+
+          if (baseCurrency !== userCurr) {
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+
+            if (rateData?.rates) {
+              const baseToUSD =
+                baseCurrency === "USD" ? 1 : 1 / rateData.rates[baseCurrency];
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = baseToUSD * usdToUser;
+            }
+          }
+
+          setConversionRate(rate);
+        }
+      } catch (e) {
+        console.log("Detection or conversion failed", e);
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, [baseCurrency]);
+
   // Initialize selected room to first option
   useEffect(() => {
     if (!selectedRoom && rooms.length > 0) {
@@ -113,9 +162,13 @@ export default function BookingForm({ hotel }) {
 
   const selectedRoomData =
     rooms.find((room) => room.id === selectedRoom) || rooms[0];
-  const nightlyBase = Number(
+
+  // Use converted price for calculations
+  const baseRoomPrice = Number(
     selectedRoomData?.convertedPrice || selectedRoomData?.price || 0
   );
+  const nightlyBase = Number(baseRoomPrice * conversionRate);
+
   const nightlyDiscountPct = Number(
     selectedRoomData?.discountedPrice || selectedRoomData?.discount || 0
   );
@@ -127,14 +180,23 @@ export default function BookingForm({ hotel }) {
         )
       : nightlyBase;
 
-  // Format price with currency
-  const formatPrice = (
-    amount,
-    currency = selectedRoomData?.displayCurrency || "USD"
-  ) => {
+  // Price converted for display
+  const convertedDisplayPrice = Number(baseRoomPrice * conversionRate).toFixed(
+    2
+  );
+  console.log("Conversion details:", {
+    baseRoomPrice,
+    baseCurrency,
+    userCurrency,
+    conversionRate,
+    convertedDisplayPrice,
+  });
+
+  // Format price with user's currency
+  const formatPrice = (amount) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: currency || "USD",
+      currency: userCurrency || "USD",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })
@@ -142,14 +204,12 @@ export default function BookingForm({ hotel }) {
       .replace(/^\D+/, "");
   };
 
-  // Get currency symbol
-  const getCurrencySymbol = (
-    currency = selectedRoomData?.displayCurrency || "USD"
-  ) => {
+  // Get user's currency symbol
+  const getCurrencySymbol = () => {
     return (0)
       .toLocaleString("en-US", {
         style: "currency",
-        currency: currency || "USD",
+        currency: userCurrency || "USD",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       })
@@ -187,8 +247,8 @@ export default function BookingForm({ hotel }) {
       const bookedToDate = checkOutDate ? checkOutDate.toISOString() : null;
 
       const subtotal = Math.round(nightlyPrice * nights * roomsCount);
-      
-      const total = subtotal 
+
+      const total = subtotal;
 
       const payload = {
         hotelId: hotel?._id ?? hotel?.id ?? hotel?.hotelId ?? null,
@@ -512,7 +572,7 @@ export default function BookingForm({ hotel }) {
               {Number(nightlyPrice * nights * roomsCount).toFixed(2)}
             </span>
           </div>
-{/* 
+          {/* 
           <div className="flex justify-between text-sm">
             <span>VAT (5%)</span>
             <span>

@@ -73,6 +73,8 @@ import AddNewSecurity from "../components/Security/AddNewSecurity";
 import EventGuastLogin from "../pages/AttractionReservation/EventGuastLogin";
 import EventPaymentConfirm from "../pages/AttractionReservation/EventPaymentConfirm";
 import CarGuestLogin from "../pages/CarReservation/CarGuestLogin";
+import BookingCancellation from './../pages/HotelReservation/BookingCancellation';
+import ServiceProviderSignup from "../pages/Auth/ServiceProviderSignup";
 
 export const routes = createBrowserRouter([
   {
@@ -174,6 +176,10 @@ export const routes = createBrowserRouter([
       {
         path: "/booking-confirmation", // this is for stays booking confirmation
         element: <BookingConfirmation />,
+      },
+      {
+        path: "/booking-cancellation",
+        element: <BookingCancellation />,
       },
       {
         path: "/hotel/checkout",
@@ -303,6 +309,10 @@ export const routes = createBrowserRouter([
       {
         path: "/sign-up",
         element: <SignUp />,
+      },
+      {
+        path: "/service-provider/sign-up",
+        element: <ServiceProviderSignup />,
       },
       {
         path: "/forget-password",

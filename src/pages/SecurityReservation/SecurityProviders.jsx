@@ -90,7 +90,7 @@ export default function SecurityProviders() {
             {securityProviders.map((provider) => (
               <Link
                 key={provider.id}
-                to={`/security-protocol-details/${provider.id}`}
+                to={`/security-details`}
                 className="block bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="w-full h-40 mb-4 rounded-lg overflow-hidden">

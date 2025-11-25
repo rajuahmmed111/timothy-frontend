@@ -6,6 +6,7 @@ import {
   useCreatePaystackCheckoutSessionMutation,
   useCreateStripeCheckoutSessionWebsiteMutation,
 } from "../../redux/api/attraction/attractionApi";
+import { currencyByCountry } from "../../components/curenci";
 
 // Helper function to check if a country is in Africa
 const isAfricanCountry = (country) => {
@@ -96,7 +97,108 @@ export default function EventPaymentConfirm() {
   const cancelationPolicy = bookingDetails?.cancelationPolicy;
   console.log("attractionDetails", attractionDetails);
   console.log("cancelationPolicy", cancelationPolicy);
-  const currencyLabel = attractionData?.displayCurrency || "";
+
+  // Currency detection states
+  const [userCurrency, setUserCurrency] = useState(
+    attractionData?.userCurrency || bookingDetails?.userCurrency || "USD"
+  );
+  const [userCountry, setUserCountry] = useState(
+    attractionData?.userCountry || bookingDetails?.userCountry || null
+  );
+  const [conversionRate, setConversionRate] = useState(
+    attractionData?.conversionRate || bookingDetails?.conversionRate || 1
+  );
+
+  // Currency detection effect (only if not provided from booking data)
+  useEffect(() => {
+    if (attractionData?.userCurrency && attractionData?.conversionRate) {
+      console.log("EventPaymentConfirm: Using currency from attraction data:", {
+        userCurrency: attractionData.userCurrency,
+        userCountry: attractionData.userCountry,
+        conversionRate: attractionData.conversionRate,
+      });
+      return;
+    }
+
+    if (bookingDetails?.userCurrency && bookingDetails?.conversionRate) {
+      console.log("EventPaymentConfirm: Using currency from booking details:", {
+        userCurrency: bookingDetails.userCurrency,
+        userCountry: bookingDetails.userCountry,
+        conversionRate: bookingDetails.conversionRate,
+      });
+      setUserCurrency(bookingDetails.userCurrency);
+      setUserCountry(bookingDetails.userCountry);
+      setConversionRate(bookingDetails.conversionRate);
+      return;
+    }
+
+    const detect = async () => {
+      try {
+        console.log("EventPaymentConfirm: Starting currency detection...");
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        console.log("EventPaymentConfirm: Location API response:", data);
+        const country = data.country;
+        console.log("EventPaymentConfirm: Detected country:", country);
+
+        if (country && currencyByCountry[country]) {
+          console.log(
+            "EventPaymentConfirm: Country found in mapping:",
+            country
+          );
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          console.log("EventPaymentConfirm: User currency code:", userCurr);
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: USD → user's currency
+          let rate = 1;
+
+          if ("USD" !== userCurr) {
+            console.log(
+              "EventPaymentConfirm: Converting from USD to",
+              userCurr
+            );
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+            console.log("EventPaymentConfirm: Exchange rate data:", rateData);
+
+            if (rateData?.rates) {
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = usdToUser;
+              console.log(
+                "EventPaymentConfirm: Calculated conversion rate:",
+                rate
+              );
+            }
+          } else {
+            console.log("EventPaymentConfirm: No conversion needed - USD");
+          }
+
+          setConversionRate(rate);
+        } else {
+          console.log(
+            "EventPaymentConfirm: Country not found in mapping, using USD"
+          );
+          setUserCurrency("USD");
+          setConversionRate(1);
+        }
+      } catch (e) {
+        console.error(
+          "EventPaymentConfirm: Detection or conversion failed:",
+          e
+        );
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, [attractionData, bookingDetails]);
+
+  const currencyLabel = userCurrency || attractionData?.displayCurrency || "";
   const from = attractionDetails.data.timeSlot.from;
   const to = attractionDetails.data.timeSlot.to;
 
@@ -127,37 +229,77 @@ export default function EventPaymentConfirm() {
     // total = adults * convertedAdultPrice + children * convertedChildPrice
     const adultCountFallback = Number(attractionData?.adults ?? 0);
     const childCountFallback = Number(attractionData?.children ?? 0);
-    const priceAdultFallback = Number(
+
+    // Use converted prices if available, otherwise convert base prices
+    let priceAdultFallback = Number(
       attractionData?.convertedAdultPrice ?? attractionData?.convertedPrice ?? 0
     );
-    const priceChildFallback = Number(
+    let priceChildFallback = Number(
       attractionData?.convertedChildPrice ?? priceAdultFallback
     );
+
+    // If we have base prices and conversion rate, convert them
+    if (attractionData?.baseAdultPrice && conversionRate && userCurrency) {
+      priceAdultFallback = Number(
+        attractionData.baseAdultPrice * conversionRate
+      );
+      priceChildFallback = Number(
+        (attractionData.baseChildPrice || attractionData.baseAdultPrice) *
+          conversionRate
+      );
+    }
 
     const subtotalAdults = adultCountFallback * priceAdultFallback;
     const subtotalChildren = childCountFallback * priceChildFallback;
     const total = subtotalAdults + subtotalChildren;
 
-    // VAT is frontend-only informational percentage
-    const vatPercent = Number(5);
-    const vatAmount = Number(((total * vatPercent) / 100).toFixed(2));
+    console.log("EventPaymentConfirm: Total calculation:", {
+      attractionName: attractionData?.name || bookingDetails?.eventName,
+      adultCount: adultCountFallback,
+      childCount: childCountFallback,
+      baseAdultPrice: attractionData?.baseAdultPrice,
+      baseChildPrice: attractionData?.baseChildPrice,
+      priceAdultFallback,
+      priceChildFallback,
+      subtotalAdults,
+      subtotalChildren,
+      total,
+      userCurrency,
+      conversionRate,
+    });
 
     return {
-      vatAmount,
       total,
-      vatPercent,
     };
   };
 
-  const { vatAmount, total, vatPercent } = calculateTotal();
+  const { total } = calculateTotal();
 
   // Derive adult/child counts and prices for UI breakdown
   const adultCount = Number(attractionData?.adults ?? 0);
   const childCount = Number(attractionData?.children ?? 0);
-  const convertedAdultPrice = Number(attractionData?.convertedAdultPrice ?? 0);
-  const convertedChildPrice = Number(
-    attractionData?.convertedChildPrice ?? convertedAdultPrice
+
+  // Calculate final prices for display
+  let finalAdultPrice = Number(attractionData?.convertedAdultPrice ?? 0);
+  let finalChildPrice = Number(
+    attractionData?.convertedChildPrice ?? finalAdultPrice
   );
+
+  // If we have base prices and conversion rate, calculate converted prices
+  if (attractionData?.baseAdultPrice && conversionRate && userCurrency) {
+    finalAdultPrice = Number(attractionData.baseAdultPrice * conversionRate);
+    finalChildPrice = Number(
+      (attractionData.baseChildPrice || attractionData.baseAdultPrice) *
+        conversionRate
+    );
+  }
+
+  console.log("EventPaymentConfirm: Final prices for display:", {
+    finalAdultPrice,
+    finalChildPrice,
+    userCurrency,
+    conversionRate,
+  });
 
   // Format date to be more readable
   const formatDate = (dateString) => {
@@ -227,7 +369,7 @@ export default function EventPaymentConfirm() {
     setIsLoading(true);
     try {
       const successUrl = `${window.location.origin}/booking-confirmation`;
-      const cancelUrl = `${window.location.origin}/event/checkout`;
+      const cancelUrl = `${window.location.origin}/booking-cancellation`;
 
       const { total } = calculateTotal();
 
@@ -253,12 +395,19 @@ export default function EventPaymentConfirm() {
         JSON.stringify(bookingConfirmationData)
       );
 
+      // Handle zero-decimal currencies like JPY
+      const isZeroDecimalCurrency = ["JPY", "KRW", "VND"].includes(
+        userCurrency
+      );
+
       const paymentData = {
-        amount: Math.round(total * 100), // smallest currency unit
+        amount: isZeroDecimalCurrency
+          ? Math.round(total)
+          : Math.round(total * 100), // Handle zero-decimal currencies
         email: bookingData.email || "",
         name: bookingData.name || "Customer",
         phone: bookingData.phone || "",
-        currency: "NGN", // will be overridden for Stripe below
+        currency: userCurrency || "USD", // Use detected currency
         attractionId: bookingData.attractionId,
         userId: bookingData.userId,
         successUrl,
@@ -268,6 +417,13 @@ export default function EventPaymentConfirm() {
           attractionId: bookingData.attractionId,
           appealId: bookingData.appealId,
           userId: bookingData.userId,
+          userCurrency,
+          userCountry,
+          conversionRate,
+          baseCurrency:
+            attractionData?.baseCurrency ||
+            bookingDetails?.baseCurrency ||
+            "USD",
         },
       };
 
@@ -304,7 +460,27 @@ export default function EventPaymentConfirm() {
 
         window.location.href = checkoutUrl;
       } else {
-        paymentData.currency = "USD";
+        // For Stripe, use the detected currency and convert amount to USD if needed
+        let stripeAmount = isZeroDecimalCurrency
+          ? Math.round(total)
+          : Math.round(total * 100);
+        let stripeCurrency = userCurrency?.toLowerCase() || "usd";
+
+        // If currency is not USD, we need to convert the amount back to USD for Stripe
+        if (userCurrency && userCurrency !== "USD" && conversionRate) {
+          const usdAmount = total / conversionRate;
+          stripeAmount = Math.round(usdAmount * 100);
+          stripeCurrency = "usd";
+        }
+
+        console.log("EventPaymentConfirm: Stripe payment data:", {
+          total,
+          userCurrency,
+          conversionRate,
+          isZeroDecimalCurrency,
+          stripeAmount,
+          stripeCurrency,
+        });
 
         const result = await createStripeSession({
           bookingId: currentBookingId,
@@ -313,14 +489,14 @@ export default function EventPaymentConfirm() {
             line_items: [
               {
                 price_data: {
-                  currency: "usd",
+                  currency: stripeCurrency,
                   product_data: {
                     name: `Attraction Booking - ${
                       bookingData.category || "Attraction"
                     }`,
                     description: `${bookingData.date} ${bookingData.timeSlot?.from} - ${bookingData.timeSlot?.to}`,
                   },
-                  unit_amount: Math.round(total * 100),
+                  unit_amount: stripeAmount,
                 },
                 quantity: 1,
               },
@@ -402,7 +578,7 @@ export default function EventPaymentConfirm() {
                   </div>
 
                   <div className="space-y-5 flex  gap-20">
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[250px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Calendar className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
@@ -430,7 +606,7 @@ export default function EventPaymentConfirm() {
                         </div>
                       </div>
                     </div>
-                    <div className="shadow-sm p-4 border border-gray-200 h-[200px] w-[300px] rounded-lg">
+                    <div className="shadow-sm p-4 border border-gray-200 h-[250px] w-[300px] rounded-lg">
                       <div className="flex gap-2 items-center">
                         <Users className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
                         <div>
@@ -467,7 +643,7 @@ export default function EventPaymentConfirm() {
                               ? "Refundable"
                               : "Non Refundable "}
                           </p>
-                          <span className="text-red-600 text-xs">
+                          <span className="text-black text-lg">
                             {cancelationPolicy}
                           </span>
                         </div>
@@ -497,7 +673,8 @@ export default function EventPaymentConfirm() {
                     <span className="text-gray-600">Adult tickets</span>
                     <span>
                       {currencyLabel && `${currencyLabel} `}
-                      {convertedAdultPrice.toFixed(2)} × {adultCount || 0}
+                      {Number(finalAdultPrice).toLocaleString()} ×{" "}
+                      {adultCount || 0}
                     </span>
                   </div>
 
@@ -507,7 +684,8 @@ export default function EventPaymentConfirm() {
                       <span className="text-gray-600">Child tickets</span>
                       <span>
                         {currencyLabel && `${currencyLabel} `}
-                        {convertedChildPrice.toFixed(2)} × {childCount}
+                        {Number(finalChildPrice).toLocaleString()} ×{" "}
+                        {childCount}
                       </span>
                     </div>
                   )}
@@ -525,20 +703,12 @@ export default function EventPaymentConfirm() {
                   )}
 
                   <div className="flex justify-between">
-                    <span>VAT ({vatPercent || 0}%)</span>
-                    <span>
-                      {currencyLabel && `${currencyLabel} `}
-                      {vatAmount.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
                     <div className="border-t w-full border-gray-200 pt-3 mt-3">
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
                         <span>
                           {currencyLabel && `${currencyLabel} `}
-                          {total.toFixed(2)}
+                          {Number(total).toLocaleString()}
                         </span>
                       </div>
                     </div>

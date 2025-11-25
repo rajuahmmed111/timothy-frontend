@@ -10,6 +10,9 @@ export default function CarBookingForm({
   carIdFromParams,
   fromDate,
   toDate,
+  userCurrency,
+  userCountry,
+  conversionRate,
 }) {
   const navigate = useNavigate();
   const [isBooking, setIsBooking] = useState(false);
@@ -17,6 +20,13 @@ export default function CarBookingForm({
   const { RangePicker } = DatePicker;
 
   const accessToken = useSelector((state) => state?.auth?.accessToken);
+
+  console.log("CarBookingForm received props:", {
+    car,
+    userCurrency,
+    userCountry,
+    conversionRate,
+  });
 
   useEffect(() => {
     if (fromDate && toDate) {
@@ -39,24 +49,43 @@ export default function CarBookingForm({
             msPerDay
         )
       ) || 1;
-    const price =
-      Number(car?.convertedPrice)
+
+    // Use converted price if available, otherwise fall back to base price with conversion
+    let price = Number(car?.convertedPrice) || 0;
+
+    // If no converted price but we have conversion data, calculate it
+    if (
+      !car?.convertedPrice &&
+      car?.pricePerDay &&
+      conversionRate &&
+      userCurrency
+    ) {
+      price = Number(car.pricePerDay * conversionRate).toFixed(2);
+    }
+
+    console.log("CarBookingForm: Price calculation:", {
+      carName: car?.name,
+      basePrice: car?.pricePerDay,
+      convertedPrice: car?.convertedPrice,
+      calculatedPrice: price,
+      days,
+      total: price * days,
+      userCurrency,
+    });
+
     return price * days;
   };
 
-
-  console.log("calculation price in ",calculateTotal())
+  console.log("calculation price in ", calculateTotal());
 
   const getDays = () => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) return 0;
     const msPerDay = 1000 * 60 * 60 * 24;
-    return (
-      Math.max(
-        1,
-        Math.floor(
-          (dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) /
-            msPerDay
-        )
+    return Math.max(
+      1,
+      Math.floor(
+        (dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) /
+          msPerDay
       )
     );
   };
@@ -74,34 +103,46 @@ export default function CarBookingForm({
       pickupDate: dateRange[0].format("YYYY-MM-DD"),
       returnDate: dateRange[1].format("YYYY-MM-DD"),
       carType: car?.name || "Selected Car",
-      currency: car?.currency || "",
-      // per‑day price (100)
-      unitPrice: Number(car?.convertedPrice) || 0,
+      currency: car?.displayCurrency || car?.currency || userCurrency || "USD",
 
-      // full total for display ONLY (unitPrice * days)
-      total: calculateTotal(), // where calculateTotal = unitPrice * days
+      // Use converted price for booking
+      unitPrice:
+        Number(car?.convertedPrice) ||
+        (car?.pricePerDay && conversionRate
+          ? Number(car.pricePerDay * conversionRate).toFixed(2)
+          : 0),
+
+      // full total for display (unitPrice * days)
+      total: calculateTotal(),
       days: getDays(),
       carDescription: car?.description || "Car rental booking",
       location: car?.location || "Selected Location",
+
+      // Add currency conversion details
+      userCurrency,
+      userCountry,
+      conversionRate,
+      baseCurrency: car?.currency || "USD",
+      basePrice: car?.pricePerDay || 0,
     };
-    console.log("booking details in booking form",bookingDetails)
+    console.log("booking details in booking form", bookingDetails);
 
- if (accessToken) {
-   navigate("/car/checkout", {
-     state: {
-       bookingDetails: bookingDetails, // ALWAYS bookingDetails
-     },
-   });
- } else {
-   navigate("/car/guest-login", {
-     state: {
-       bookingDetails: bookingDetails,
-       returnUrl: "/car/checkout",
-     },
-   });
- }
+    if (accessToken) {
+      navigate("/car/checkout", {
+        state: {
+          bookingDetails: bookingDetails, // ALWAYS bookingDetails
+        },
+      });
+    } else {
+      navigate("/car/guest-login", {
+        state: {
+          bookingDetails: bookingDetails,
+          returnUrl: "/car/checkout",
+        },
+      });
+    }
 
- setIsBooking(false);
+    setIsBooking(false);
   };
 
   return (
@@ -124,8 +165,13 @@ export default function CarBookingForm({
                   {car?.location || "Location"}
                 </p>
                 <div className="mt-1 text-sm font-medium">
-                  {car?.currency} {""}
-                  {car?.convertedPrice}{" "}
+                  {car?.displayCurrency || userCurrency || car?.currency} {""}
+                  {Number(
+                    car?.convertedPrice ||
+                      (car?.pricePerDay && conversionRate
+                        ? car.pricePerDay * conversionRate
+                        : 0)
+                  ).toLocaleString()}{" "}
                   <span className="text-gray-500 font-normal">/ day</span>
                 </div>
               </div>
@@ -154,9 +200,16 @@ export default function CarBookingForm({
           <h3 className="font-medium text-gray-900 mb-3">Price Details</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              {car?.currency} {""}
-              {car?.convertedPrice}{" "}
-              <span className="text-gray-500 font-normal">/ day</span>
+              <span>
+                {car?.displayCurrency || userCurrency || car?.currency} {""}
+                {Number(
+                  car?.convertedPrice ||
+                    (car?.pricePerDay && conversionRate
+                      ? car.pricePerDay * conversionRate
+                      : 0)
+                ).toLocaleString()}{" "}
+                <span className="text-gray-500 font-normal">/ day</span>
+              </span>
             </div>
             {dateRange && dateRange[0] && dateRange[1] && (
               <div className="flex justify-between">
@@ -164,8 +217,8 @@ export default function CarBookingForm({
                   {getDays()} {getDays() === 1 ? "day" : "days"}
                 </span>
                 <span>
-                  {car?.currency} {""}
-                  {calculateTotal()}
+                  {car?.displayCurrency || userCurrency || car?.currency} {""}
+                  {calculateTotal().toLocaleString()}
                 </span>
               </div>
             )}
@@ -173,8 +226,8 @@ export default function CarBookingForm({
             <div className="flex justify-between font-medium">
               <span>Total</span>
               <span>
-                {car?.currency} {""}
-                {calculateTotal()}
+                {car?.displayCurrency || userCurrency || car?.currency} {""}
+                {calculateTotal().toLocaleString()}
               </span>
             </div>
           </div>
