@@ -2,8 +2,41 @@ import React from "react";
 import { Star, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function CarCard({ car, queryString }) {
-  console.log("car of car card", car);
+export default function CarCard({
+  car,
+  queryString,
+  userCurrency,
+  userCountry,
+  conversionRate,
+}) {
+  console.log("CarCard received data:", car);
+  console.log("CarCard currency props:", {
+    userCurrency,
+    userCountry,
+    conversionRate,
+  });
+
+  // Currency conversion logic (fallback if not provided)
+  const basePrice = Number(car?.price) || 0;
+  const baseCurrency = car?.currency || "USD";
+
+  // Calculate converted price
+  let convertedPrice = basePrice;
+  let displayCurrency = userCurrency || car?.displayCurrency || baseCurrency;
+
+  if (userCurrency && baseCurrency !== userCurrency && conversionRate) {
+    convertedPrice = Number(basePrice * conversionRate).toFixed(2);
+  }
+
+  console.log("CarCard price conversion:", {
+    carName: car?.name,
+    basePrice,
+    baseCurrency,
+    userCurrency,
+    conversionRate,
+    convertedPrice,
+    displayCurrency,
+  });
   return (
     <Link
       to={`/car-service-details/${car?.id}${queryString || ""}`}
@@ -34,11 +67,10 @@ export default function CarCard({ car, queryString }) {
             <MapPin className="w-4 h-4" /> {car?.location}
           </p>
 
-          {/* Rating */}
-          <div className="flex items-center gap-2 mb-3">
+          {/* Rating and Price */}
+          <div className="flex items-center justify-between mb-3">
             <div className="text-2xl font-bold text-gray-900">
-              {car?.currency}
-              {""} {car?.convertedPrice}
+              {displayCurrency} {Number(convertedPrice).toLocaleString()}
             </div>
             <div className="flex items-center gap-1">
               {[...Array(Math.floor(car?.rating || 0))].map((_, i) => (
@@ -52,6 +84,14 @@ export default function CarCard({ car, queryString }) {
               </span>
             </div>
           </div>
+
+          {/* Availability Badge */}
+          {car?.isAvailable && (
+            <div className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              Available
+            </div>
+          )}
         </div>
       </div>
     </Link>

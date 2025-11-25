@@ -18,6 +18,7 @@ import { useLocation, useParams } from "react-router-dom";
 import { useGetSingleCarQuery } from "../../redux/api/car/getAllCarsApi";
 import ImageGallery from "./ImageGallery";
 import Loader from "../../shared/Loader/Loader";
+import { currencyByCountry } from "../../components/curenci";
 
 export default function CarServiceDetails() {
   const { id } = useParams();
@@ -28,42 +29,138 @@ export default function CarServiceDetails() {
   const { data: carData, isLoading } = useGetSingleCarQuery(id);
   console.log("carData", carData);
 
+  // Currency detection states
+  const [userCurrency, setUserCurrency] = React.useState("USD");
+  const [userCountry, setUserCountry] = React.useState(null);
+  const [conversionRate, setConversionRate] = React.useState(1);
+
+  // Currency detection and conversion
+  React.useEffect(() => {
+    const detect = async () => {
+      try {
+        console.log("CarServiceDetails: Starting currency detection...");
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        console.log("CarServiceDetails: Location API response:", data);
+        const country = data.country;
+        console.log("CarServiceDetails: Detected country:", country);
+
+        if (country && currencyByCountry[country]) {
+          console.log("CarServiceDetails: Country found in mapping:", country);
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          console.log("CarServiceDetails: User currency code:", userCurr);
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: USD → user's currency
+          let rate = 1;
+
+          if ("USD" !== userCurr) {
+            console.log("CarServiceDetails: Converting from USD to", userCurr);
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+            console.log("CarServiceDetails: Exchange rate data:", rateData);
+
+            if (rateData?.rates) {
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = usdToUser;
+              console.log(
+                "CarServiceDetails: Calculated conversion rate:",
+                rate
+              );
+            }
+          } else {
+            console.log("CarServiceDetails: No conversion needed - USD");
+          }
+
+          setConversionRate(rate);
+        } else {
+          console.log(
+            "CarServiceDetails: Country not found in mapping, using USD"
+          );
+          setUserCurrency("USD");
+          setConversionRate(1);
+        }
+      } catch (e) {
+        console.error("CarServiceDetails: Detection or conversion failed:", e);
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, []);
+
   const rawCar = Array.isArray(carData?.data)
     ? carData?.data?.[0]
     : carData?.data;
-    console.log("rawCar from car service details", rawCar);
+  console.log("rawCar from car service details", rawCar);
 
   const car = rawCar
-    ? {
-        id: rawCar?.id,
-        carType: rawCar?.carType,
-        name: rawCar?.carModel || rawCar?.car_Rental?.carName || "Car Details",
-        address: rawCar?.carAddress || "",
-        location: [rawCar?.carAddress, rawCar?.carCity, rawCar?.carCountry]
-          .filter(Boolean)
-          .join(", "),
-        images: rawCar?.carImages || ["/car/default-car.png"],
-        price: `$${Number(rawCar?.carPriceDay ?? 0)}`,
-        currency: rawCar?.currency,
-        convertedPrice: Number(rawCar?.convertedPrice),
-        pricePerDay: Number(rawCar?.carPriceDay) || 0,
-        rating: parseFloat(rawCar?.carRating) || 0,
-        carCancelationPolicy: rawCar?.car_Rental?.carCancelationPolicy,
+    ? (() => {
+        // Currency conversion logic
+        const basePrice = Number(rawCar?.carPriceDay) || 0;
+        const baseCurrency =
+          rawCar?.currency || rawCar?.displayCurrency || "USD";
 
-        carReviewCount: rawCar?.carReviewCount,
-        availability:
-          rawCar?.isBooked === "AVAILABLE" ? "Available" : "Unavailable",
-        mileage: rawCar?.carMileage,
-        transmission: rawCar?.carTransmission,
-        fuelType: rawCar?.fuelType || rawCar?.carOilType,
-        seats: rawCar?.carSeats,
-        description: rawCar?.carDescription,
-        carServicesOffered: Array.isArray(rawCar?.carServicesOffered)
-          ? rawCar.carServicesOffered
-          : [],
-      }
+        // Calculate converted price
+        let convertedPrice = basePrice;
+        let displayCurrency = userCurrency || baseCurrency;
+
+        if (userCurrency && baseCurrency !== userCurrency && conversionRate) {
+          convertedPrice = Number(basePrice * conversionRate).toFixed(2);
+        }
+
+        console.log("CarServiceDetails: Car price conversion:", {
+          carId: rawCar?.id,
+          carName: rawCar?.carModel || rawCar?.car_Rental?.carName,
+          basePrice,
+          baseCurrency,
+          userCurrency,
+          conversionRate,
+          convertedPrice,
+        });
+
+        return {
+          id: rawCar?.id,
+          carType: rawCar?.carType,
+          name:
+            rawCar?.carModel || rawCar?.car_Rental?.carName || "Car Details",
+          address: rawCar?.carAddress || "",
+          location: [rawCar?.carAddress, rawCar?.carCity, rawCar?.carCountry]
+            .filter(Boolean)
+            .join(", "),
+          images: rawCar?.carImages || ["/car/default-car.png"],
+          price: `$${Number(basePrice).toFixed(2)}`,
+          currency: baseCurrency,
+          convertedPrice: Number(convertedPrice),
+          displayCurrency: displayCurrency,
+          pricePerDay: Number(basePrice) || 0,
+          rating: parseFloat(rawCar?.carRating) || 0,
+          carCancelationPolicy: rawCar?.car_Rental?.carCancelationPolicy,
+
+          carReviewCount: rawCar?.carReviewCount,
+          availability:
+            rawCar?.isBooked === "AVAILABLE" ? "Available" : "Unavailable",
+          mileage: rawCar?.carMileage,
+          transmission: rawCar?.carTransmission,
+          fuelType: rawCar?.fuelType || rawCar?.carOilType,
+          seats: rawCar?.carSeats,
+          description: rawCar?.carDescription,
+          carServicesOffered: Array.isArray(rawCar?.carServicesOffered)
+            ? rawCar.carServicesOffered
+            : [],
+
+          // Add conversion props for CarBookingForm
+          userCurrency,
+          userCountry,
+          conversionRate,
+        };
+      })()
     : null;
-    console.log("car data of raw car from car service details", car);
+  console.log("car data of raw car from car service details", car);
 
   const facilityIconMap = {
     AC: Wind,
@@ -288,8 +385,7 @@ export default function CarServiceDetails() {
                           {car?.name || ""}
                         </h5>
                         <p className="text-xs text-gray-600 mt-0.5">
-                       
-                            {fullAddress}
+                          {fullAddress}
                         </p>
                         <div className="flex items-center gap-1 mt-1">
                           {[1, 2, 3, 4, 5].map((star, i) => (
@@ -319,7 +415,15 @@ export default function CarServiceDetails() {
                   </button>
                 </div>
               </div>
-              <CarBookingForm car={car} carIdFromParams={id} fromDate={fromDate} toDate={toDate} />
+              <CarBookingForm
+                car={car}
+                carIdFromParams={id}
+                fromDate={fromDate}
+                toDate={toDate}
+                userCurrency={userCurrency}
+                userCountry={userCountry}
+                conversionRate={conversionRate}
+              />
             </div>
           </div>
         </main>
