@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -12,16 +12,25 @@ import {
 } from "lucide-react";
 import { useCreateSecurityBookingMutation } from "../../redux/api/security/securityBookingApi";
 import { handleError, handleSuccess } from "../../../toast";
+import { currencyByCountry } from "../../components/curenci";
 
 export default function SecurityCheckout() {
+  const [userCurrency, setUserCurrency] = useState("USD");
+  const [userCountry, setUserCountry] = useState(null);
+  const [conversionRate, setConversionRate] = useState(1);
+
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state?.auth?.user);
 
+  console.log("userinfo form security", user);
+
   // Accept data from multiple shapes
   const raw = location.state || {};
+  console.log("SecurityCheckout raw state:", raw);
+
   const bookingDetails =
     raw.payload ||
     raw.bookingData ||
@@ -32,12 +41,114 @@ export default function SecurityCheckout() {
     raw.payload?.data ||
     {};
 
+  console.log("SecurityCheckout bookingDetails:", bookingDetails);
+  console.log("SecurityCheckout guard info:", {
+    guardId: bookingDetails?.guardId,
+    guardName: bookingDetails?.guardName,
+    serviceType: bookingDetails?.serviceType,
+    pricePerDay: bookingDetails?.pricePerDay,
+    convertedPrice: bookingDetails?.convertedPrice,
+    displayCurrency: bookingDetails?.displayCurrency,
+  });
+
+  // Fallback guard info if missing
+  const guardInfo = {
+    guardId:
+      bookingDetails?.guardId || bookingDetails?.id || bookingDetails?._id,
+    guardName:
+      bookingDetails?.guardName ||
+      bookingDetails?.securityGuardName ||
+      bookingDetails?.securityName ||
+      bookingDetails?.name ||
+      "Security Guard",
+    serviceType: bookingDetails?.serviceType || "Security",
+    serviceDescription:
+      bookingDetails?.serviceDescription || "Professional security service",
+    startDate:
+      bookingDetails?.startDate || bookingDetails?.securityBookedFromDate,
+    endDate: bookingDetails?.endDate || bookingDetails?.securityBookedToDate,
+    personnelCount:
+      bookingDetails?.personnelCount || bookingDetails?.number_of_security || 1,
+    photo:
+      bookingDetails?.photo || bookingDetails?.guardPhoto || "/placeholder.svg",
+  };
+
+  console.log("Final guard info:", guardInfo);
+
   const guestInfo = raw.guestInfo || {};
 
   const [createSecurityBooking, { isLoading }] =
     useCreateSecurityBookingMutation();
 
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Currency detection and conversion
+  const baseCurrency =
+    bookingDetails?.currency || bookingDetails?.displayCurrency || "USD";
+  const basePrice =
+    bookingDetails?.pricePerDay || bookingDetails?.convertedPrice || 0;
+
+  console.log(
+    "Security checkout basePrice",
+    basePrice,
+    "baseCurrency",
+    baseCurrency
+  );
+
+  useEffect(() => {
+    const detect = async () => {
+      try {
+        console.log("Starting currency detection for security checkout...");
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        console.log("Location API response:", data);
+        const country = data.country;
+        console.log("Detected country:", country);
+
+        if (country && currencyByCountry[country]) {
+          console.log("Country found in mapping:", country);
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          console.log("User currency code:", userCurr);
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: baseCurrency → user's currency
+          let rate = 1;
+
+          if (baseCurrency !== userCurr) {
+            console.log("Converting from", baseCurrency, "to", userCurr);
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+            console.log("Exchange rate data:", rateData);
+
+            if (rateData?.rates) {
+              const baseToUSD =
+                baseCurrency === "USD" ? 1 : 1 / rateData.rates[baseCurrency];
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = baseToUSD * usdToUser;
+              console.log("Calculated conversion rate:", rate);
+            }
+          } else {
+            console.log("No conversion needed - same currency");
+          }
+
+          setConversionRate(rate);
+        } else {
+          console.log("Country not found in mapping, using USD");
+          setUserCurrency("USD");
+          setConversionRate(1);
+        }
+      } catch (e) {
+        console.error("Detection or conversion failed:", e);
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, [baseCurrency]);
 
   // =============================
   // Calculate Days
@@ -60,21 +171,25 @@ export default function SecurityCheckout() {
   })();
 
   // =============================
-  // STATIC VAT CALCULATION
+  // CONVERTED PRICE CALCULATION
   // =============================
-  const currencyCode = bookingDetails?.currency;
 
   // fallback values (price always comes)
   const pricePerDay =
     Number(bookingDetails?.pricePerDay) ||
     Number(bookingDetails?.securityPriceDay) ||
     Number(bookingDetails?.unitPrice) ||
+    Number(bookingDetails?.convertedPrice) ||
     0;
 
-  const personnelCount = Number(bookingDetails?.personnelCount || 1);
+  const personnelCount = Number(guardInfo.personnelCount || 1);
 
-  // Always fresh subtotal
-  const calculatedSubtotal = pricePerDay * days * personnelCount;
+  // Convert price to user's currency
+  const convertedPricePerDay = Number(pricePerDay * conversionRate).toFixed(2);
+
+  // Always fresh subtotal with converted prices
+  const calculatedSubtotal =
+    Number(convertedPricePerDay) * days * personnelCount;
 
   // Static 5% VAT
   const vatRate = 5;
@@ -83,9 +198,16 @@ export default function SecurityCheckout() {
   // Final Total = subtotal + VAT
   const finalTotal = Number((calculatedSubtotal + vatAmount).toFixed(2));
 
-  console.log("💰 Subtotal =", calculatedSubtotal);
-  console.log("💰 VAT =", vatAmount);
-  console.log("💰 Final Total =", finalTotal);
+  console.log("💰 Security checkout conversion details:", {
+    basePrice: pricePerDay,
+    baseCurrency,
+    userCurrency,
+    conversionRate,
+    convertedPricePerDay,
+    calculatedSubtotal,
+    vatAmount,
+    finalTotal,
+  });
 
   // =============================
   // Guest Information
@@ -137,6 +259,7 @@ export default function SecurityCheckout() {
   // Confirm Booking
   // =============================
   const handleReserveConfirm = async () => {
+    // Use the actual security protocol ID from booking details
     if (!bookingDetails?.guardId) {
       handleError("Guard information is missing");
       return;
@@ -159,23 +282,25 @@ export default function SecurityCheckout() {
         securityBookedToDate:
           bookingDetails?.securityBookedToDate || bookingDetails?.endDate,
 
-        // TOTAL PRICE ALWAYS SUBTOTAL + VAT
+        // TOTAL PRICE ALWAYS SUBTOTAL + VAT (using converted prices)
         totalPrice: finalTotal,
         vatAmount: vatAmount,
         vatRate: 5,
 
-        convertedPrice: bookingDetails?.convertedPrice,
-        displayCurrency: bookingDetails?.displayCurrency,
+        // Use converted prices and user currency
+        convertedPrice: Number(convertedPricePerDay),
+        displayCurrency: userCurrency,
+        currency: userCurrency,
 
         discountedPrice: bookingDetails?.discountedPrice ?? 0,
         cancelationPolicy: bookingDetails?.cancellationPolicy,
 
-        // Identification
-        guardId: bookingDetails?.guardId,
+        // Identification - Use security protocol ID (the actual guard entry)
+        guardId: bookingDetails?.guardId, // This should be "6918e5fcc17c4e67050efc64" for Danny Khan
         guardName: bookingDetails?.guardName,
         serviceType: bookingDetails?.serviceType || "Security",
         serviceDescription: bookingDetails?.serviceDescription,
-        pricePerDay: pricePerDay,
+        pricePerDay: Number(convertedPricePerDay),
 
         // Contact / User
         name: updatedUser?.name,
@@ -188,9 +313,11 @@ export default function SecurityCheckout() {
       };
 
       console.log("📤 FINAL BOOKING BODY →", body);
+      console.log("🎯 Using security protocol ID:", bookingDetails?.guardId);
 
+      // Use the security protocol ID (the actual guard entry ID)
       const resp = await createSecurityBooking({
-        id: bookingDetails?.guardId,
+        id: bookingDetails?.guardId, // This should be "6918e5fcc17c4e67050efc64" not "6918e333c17c4e67050efc60"
         body,
       }).unwrap();
 
@@ -311,21 +438,22 @@ export default function SecurityCheckout() {
               </div>
 
               {/* Guard Info */}
-              <div className="flex items-start gap-4">
-                {bookingDetails?.photo && (
+              <div className="flex items-center space-x-4 mb-6">
+                {guardInfo.photo && (
                   <img
-                    src={bookingDetails.photo}
-                    alt={bookingDetails.guardName}
+                    src={guardInfo.photo}
+                    alt={guardInfo.guardName}
                     className="w-16 h-16 rounded-lg object-cover"
                   />
                 )}
 
                 <div>
                   <h3 className="font-medium text-gray-900">
-                    {bookingDetails.guardName}
+                    {guardInfo.guardName}
                   </h3>
                   <p className="text-gray-600 mt-1">
-                    {currencyCode} {pricePerDay} / day
+                    {userCurrency}{" "}
+                    {Number(convertedPricePerDay).toLocaleString()} / day
                   </p>
                 </div>
               </div>
@@ -335,8 +463,8 @@ export default function SecurityCheckout() {
                 <Calendar className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-gray-900">
-                    {formatDate(bookingDetails.startDate)} -{" "}
-                    {formatDate(bookingDetails.endDate)}
+                    {formatDate(guardInfo.startDate)} -{" "}
+                    {formatDate(guardInfo.endDate)}
                   </p>
                   <p className="text-gray-600">
                     {days} {days === 1 ? "day" : "days"}
@@ -344,15 +472,14 @@ export default function SecurityCheckout() {
                 </div>
               </div>
 
-              {/* Guards */}
+              {/* Service Type */}
               <div className="flex items-center space-x-4 mt-4">
                 <Users className="w-5 h-5 text-gray-400" />
                 <div>
-                  <p className="text-gray-900">
-                    {personnelCount} {personnelCount === 1 ? "guard" : "guards"}
-                  </p>
+                  <p className="text-gray-900">{guardInfo.serviceType}</p>
                   <p className="text-gray-600">
-                    {bookingDetails?.serviceDescription}
+                    {personnelCount}{" "}
+                    {personnelCount === 1 ? "person" : "people"}
                   </p>
                 </div>
               </div>
@@ -367,24 +494,26 @@ export default function SecurityCheckout() {
               <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>
-                    {currencyCode} {pricePerDay} × {days} × {personnelCount}
+                    {userCurrency}{" "}
+                    {Number(convertedPricePerDay).toLocaleString()} × {days} ×{" "}
+                    {personnelCount}
                   </span>
                   <span>
-                    {currencyCode} {calculatedSubtotal.toFixed(2)}
+                    {userCurrency} {Number(calculatedSubtotal).toLocaleString()}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
                   <span>VAT ({vatRate}%)</span>
                   <span>
-                    {currencyCode} {vatAmount.toFixed(2)}
+                    {userCurrency} {Number(vatAmount).toLocaleString()}
                   </span>
                 </div>
 
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
                   <span>Total</span>
                   <span>
-                    {currencyCode} {finalTotal.toFixed(2)}
+                    {userCurrency} {Number(finalTotal).toLocaleString()}
                   </span>
                 </div>
 

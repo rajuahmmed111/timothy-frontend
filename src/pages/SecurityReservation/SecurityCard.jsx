@@ -1,43 +1,84 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Star } from "lucide-react";
+import { currencyByCountry } from "../../components/curenci";
 
-function SecurityCard({ data, securityProvider, to }) {
-  console.log(data);
+function SecurityCard({
+  data,
+  securityProvider,
+  to,
+  userCurrency,
+  userCountry,
+  conversionRate,
+}) {
+  console.log("SecurityCard received data:", data);
   const { search } = useLocation();
+
+  // Handle both single business and array of businesses
   const list = Array.isArray(data)
     ? data
     : securityProvider
     ? [securityProvider]
+    : data
+    ? [data]
     : [];
-  // const location = list.
+
   return (
     <>
-      {list.map((data) => {
-        const guard = Array.isArray(data?.security_Guard)
-          ? data.security_Guard[0]
+      {list.map((business) => {
+        // Extract business information
+        const name =
+          business?.securityBusinessName ||
+          business?.securityName ||
+          "Security Service";
+        const image =
+          business?.businessLogo ||
+          business?.user?.profileImage ||
+          "/placeholder.svg";
+        const rating = Number(business?.averageRating) || 0;
+
+        // Calculate average price from guards or use business average
+        const basePrice = Number(business?.averagePrice) || 0;
+        const baseCurrency =
+          business?.securityurrency || business?.displayCurrency || "USD";
+
+        // Calculate converted price
+        let convertedPrice = basePrice;
+        let displayCurrency = userCurrency || baseCurrency;
+
+        if (userCurrency && baseCurrency !== userCurrency && conversionRate) {
+          convertedPrice = Number(basePrice * conversionRate).toFixed(2);
+        }
+
+        console.log("SecurityCard price conversion:", {
+          basePrice,
+          baseCurrency,
+          userCurrency,
+          conversionRate,
+          convertedPrice,
+          businessId: business?.id,
+        });
+
+        // Get location from first available guard or business
+        const firstGuard = Array.isArray(business?.security_Guard)
+          ? business.security_Guard[0]
           : null;
-        const location = [guard?.securityCity, guard?.securityCountry]
+        const location = [
+          firstGuard?.securityCity || business?.securityCity,
+          firstGuard?.securityCountry || business?.securityCountry,
+        ]
           .filter(Boolean)
           .join(", ");
-        const name = data?.securityBusinessName;
-        const image =
-          (Array.isArray(data?.securityImages) && data.securityImages[0]) ||
-          data?.user?.profileImage ||
-          "/placeholder.svg";
-        const price = data?.averagePrice;
-        const symbol = data?.displayCurrency;
-        const rating = Number(data?.averageRating);
 
         const target = `${
-          to || `/security-service-details/${data?.id}`
+          to || `/security-service-details/${business?.id}`
         }${search}`;
 
         return (
           <Link
-            key={data?.id}
+            key={business?.id}
             to={target}
-            state={{ security: list }}
+            state={{ security: [business] }}
             className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block"
           >
             {/* Card Image */}
@@ -62,14 +103,18 @@ function SecurityCard({ data, securityProvider, to }) {
 
               <p className="text-sm text-gray-600 line-clamp-2 flex items-center gap-2 mb-3">
                 <span className="font-medium text-gray-800">Location:</span>
-                {location || "Not provided"}
+                {location || "Multiple locations"}
               </p>
 
-              {/* Price & Button */}
+              {/* Price & Rating */}
               <div className="flex items-center justify-between mt-4">
                 <div>
                   <p className="text-sm text-gray-500">Starting from</p>
-                  <p className="text-xl font-bold text-[#0064D2]">{`${symbol}${price}/day`}</p>
+                  <p className="text-xl font-bold text-[#0064D2]">
+                    {`${displayCurrency} ${Number(
+                      convertedPrice
+                    ).toLocaleString()}/day`}
+                  </p>
                 </div>
                 <div className="flex items-center justify-center gap-1">
                   {[...Array(Math.max(0, Math.min(5, Math.round(rating))))].map(
@@ -80,12 +125,9 @@ function SecurityCard({ data, securityProvider, to }) {
                       />
                     )
                   )}
-                  {/* Rating */}
-                  <div className="flex items-center gap-2 ">
-                    <span className="text-sm text-gray-600 ml-1">
-                      {Number(rating) || 0}
-                    </span>
-                  </div>
+                  <span className="text-sm text-gray-600 ml-1">
+                    {Number(rating).toFixed(1)}
+                  </span>
                 </div>
               </div>
             </div>

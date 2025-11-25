@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   MapPin,
@@ -16,18 +16,21 @@ import { useParams, useLocation } from "react-router-dom";
 import { useGetSecurityProtocolsQuery } from "../../redux/api/security/getAllSecurityApi";
 import ImageGallery from "./ImageGallery";
 import { useNavigate } from "react-router-dom";
+import { currencyByCountry } from "../../components/curenci";
 
 export default function SecurityServiceDetails() {
+  const [userCurrency, setUserCurrency] = useState("USD");
+  const [userCountry, setUserCountry] = useState(null);
+  const [conversionRate, setConversionRate] = useState(1);
+
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
 
   const { data } = useGetSecurityProtocolsQuery();
- 
 
   // === RECEIVE DATA FROM SECURITYCARD ===
   const stateList = location.state?.security || [];
- 
 
   // === FILTER SPECIFIC BUSINESS ===
   const business = React.useMemo(() => {
@@ -35,25 +38,106 @@ export default function SecurityServiceDetails() {
     return stateList.find((item) => String(item?.id) === String(id)) || null;
   }, [stateList, id]);
 
-  const guard = React.useMemo(() => {
-    if (!business || !Array.isArray(business.security_Guard)) return null;
-    return business.security_Guard[0] || null;
+  // Get available guards (only AVAILABLE ones)
+  const availableGuards = React.useMemo(() => {
+    if (!business || !Array.isArray(business.security_Guard)) return [];
+    return business.security_Guard.filter(
+      (guard) => String(guard?.isBooked).toUpperCase() === "AVAILABLE"
+    );
   }, [business]);
 
-
-
-  const cancelationPolicy = business?.security?.securityCancelationPolicy;
+  const cancelationPolicy =
+    business?.securityCancelationPolicy || business?.securityCancelationPolicy;
 
   // === ADDRESS FORMAT ===
   const guardAddressParts = [
-    guard?.securityAddress || business?.securityAddress,
-    guard?.securityPostalCode || business?.securityPostalCode,
-    guard?.securityCity || business?.securityCity,
-    guard?.securityCountry || business?.securityCountry,
+    availableGuards[0]?.securityAddress || business?.securityAddress,
+    availableGuards[0]?.securityPostalCode || business?.securityPostalCode,
+    availableGuards[0]?.securityCity || business?.securityCity,
+    availableGuards[0]?.securityCountry || business?.securityCountry,
   ].filter(Boolean);
 
   const fullAddress = guardAddressParts.join(", ");
   const encodedQuery = encodeURIComponent(fullAddress);
+
+  // Currency detection and conversion
+  const basePrice = business?.averagePrice || 0;
+  const baseCurrency =
+    business?.securityurrency || business?.displayCurrency || "USD";
+  console.log(
+    "SecurityServiceDetails basePrice",
+    basePrice,
+    "baseCurrency",
+    baseCurrency
+  );
+
+  useEffect(() => {
+    const detect = async () => {
+      try {
+        console.log("Starting currency detection for security details...");
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        console.log("Location API response:", data);
+        const country = data.country;
+        console.log("Detected country:", country);
+
+        if (country && currencyByCountry[country]) {
+          console.log("Country found in mapping:", country);
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          console.log("User currency code:", userCurr);
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: baseCurrency → user's currency
+          let rate = 1;
+
+          if (baseCurrency !== userCurr) {
+            console.log("Converting from", baseCurrency, "to", userCurr);
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+            console.log("Exchange rate data:", rateData);
+
+            if (rateData?.rates) {
+              const baseToUSD =
+                baseCurrency === "USD" ? 1 : 1 / rateData.rates[baseCurrency];
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = baseToUSD * usdToUser;
+              console.log("Calculated conversion rate:", rate);
+            }
+          } else {
+            console.log("No conversion needed - same currency");
+          }
+
+          setConversionRate(rate);
+        } else {
+          console.log("Country not found in mapping, using USD");
+          setUserCurrency("USD");
+          setConversionRate(1);
+        }
+      } catch (e) {
+        console.error("Detection or conversion failed:", e);
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, [baseCurrency]);
+
+  // Calculate converted price
+  const convertedPrice = Number(basePrice * conversionRate).toFixed(2);
+
+  console.log("SecurityServiceDetails conversion details:", {
+    basePrice,
+    baseCurrency,
+    userCurrency,
+    conversionRate,
+    convertedPrice,
+    businessId: business?.id,
+    availableGuardsCount: availableGuards.length,
+  });
 
   const displayRating =
     Number(
@@ -98,8 +182,9 @@ export default function SecurityServiceDetails() {
               <span className="font-medium">Location:</span>
               <span>
                 {[
-                  guard?.securityCity || business?.securityCity,
-                  guard?.securityCountry || business?.securityCountry,
+                  availableGuards[0]?.securityCity || business?.securityCity,
+                  availableGuards[0]?.securityCountry ||
+                    business?.securityCountry,
                 ]
                   .filter(Boolean)
                   .join(", ") || "Not provided"}
@@ -168,12 +253,12 @@ export default function SecurityServiceDetails() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-700">
                       <Shield className="w-3.5 h-3.5 text-gray-600" />
-                      {guard.category}
+                      {availableGuards[0].category}
                     </span>
 
                     <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-medium text-blue-700">
-                      {guard.originalCurrency}
-                      {guard.convertedPrice}/day
+                      {userCurrency} {Number(convertedPrice).toLocaleString()}
+                      /day
                     </span>
                   </div>
 
@@ -204,7 +289,7 @@ export default function SecurityServiceDetails() {
 
                 <div className="bg-white/70 border border-gray-100 rounded-xl shadow-sm p-3 mb-3">
                   <h3 className="text-base font-semibold text-gray-900">
-                    {guard.securityGuardDescription}
+                    {availableGuards[0].securityGuardDescription}
                   </h3>
                 </div>
 
@@ -250,31 +335,33 @@ export default function SecurityServiceDetails() {
                 )}
 
                 {/* SERVICES */}
-                {Array.isArray(guard?.securityServicesOffered) &&
-                  guard.securityServicesOffered.length > 0 && (
+                {Array.isArray(availableGuards[0]?.securityServicesOffered) &&
+                  availableGuards[0].securityServicesOffered.length > 0 && (
                     <div className="bg-white/80 border border-gray-100 rounded-xl p-3 shadow-sm mb-4">
                       <h3 className="text-sm font-semibold text-gray-900 mb-2">
                         Services Offered
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {guard.securityServicesOffered.map((service, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-50 text-[11px] font-medium text-blue-700 border border-blue-100"
-                          >
-                            {service}
-                          </span>
-                        ))}
+                        {availableGuards[0].securityServicesOffered.map(
+                          (service, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-50 text-[11px] font-medium text-blue-700 border border-blue-100"
+                            >
+                              {service}
+                            </span>
+                          )
+                        )}
                       </div>
                     </div>
                   )}
 
                 {/* Description */}
-                {(guard?.securityGuardDescription ||
+                {(availableGuards[0]?.securityGuardDescription ||
                   business?.securityProtocolDescription) && (
                   <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-xl p-3 shadow-inner mb-4">
                     <p className="text-sm text-gray-700 leading-relaxed">
-                      {guard?.securityGuardDescription ||
+                      {availableGuards[0]?.securityGuardDescription ||
                         business.securityProtocolDescription}
                     </p>
                   </div>
@@ -287,54 +374,58 @@ export default function SecurityServiceDetails() {
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
-                    {typeof guard?.experience === "number" && (
+                    {typeof availableGuards[0]?.experience === "number" && (
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-600" />
                         <span>
                           Experience:{" "}
                           <span className="font-semibold">
-                            {guard.experience} years
+                            {availableGuards[0].experience} years
                           </span>
                         </span>
                       </div>
                     )}
 
-                    {guard?.availability && (
+                    {availableGuards[0]?.availability && (
                       <div>
                         <span className="font-semibold">Availability: </span>
-                        <span>{guard.availability}</span>
+                        <span>{availableGuards[0].availability}</span>
                       </div>
                     )}
 
-                    {Array.isArray(guard?.languages) &&
-                      guard.languages.length > 0 && (
+                    {Array.isArray(availableGuards[0]?.languages) &&
+                      availableGuards[0].languages.length > 0 && (
                         <div>
                           <span className="font-semibold">Languages: </span>
-                          <span>{guard.languages.join(", ")}</span>
+                          <span>{availableGuards[0].languages.join(", ")}</span>
                         </div>
                       )}
 
-                    {guard?.certification && (
+                    {availableGuards[0]?.certification && (
                       <div>
                         <span className="font-semibold">Certification: </span>
-                        <span>{guard.certification}</span>
+                        <span>{availableGuards[0].certification}</span>
                       </div>
                     )}
 
-                    {Array.isArray(guard?.securityBookingAbleDays) &&
-                      guard.securityBookingAbleDays.length > 0 && (
+                    {Array.isArray(
+                      availableGuards[0]?.securityBookingAbleDays
+                    ) &&
+                      availableGuards[0].securityBookingAbleDays.length > 0 && (
                         <div className="sm:col-span-2">
                           <span className="font-semibold">Booking Days: </span>
                           <span>
-                            {guard.securityBookingAbleDays.join(", ")}
+                            {availableGuards[0].securityBookingAbleDays.join(
+                              ", "
+                            )}
                           </span>
                         </div>
                       )}
 
-                    {guard?.category && (
+                    {availableGuards[0]?.category && (
                       <div>
                         <span className="font-semibold">Category: </span>
-                        <span>{guard.category}</span>
+                        <span>{availableGuards[0].category}</span>
                       </div>
                     )}
 
@@ -376,21 +467,22 @@ export default function SecurityServiceDetails() {
                       <MapPin className="w-5 h-5 text-red-500 mt-0.5" />
                       <div className="min-w-0">
                         {/* <h5 className="font-semibold text-xs text-gray-900 truncate">
-                          {guard?.securityGuardName ||
+                          {availableGuards[0]?.securityGuardName ||
                             business?.securityGuardName ||
                             business?.securityBusinessName ||
                             business?.security?.securityName ||
                             "Security Service"}
                         </h5> */}
 
-                        {(guard?.securityCity ||
-                          guard?.securityCountry ||
+                        {(availableGuards[0]?.securityCity ||
+                          availableGuards[0]?.securityCountry ||
                           business?.securityCity ||
                           business?.securityCountry) && (
                           <p className="text-[11px] text-gray-600 truncate">
                             {[
-                              guard?.securityCity || business?.securityCity,
-                              guard?.securityCountry ||
+                              availableGuards[0]?.securityCity ||
+                                business?.securityCity,
+                              availableGuards[0]?.securityCountry ||
                                 business?.securityCountry,
                             ]
                               .filter(Boolean)
@@ -416,7 +508,8 @@ export default function SecurityServiceDetails() {
 
                           {/* Price */}
                           <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-700">
-                            {guard.displayCurrency} {guard.convertedPrice}/day
+                            {userCurrency}{" "}
+                            {Number(convertedPrice).toLocaleString()}/day
                           </span>
                         </div>
                       </div>
@@ -437,7 +530,16 @@ export default function SecurityServiceDetails() {
               </div>
 
               {/* Booking Form */}
-              <SecurityBookingForm data={guard} policy={stateList} />
+              <SecurityBookingForm
+                data={business}
+                business={business}
+                guard={availableGuards}
+                userCurrency={userCurrency}
+                userCountry={userCountry}
+                conversionRate={conversionRate}
+                convertedPrice={convertedPrice}
+                policy={[{ securityCancelationPolicy: cancelationPolicy }]}
+              />
             </div>
           </div>
         </main>

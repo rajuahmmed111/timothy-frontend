@@ -1,13 +1,18 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { DatePicker } from "antd";
 import { useGetSecurityProtocolsRootQuery } from "../../redux/api/security/getAllSecurityApi";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
 import SecurityCard from "./SecurityCard";
+import { currencyByCountry } from "../../components/curenci";
 
 const { RangePicker } = DatePicker;
 
 export default function SecurityDetails() {
+  const [userCurrency, setUserCurrency] = useState("USD");
+  const [userCountry, setUserCountry] = useState(null);
+  const [conversionRate, setConversionRate] = useState(1);
+
   const { state, search } = useLocation();
   const params = new URLSearchParams(search || "");
 
@@ -50,6 +55,38 @@ export default function SecurityDetails() {
     ? data.data.data
     : [];
 
+  // Currency detection and conversion
+  useEffect(() => {
+    const detect = async () => {
+      try {
+        console.log("Starting currency detection for security...");
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        console.log("Location API response:", data);
+        const country = data.country;
+        console.log("Detected country:", country);
+
+        if (country && currencyByCountry[country]) {
+          console.log("Country found in mapping:", country);
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          console.log("User currency code:", userCurr);
+          setUserCurrency(userCurr);
+          setConversionRate(1); // Default rate, will be calculated per item
+        } else {
+          console.log("Country not found in mapping, using USD");
+          setUserCurrency("USD");
+          setConversionRate(1);
+        }
+      } catch (e) {
+        console.error("Detection failed:", e);
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, []);
 
   // Local UI state for inputs (used directly for filtering)
   const [locText, setLocText] = React.useState(displayLocation);
@@ -168,7 +205,6 @@ export default function SecurityDetails() {
               <option value="Event Security">Event Security</option>
               <option value="Escort">Escort</option>
               <option value="vip">Vip Protection</option>
-              
             </select>
           </div>
         </div>
@@ -185,7 +221,12 @@ export default function SecurityDetails() {
       </div>
       {/* Results Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 container mx-auto py-10">
-        <SecurityCard data={filteredBusinesses} />
+        <SecurityCard
+          data={filteredBusinesses}
+          userCurrency={userCurrency}
+          userCountry={userCountry}
+          conversionRate={conversionRate}
+        />
         {filteredBusinesses && filteredBusinesses.length === 0 && (
           <div className="col-span-full text-center py-10">
             <p className="text-gray-500">No data available.</p>
