@@ -16,26 +16,39 @@ export default function CarCard({
     conversionRate,
   });
 
-  // Currency conversion logic (fallback if not provided)
-  const basePrice = Number(car?.price) || 0;
-  const baseCurrency = car?.currency || "USD";
+  // Use the converted price from PopularCar if available, otherwise fallback
+  let finalPrice = car?.convertedPrice || 0;
+  let displayCurrency = car?.displayCurrency || userCurrency || "USD";
 
-  // Calculate converted price
-  let convertedPrice = basePrice;
-  let displayCurrency = userCurrency || car?.displayCurrency || baseCurrency;
+  // If no converted price provided, do conversion as fallback
+  if (!car?.convertedPrice && car?.price) {
+    const basePrice = Number(car.price.replace(/[^0-9.]/g, "")) || 0;
+    const baseCurrency = car?.currency || "USD";
 
-  if (userCurrency && baseCurrency !== userCurrency && conversionRate) {
-    convertedPrice = Number(basePrice * conversionRate).toFixed(2);
+    if (userCurrency && baseCurrency !== userCurrency && conversionRate) {
+      finalPrice = Number(basePrice * conversionRate);
+      displayCurrency = userCurrency;
+    } else {
+      finalPrice = basePrice;
+      displayCurrency = baseCurrency;
+    }
   }
+
+  // Handle zero-decimal currencies like JPY
+  const isZeroDecimalCurrency = ["JPY", "KRW", "VND"].includes(displayCurrency);
+  const formattedPrice = isZeroDecimalCurrency
+    ? Math.round(finalPrice).toLocaleString()
+    : finalPrice.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
 
   console.log("CarCard price conversion:", {
     carName: car?.name,
-    basePrice,
-    baseCurrency,
-    userCurrency,
-    conversionRate,
-    convertedPrice,
+    finalPrice,
     displayCurrency,
+    formattedPrice,
+    convertedPriceFromProps: car?.convertedPrice,
   });
   return (
     <Link
@@ -70,7 +83,7 @@ export default function CarCard({
           {/* Rating and Price */}
           <div className="flex items-center justify-between mb-3">
             <div className="text-2xl font-bold text-gray-900">
-              {displayCurrency} {Number(convertedPrice).toLocaleString()}
+              {displayCurrency} {formattedPrice}
             </div>
             <div className="flex items-center gap-1">
               {[...Array(Math.floor(car?.rating || 0))].map((_, i) => (
