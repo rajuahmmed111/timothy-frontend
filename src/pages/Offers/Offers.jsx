@@ -1,121 +1,132 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import HotelCard from '../../components/HotelCard/HotelCard';
-import ServiceCard from '../../components/ServiceCard/ServiceCard';
-
-// Mock data - replace with actual data from your API
-const hotelOffers = [
-  {
-    id: 1,
-    name: 'Luxury Resort',
-    location: 'Maldives',
-    price: 299,
-    rating: 4.8,
-    image: '/hotel/1.png',
-    discount: '30% OFF',
-    originalPrice: 429,
-    checkIn: '2023-12-15',
-    checkOut: '2023-12-22'
-  },
-  {
-    id: 2,
-    name: 'Beachfront Villa',
-    location: 'Bali, Indonesia',
-    price: 199,
-    rating: 4.5,
-    image: '/hotel/2.png',
-    discount: '25% OFF',
-    originalPrice: 265,
-    checkIn: '2023-12-10',
-    checkOut: '2023-12-20'
-  },
-  {
-    id: 3,
-    name: 'Mountain Retreat',
-    location: 'Swiss Alps',
-    price: 349,
-    rating: 4.9,
-    image: '/hotel/3.png',
-    discount: '20% OFF',
-    originalPrice: 436,
-    checkIn: '2023-12-05',
-    checkOut: '2023-12-15'
-  }
-];
-
-const serviceOffers = [
-  {
-    id: 1,
-    title: 'Premium Security',
-    description: '24/7 professional security service',
-    price: 199,
-    rating: 4.9,
-    image: '/SecurityProviders/1.png',
-    discount: '25% OFF',
-    originalPrice: 265,
-    duration: '1 Month'
-  },
-  {
-    id: 2,
-    title: 'Event Security',
-    description: 'Professional security personnel',
-    price: 349,
-    rating: 4.7,
-    image: '/SecurityProviders/2.png',
-    discount: '20% OFF',
-    originalPrice: 436,
-    duration: 'Per Event'
-  },
-  {
-    id: 3,
-    title: 'Residential Security',
-    description: 'Complete home security solutions',
-    price: 149,
-    rating: 4.8,
-    image: '/SecurityProviders/3.png',
-    discount: '15% OFF',
-    originalPrice: 175,
-    duration: '1 Month'
-  }
-];
-
-const carOffers = [
-  {
-    id: 1,
-    name: 'Luxury Sedan',
-    type: 'Sedan',
-    price: 89,
-    rating: 4.7,
-    image: '/car/1.png',
-    discount: '20% OFF',
-    originalPrice: 111,
-    features: ['GPS', 'Bluetooth', 'Air Conditioning']
-  },
-  {
-    id: 2,
-    name: 'Premium SUV',
-    type: 'SUV',
-    price: 129,
-    rating: 4.8,
-    image: '/car/2.png',
-    discount: '15% OFF',
-    originalPrice: 152,
-    features: ['GPS', 'Sunroof', 'Leather Seats']
-  },
-  {
-    id: 3,
-    name: 'Sports Car',
-    type: 'Convertible',
-    price: 199,
-    rating: 4.9,
-    image: '/car/3.png',
-    discount: '10% OFF',
-    originalPrice: 221,
-    features: ['Premium Sound', 'Convertible Top', 'Sport Mode']
-  }
-];
+import React from "react";
+import { Link } from "react-router-dom";
+import { useGetAllHotelRoomsQuery } from "../../redux/api/hotel/hotelApi";
+import { useGetSecurityProtocolsRootQuery } from "../../redux/api/security/getAllSecurityApi";
+import { useGetAllCarsQuery } from "../../redux/api/car/getAllCarsApi";
+import HotelCard from "../../components/HotelCard/HotelCard";
+import ServiceCard from "../../components/ServiceCard/ServiceCard";
 
 const Offers = () => {
+  const {
+    data: hotelData,
+    isLoading: hotelLoading,
+    error: hotelError,
+  } = useGetAllHotelRoomsQuery();
+
+  const {
+    data: securityData,
+    isLoading: securityLoading,
+    error: securityError,
+  } = useGetSecurityProtocolsRootQuery();
+
+  const {
+    data: carData,
+    isLoading: carLoading,
+    error: carError,
+  } = useGetAllCarsQuery();
+
+  // Extract all rooms from all hotels and filter those with discounts
+  const hotelOffers = React.useMemo(() => {
+    if (!hotelData?.data?.data) return [];
+
+    const allRooms = [];
+
+    hotelData.data.data.forEach((hotel) => {
+      if (hotel.room && Array.isArray(hotel.room)) {
+        hotel.room.forEach((room) => {
+          // Only include rooms with discount > 0
+          if (room.discount && room.discount > 0) {
+            // Calculate discounted price from convertedPrice and discount percentage
+            const discountedPrice =
+              room.convertedPrice - (room.convertedPrice * room.discount) / 100;
+
+            allRooms.push({
+              ...room,
+              hotelName: hotel.hotelName,
+              hotelBusinessName: hotel.hotelBusinessName,
+              hotelAddress: hotel.hotelAddress,
+              hotelCity: hotel.hotelCity,
+              hotelCountry: hotel.hotelCountry,
+              hotelRating: hotel.averageRating,
+              hotelReviewCount: hotel.averageReviewCount,
+              displayCurrency: room.displayCurrency || hotel.displayCurrency,
+              currencySymbol: hotel.currencySymbol,
+              discountedPrice: discountedPrice,
+              originalPrice: room.convertedPrice, // Use convertedPrice as original for display
+              // Calculate discount percentage
+              discountPercentage: room.discount,
+              location: `${hotel.hotelAddress}, ${hotel.hotelCity}`,
+            });
+          }
+        });
+      }
+    });
+
+    return allRooms;
+  }, [hotelData]);
+
+  console.log("hotelOffer", hotelOffers);
+
+  // Extract all security guards from all security businesses and filter those with discounts
+  const securityOffers = React.useMemo(() => {
+    if (!securityData?.data?.data) return [];
+
+    const allGuards = [];
+
+    securityData.data.data.forEach((business) => {
+      if (business.security_Guard && Array.isArray(business.security_Guard)) {
+        business.security_Guard.forEach((guard) => {
+          // Only include guards with discount > 0
+          if (guard.discount && guard.discount > 0) {
+            // Calculate discounted price from convertedPrice and discount percentage
+            const discountedPrice =
+              guard.convertedPrice -
+              (guard.convertedPrice * guard.discount) / 100;
+
+            allGuards.push({
+              ...guard,
+              securityBusinessName: business.securityBusinessName,
+              securityName: business.securityName,
+              businessLogo: business.businessLogo,
+              securityProtocolDescription: business.securityProtocolDescription,
+              securityProtocolType: business.securityProtocolType,
+              averageRating: business.averageRating,
+              averageReviewCount: business.averageReviewCount,
+              displayCurrency:
+                guard.displayCurrency || business.displayCurrency,
+              currencySymbol: business.currencySymbol,
+              discountedPrice: discountedPrice,
+              // Calculate discount percentage
+              discountPercentage: guard.discount,
+            });
+          }
+        });
+      }
+    });
+
+    return allGuards;
+  }, [securityData]);
+
+  // Extract all cars and filter those with discounts
+  const carOffers = React.useMemo(() => {
+    if (!carData?.data?.data) return [];
+
+    return carData.data.data
+      .filter((car) => car.discount && car.discount > 0)
+      .map((car) => {
+        // Calculate discounted price from convertedPrice and discount percentage
+        const discountedPrice =
+          car.convertedPrice - (car.convertedPrice * car.discount) / 100;
+
+        return {
+          ...car,
+          discountedPrice: discountedPrice,
+          // Calculate discount percentage
+          discountPercentage: car.discount,
+        };
+      });
+  }, [carData]);
+
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="container mx-auto">
@@ -124,121 +135,147 @@ const Offers = () => {
             Special Offers
           </h1>
           <p className="mt-3 max-w-3xl mx-auto text-xl text-gray-500 sm:mt-5">
-            Exclusive deals and discounts on hotels, security services, and car rentals
+            Exclusive deals and discounts on hotels, security services, and car
+            rentals
           </p>
         </div>
 
-        {/* Hotel Offers Section */}
-        <section className="mb-16">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Hotel Deals</h2>
-            {/* <Link to="/hotel-reservation" className="text-blue-600 hover:text-blue-800 font-medium">
-              View All Hotel Offers →
-            </Link> */}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {hotelOffers.map((hotel) => (
-              <div key={hotel.id} className="relative">
-                <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md z-10">
-                  {hotel.discount}
-                </div>
-                <HotelCard hotel={hotel} />
-                {/* <div className="mt-2 text-sm text-gray-600 line-through">
-                  ${hotel.originalPrice}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Valid until: {new Date(hotel.checkOut).toLocaleDateString()}
-                </div> */}
-              </div>
-            ))}
-          </div>
-        </section>
+      
 
         {/* Security Service Offers Section */}
         <section className="mb-16">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Security Service Deals</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Security Service Deals
+            </h2>
             {/* <Link to="/security-reservation" className="text-blue-600 hover:text-blue-800 font-medium">
               View All Security Offers →
             </Link> */}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {serviceOffers.map((service) => (
-              <div key={service.id} className="relative">
-                <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md z-10">
-                  {service.discount}
+
+          {securityLoading ? (
+            <div className="text-center py-8">Loading security deals...</div>
+          ) : securityError ? (
+            <div className="text-center py-8 text-red-500">
+              Failed to load security deals
+            </div>
+          ) : securityOffers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No security deals available at the moment
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {securityOffers.map((guard) => (
+                <div key={guard.id} className="relative">
+                  <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md z-10">
+                    {guard.discountPercentage}% OFF
+                  </div>
+                  <ServiceCard
+                    service={{
+                      id: guard.id,
+                      title: guard.securityGuardName,
+                      description: guard.securityGuardDescription,
+                      price: guard.discountedPrice,
+                      originalPrice: guard.originalPrice,
+                      rating: guard.securityRating,
+                      image: guard.securityImages?.[0],
+                      category: guard.category,
+                      displayCurrency: guard.displayCurrency,
+                      currencySymbol: guard.currencySymbol,
+                      reviewCount: guard.securityReviewCount,
+                      experience: guard.experience,
+                      availability: guard.availability,
+                      services: guard.securityServicesOffered,
+                      businessName: guard.securityBusinessName,
+                      icon: null,
+                    }}
+                  />
                 </div>
-                <ServiceCard 
-                  service={{
-                    ...service,
-                    icon: null // Add icon if available
-                  }} 
-                />
-                {/* <div className="mt-2 text-sm text-gray-600 line-through">
-                  ${service.originalPrice}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Duration: {service.duration}
-                </div> */}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Car Rental Offers Section */}
         <section>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Car Rental Deals</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Car Rental Deals
+            </h2>
             {/* <Link to="/car-reservation" className="text-blue-600 hover:text-blue-800 font-medium">
               View All Car Rental Offers →
             </Link> */}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {carOffers.map((offer) => (
-              <div key={offer.id} className="relative">
-                <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md z-10">
-                  {offer.discount}
-                </div>
-                <div className="bg-white rounded-lg shadow-md overflow-hidden h-full flex flex-col">
-                  <div className="relative h-40 overflow-hidden">
-                    <img 
-                      src={offer.image} 
-                      alt={offer.name}
-                      className="w-full h-full object-cover"
-                    />
+
+          {carLoading ? (
+            <div className="text-center py-8">Loading car deals...</div>
+          ) : carError ? (
+            <div className="text-center py-8 text-red-500">
+              Failed to load car deals
+            </div>
+          ) : carOffers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No car deals available at the moment
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {carOffers.map((car) => (
+                <div key={car.id} className="relative">
+                  <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md z-10">
+                    {car.discountPercentage}% OFF
                   </div>
-                  <div className="p-4 flex-grow flex flex-col">
-                    <h3 className="text-lg font-semibold">{offer.name}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{offer.type}</p>
-                    <div className="mt-auto">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="text-xl font-bold">${offer.price}</span>
-                          <span className="text-gray-500 text-sm">/day</span>
-                          <div className="text-sm text-gray-600 line-through">
-                            ${offer.originalPrice}
+                  <div className="bg-white rounded-lg shadow-md overflow-hidden h-full flex flex-col">
+                    <div className="relative h-40 overflow-hidden">
+                      <img
+                        src={car.carImages?.[0]}
+                        alt={car.carModel}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-4 flex-grow flex flex-col">
+                      <h3 className="text-lg font-semibold">{car.carModel}</h3>
+                      <p className="text-gray-600 text-sm mb-2">
+                        {car.carType}
+                      </p>
+                      <div className="mt-auto">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <span className="text-xl font-bold">
+                              {car.displayCurrency}
+                              {car.discountedPrice}
+                            </span>
+                            <span className="text-gray-500 text-sm">/day</span>
+                            <div className="text-sm text-gray-600 line-through">
+                              {car.displayCurrency}
+                              {car.originalPrice}
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="text-yellow-500">★</span>
+                            <span className="ml-1">{car.carRating}</span>
                           </div>
                         </div>
-                        <div className="flex items-center">
-                          <span className="text-yellow-500">★</span>
-                          <span className="ml-1">{offer.rating}</span>
-                        </div>
+                        {car.carServicesOffered && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {car.carServicesOffered
+                              .slice(0, 3)
+                              .map((feature, index) => (
+                                <span
+                                  key={index}
+                                  className="text-xs bg-gray-100 px-2 py-1 rounded"
+                                >
+                                  {feature}
+                                </span>
+                              ))}
+                          </div>
+                        )}
                       </div>
-                      {offer.features && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {offer.features.map((feature, index) => (
-                            <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                              {feature}
-                            </span>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>

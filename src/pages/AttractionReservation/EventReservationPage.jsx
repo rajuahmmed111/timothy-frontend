@@ -14,9 +14,10 @@ import {
   ChevronRight,
   ExternalLink,
 } from "lucide-react";
-import img1 from "/burj.png";
 import { useGetAttractionAppealByIdQuery } from "../../redux/api/attraction/attractionApi";
 import ImageGallery from "./ImageGallery";
+import Loader from "../../shared/Loader/Loader";
+import { currencyByCountry } from "../../components/curenci";
 
 export default function EventReservationPage() {
   const navigate = useNavigate();
@@ -28,10 +29,134 @@ export default function EventReservationPage() {
   const a = data?.data;
   const cancelationPolicy = a?.attraction?.attractionCancelationPolicy;
 
-  const displayCurrency = a?.displayCurrency;
-  const adultPrice = a?.convertedAdultPrice ?? a?.attractionAdultPrice ?? 0;
+  // Currency detection states
+  const [userCurrency, setUserCurrency] = useState("USD");
+  const [userCountry, setUserCountry] = useState(null);
+  const [conversionRate, setConversionRate] = useState(1);
 
-  // ---------- Location & Map Helpers ----------
+  // Currency detection and conversion
+  useEffect(() => {
+    const detect = async () => {
+      try {
+        console.log("EventReservationPage: Starting currency detection...");
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        console.log("EventReservationPage: Location API response:", data);
+        const country = data.country;
+        console.log("EventReservationPage: Detected country:", country);
+
+        if (country && currencyByCountry[country]) {
+          console.log(
+            "EventReservationPage: Country found in mapping:",
+            country
+          );
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          console.log("EventReservationPage: User currency code:", userCurr);
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: USD → user's currency
+          let rate = 1;
+
+          if ("USD" !== userCurr) {
+            console.log(
+              "EventReservationPage: Converting from USD to",
+              userCurr
+            );
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+            console.log("EventReservationPage: Exchange rate data:", rateData);
+
+            if (rateData?.rates) {
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = usdToUser;
+              console.log(
+                "EventReservationPage: Calculated conversion rate:",
+                rate
+              );
+            }
+          } else {
+            console.log("EventReservationPage: No conversion needed - USD");
+          }
+
+          setConversionRate(rate);
+        } else {
+          console.log(
+            "EventReservationPage: Country not found in mapping, using USD"
+          );
+          setUserCurrency("USD");
+          setConversionRate(1);
+        }
+      } catch (e) {
+        console.error(
+          "EventReservationPage: Detection or conversion failed:",
+          e
+        );
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, []);
+
+  const displayCurrency = a?.currency || a?.displayCurrency;
+  const baseAdultPrice =
+    Number(a?.originalAdultPrice) || Number(a?.attractionAdultPrice) || 0;
+  const baseChildPrice =
+    Number(a?.originalChildPrice) || Number(a?.attractionChildPrice) || 0;
+  const baseCurrency = displayCurrency || "USD";
+
+  // Calculate converted prices
+  let convertedAdultPrice = baseAdultPrice;
+  console.log("dfdfadsfdasfadsfadsfasdfasdfds", convertedAdultPrice);
+  let convertedChildPrice = baseChildPrice;
+  let finalDisplayCurrency = userCurrency || baseCurrency;
+
+  // Convert from base currency to user currency
+  if (userCurrency && baseCurrency !== userCurrency && conversionRate) {
+    // If base currency is NGN and user wants USD
+    if (baseCurrency === "NGN" && userCurrency === "USD") {
+      // Convert NGN to USD (assuming 1 USD = 1515 NGN)
+      const ngnToUsdRate = 1 / 1515;
+      convertedAdultPrice = Number(baseAdultPrice * ngnToUsdRate);
+      convertedChildPrice = Number(baseChildPrice * ngnToUsdRate);
+    }
+    // If base currency is USD and user has different currency
+    else if (baseCurrency === "USD") {
+      convertedAdultPrice = Number(baseAdultPrice * conversionRate);
+      convertedChildPrice = Number(baseChildPrice * conversionRate);
+    }
+    // If base currency is not USD but user wants USD
+    else if (userCurrency === "USD") {
+      convertedAdultPrice = Number(baseAdultPrice / conversionRate);
+      convertedChildPrice = Number(baseChildPrice / conversionRate);
+    }
+    // For other conversions, use the provided conversion rate
+    else {
+      convertedAdultPrice = Number(baseAdultPrice * conversionRate);
+      convertedChildPrice = Number(baseChildPrice * conversionRate);
+    }
+  }
+
+  console.log("EventReservationPage: Price conversion:", {
+    eventName: a?.attractionDestinationType,
+    baseAdultPrice,
+    baseChildPrice,
+    baseCurrency,
+    userCurrency,
+    conversionRate,
+    convertedAdultPrice,
+    convertedChildPrice,
+    finalDisplayCurrency,
+  });
+
+  const adultPrice = Number(convertedAdultPrice);
+  console.log("ddfddddddddddddddddddd", adultPrice);
+  const childPrice = Number(convertedChildPrice);
+
   const attractionAddressParts = [
     a?.attractionAddress,
     a?.attractionCity,
@@ -40,6 +165,13 @@ export default function EventReservationPage() {
   const fullAddress = attractionAddressParts.join(", ");
   const encodedQuery = encodeURIComponent(fullAddress || "");
   const displayRating = Number(a?.attractionRating) || 0;
+  const reviewCount = Number(
+    a?.attractionReviewCount ??
+      a?.totalReviews ??
+      a?.reviewCount ??
+      a?.reviewsCount ??
+      0
+  );
 
   const openFullMap = () => {
     if (fullAddress) {
@@ -61,8 +193,6 @@ export default function EventReservationPage() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-
-  // ---------- Calendar Generation ----------
   const generateCalendar = () => {
     const firstDay = new Date(currentYear, currentMonth, 1);
     const startDate = new Date(firstDay);
@@ -112,8 +242,8 @@ export default function EventReservationPage() {
     const adultCount = parseInt(adults || "0", 10);
     const childCount = parseInt(children || "0", 10);
     const guestCount = adultCount + childCount;
-    const childPrice = a?.convertedChildPrice ?? adultPrice;
-    const total = adultCount * unitPrice + childCount * (childPrice || 0);
+    const finalChildPrice = childPrice || adultPrice;
+    const total = adultCount * unitPrice + childCount * finalChildPrice;
 
     const bookingDetails = {
       bookingId: appealId || a?.id || "",
@@ -131,14 +261,21 @@ export default function EventReservationPage() {
       children: childCount,
       unitPrice,
       total,
-      // send both adult and child prices forward
-      convertedAdultPrice: a?.convertedAdultPrice ?? unitPrice,
-      convertedChildPrice: a?.convertedChildPrice ?? childPrice,
-      displayCurrency,
+      convertedAdultPrice: adultPrice,
+      convertedChildPrice: finalChildPrice,
+      displayCurrency: finalDisplayCurrency,
       appealId,
       cancelationPolicy,
       discountPercent: a?.discount || 0,
       vatPercent: a?.vat || 0,
+
+      // Add currency conversion details
+      userCurrency,
+      userCountry,
+      conversionRate,
+      baseCurrency,
+      baseAdultPrice,
+      baseChildPrice,
     };
     console.log("bookingDetails", bookingDetails);
     if (accessToken) {
@@ -153,7 +290,6 @@ export default function EventReservationPage() {
     }
   };
 
-  // ---------- Selected weekday (derived from selected date) ----------
   const selectedWeekday = useMemo(() => {
     if (!selectedDate) return "";
     try {
@@ -165,7 +301,6 @@ export default function EventReservationPage() {
     }
   }, [selectedDate]);
 
-  // ---------- Update available slots when selected date changes ----------
   useEffect(() => {
     if (!selectedDate || !a?.attractionSchedule) return;
     const weekday = new Date(selectedDate).toLocaleDateString("en-US", {
@@ -178,22 +313,6 @@ export default function EventReservationPage() {
     setAvailableSlots(daySchedule?.slots || []);
   }, [selectedDate, a]);
 
-  // ---------- Days available from schedule ----------
-  const scheduleDays = useMemo(() => {
-    const days = (a?.attractionSchedule || [])
-      .map((s) => s?.day)
-      .filter(Boolean);
-    return [...new Set(days)];
-  }, [a]);
-
-  // ---------- Default Images ----------
-  const images = useMemo(() => {
-    const arr = a?.attractionImages || [];
-    if (arr.length > 0) return arr;
-    return [img1, img1, img1];
-  }, [a]);
-
-  // ---------- Amenities ----------
   const amenities = useMemo(
     () => [
       {
@@ -221,18 +340,7 @@ export default function EventReservationPage() {
   );
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen container mx-auto px-5 md:px-0 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl shadow p-6 animate-pulse h-48"
-            ></div>
-          ))}
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error || !a) {
@@ -242,8 +350,6 @@ export default function EventReservationPage() {
       </div>
     );
   }
-
-  // ---------- UI ----------
   return (
     <div className="min-h-screen container mx-auto px-5 md:px-0 py-10">
       {/* Header */}
@@ -253,35 +359,30 @@ export default function EventReservationPage() {
             <h1 className="text-3xl font-bold mb-2">
               {a?.attractionDestinationType}
             </h1>
-            <p className="text-gray-600">{a?.attractionDescription}</p>
           </div>
-          {/* <button
-            onClick={() => navigate(`/attraction-details?appealId=${appealId}`)}
-            disabled={!appealId}
-            className={`px-4 py-2 rounded-lg font-medium border ${
-              !appealId
-                ? "opacity-60 cursor-not-allowed"
-                : "bg-[#0064D2] text-white border-[#0064D2] hover:bg-blue-700"
-            }`}
-          >
-            View Attraction Details
-          </button> */}
+        </div>
+        <div className="flex items-center gap-1">
+          <MapPin className="h-4 w-4 text-gray-600" />
+          <span className="text-gray-600">
+            {a?.attractionCity}, {a?.attractionCountry}
+          </span>
         </div>
 
-        <div className="flex items-center gap-4 mt-2">
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-current text-yellow-500" />
-            <span className="font-medium">{a?.attractionRating}</span>
-            <span className="text-gray-600">
-              ({a?.attractionReviewCount} reviews)
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4 text-gray-600" />
-            <span className="text-gray-600">
-              {a?.attractionCity}, {a?.attractionCountry}
-            </span>
-          </div>
+        <div className="flex items-center mt-3 gap-2">
+          <span className="text-xl font-normal ">Average Rating : </span>
+          {[1, 2, 3, 4, 5].map((s, i) => (
+            <Star
+              key={s}
+              className={`w-5 h-5 ${
+                i < Math.round(displayRating)
+                  ? "fill-yellow-400 text-yellow-400"
+                  : "text-gray-300"
+              }`}
+            />
+          ))}
+          <span className="text-sm text-gray-700">
+            {displayRating.toFixed(1)}
+          </span>
         </div>
       </div>
 
@@ -316,7 +417,33 @@ export default function EventReservationPage() {
           </div>
           <div>
             <h2 className="text-xl font-semibold mb-3">Booking Policy</h2>
-            <p className="text-red-600 leading-relaxed">{cancelationPolicy}</p>
+            <p className="text-black text-lg leading-relaxed">
+              {cancelationPolicy}
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="text-xl font-semibold">Guest Reviews</h2>
+              <span className="inline-flex items-center rounded-full bg-green-100 text-green-800 px-3 py-1 text-sm font-medium">
+                Rating {displayRating.toFixed(1)} · {reviewCount}{" "}
+                {reviewCount === 1 ? "review" : "reviews"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((s, i) => (
+                <Star
+                  key={s}
+                  className={`w-5 h-5 ${
+                    i < Math.round(displayRating)
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-gray-300"
+                  }`}
+                />
+              ))}
+              <span className="text-sm text-gray-600">
+                ({displayRating.toFixed(1)})
+              </span>
+            </div>
           </div>
         </div>
 
@@ -364,8 +491,8 @@ export default function EventReservationPage() {
                         {displayRating.toFixed(1)}
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-700">
-                        {displayCurrency}
-                        {a?.convertedAdultPrice ?? 0}/person
+                        {finalDisplayCurrency}
+                        {Number(convertedAdultPrice).toLocaleString()}/person
                       </span>
                     </div>
                   </div>
@@ -388,13 +515,15 @@ export default function EventReservationPage() {
             {/* Price */}
             <div className="flex items-center  mb-6">
               <span className="text-2xl font-bold">
-                {displayCurrency}:{a?.convertedAdultPrice}
+                {finalDisplayCurrency}{" "}
+                {Number(convertedAdultPrice).toLocaleString()}
               </span>
               <span className="text-sm text-gray-600">(Per Adult)</span>
             </div>
             <div className="flex items-center mb-6">
               <span className="text-2xl font-bold">
-                {displayCurrency}:{a?.convertedChildPrice}
+                {finalDisplayCurrency}{" "}
+                {Number(convertedChildPrice).toLocaleString()}
               </span>
               <span className="text-sm text-gray-600">(Per Child)</span>
             </div>
@@ -535,7 +664,7 @@ export default function EventReservationPage() {
                         className={`px-3 py-2 text-sm rounded-lg border transition-all ${
                           selectedTime === `${slot.from} - ${slot.to}`
                             ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white hover:bg-gray-50 border-gray-200"
+                            : "bg-white border-gray-200"
                         }`}
                       >
                         {slot.from} - {slot.to}
@@ -600,53 +729,42 @@ export default function EventReservationPage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>
-                    {displayCurrency}
-                    {(a?.convertedAdultPrice || 0).toFixed(2)} x{" "}
+                    {finalDisplayCurrency}{" "}
+                    {Number(convertedAdultPrice).toLocaleString()} x{" "}
                     {parseInt(adults || "0", 10)} adult
                     {parseInt(adults || "0", 10) > 1 ? "s" : ""}
                   </span>
                   <span>
-                    {displayCurrency}
-                    {(
-                      (a?.convertedAdultPrice || 0) *
-                      parseInt(adults || "0", 10)
-                    ).toFixed(2)}
+                    {finalDisplayCurrency}{" "}
+                    {Number(
+                      convertedAdultPrice * parseInt(adults || "0", 10)
+                    ).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>
-                    {displayCurrency}
-                    {(
-                      (a?.convertedChildPrice ?? a?.convertedAdultPrice) ||
-                      0
-                    ).toFixed(2)}{" "}
-                    x {parseInt(children || "0", 10)} child
+                    {finalDisplayCurrency}{" "}
+                    {Number(convertedChildPrice).toLocaleString()} x{" "}
+                    {parseInt(children || "0", 10)} child
                     {parseInt(children || "0", 10) === 1 ? "" : "ren"}
                   </span>
                   <span>
-                    {displayCurrency}
-                    {(
-                      ((a?.convertedChildPrice ?? a?.convertedAdultPrice) ||
-                        0) * parseInt(children || "0", 10)
-                    ).toFixed(2)}
+                    {finalDisplayCurrency}{" "}
+                    {Number(
+                      convertedChildPrice * parseInt(children || "0", 10)
+                    ).toLocaleString()}
                   </span>
                 </div>
-                {/* <div className="flex justify-between text-sm">
-                  <span>Service fee</span>
-                  <span>$50</span>
-                </div> */}
+
                 <div className="border-t border-gray-200 my-2"></div>
                 <div className="flex justify-between font-medium text-lg">
                   <span>Total</span>
                   <span>
-                    {displayCurrency}
-                    {(
-                      (a?.convertedAdultPrice || 0) *
-                        parseInt(adults || "0", 10) +
-                      ((a?.convertedChildPrice ?? a?.convertedAdultPrice) ||
-                        0) *
-                        parseInt(children || "0", 10)
-                    ).toFixed(2)}
+                    {finalDisplayCurrency}{" "}
+                    {Number(
+                      convertedAdultPrice * parseInt(adults || "0", 10) +
+                        convertedChildPrice * parseInt(children || "0", 10)
+                    ).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -661,7 +779,7 @@ export default function EventReservationPage() {
                     : "hover:bg-blue-700"
                 }`}
               >
-                Continue
+                Reserve
               </button>
             </div>
           </div>

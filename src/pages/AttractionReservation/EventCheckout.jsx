@@ -12,12 +12,14 @@ import {
   Phone,
 } from "lucide-react";
 import { handleError, handleSuccess } from "../../../toast";
+import { currencyByCountry } from "../../components/curenci";
 
 export default function EventCheckout() {
   const location = useLocation();
   const [createAttractionBooking] = useCreateAttractionBookingMutation();
   const navigate = useNavigate();
   const user = useSelector((state) => state?.auth?.user);
+
   // Accept booking data from multiple shapes
   // - From EventReservationPage.handleBooking: { state: { bookingDetails } }
   // - From EventGuestLogin redirect: { state: { bookingDetails } }
@@ -37,20 +39,145 @@ export default function EventCheckout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const cancelationPolicy = bookingDetails?.cancelationPolicy;
   console.log("bookingDetails", bookingDetails);
+
+  // Currency detection states
+  const [userCurrency, setUserCurrency] = useState(
+    bookingDetails?.userCurrency || "USD"
+  );
+  const [userCountry, setUserCountry] = useState(
+    bookingDetails?.userCountry || null
+  );
+  const [conversionRate, setConversionRate] = useState(
+    bookingDetails?.conversionRate || 1
+  );
+
+  // Currency detection effect (only if not provided from booking details)
+  React.useEffect(() => {
+    if (bookingDetails?.userCurrency && bookingDetails?.conversionRate) {
+      console.log("EventCheckout: Using currency from booking details:", {
+        userCurrency: bookingDetails.userCurrency,
+        userCountry: bookingDetails.userCountry,
+        conversionRate: bookingDetails.conversionRate,
+      });
+      return;
+    }
+
+    const detect = async () => {
+      try {
+        console.log("EventCheckout: Starting currency detection...");
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        console.log("EventCheckout: Location API response:", data);
+        const country = data.country;
+        console.log("EventCheckout: Detected country:", country);
+
+        if (country && currencyByCountry[country]) {
+          console.log("EventCheckout: Country found in mapping:", country);
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          console.log("EventCheckout: User currency code:", userCurr);
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: USD → user's currency
+          let rate = 1;
+
+          if ("USD" !== userCurr) {
+            console.log("EventCheckout: Converting from USD to", userCurr);
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+            console.log("EventCheckout: Exchange rate data:", rateData);
+
+            if (rateData?.rates) {
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = usdToUser;
+              console.log("EventCheckout: Calculated conversion rate:", rate);
+            }
+          } else {
+            console.log("EventCheckout: No conversion needed - USD");
+          }
+
+          setConversionRate(rate);
+        } else {
+          console.log("EventCheckout: Country not found in mapping, using USD");
+          setUserCurrency("USD");
+          setConversionRate(1);
+        }
+      } catch (e) {
+        console.error("EventCheckout: Detection or conversion failed:", e);
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, [bookingDetails]);
   const unitPrice = Number(bookingDetails?.unitPrice || 0);
   const guestCount = Number(bookingDetails?.guests || 1);
   const total = Number(bookingDetails?.total || unitPrice * guestCount);
-  const currencyLabel = bookingDetails?.displayCurrency || "";
+  const currencyLabel = userCurrency || bookingDetails?.displayCurrency || "";
   const adultCount = Number(
     bookingDetails?.adults ?? bookingDetails?.guests ?? 1
   );
   const childCount = Number(bookingDetails?.children ?? 0);
-  const convertedAdultPrice = Number(
+
+  // Calculate converted prices if not provided
+  let finalAdultPrice = Number(
     bookingDetails?.convertedAdultPrice ?? unitPrice
   );
-  const convertedChildPrice = Number(
-    bookingDetails?.convertedChildPrice ?? convertedAdultPrice
+  let finalChildPrice = Number(
+    bookingDetails?.convertedChildPrice ?? finalAdultPrice
   );
+  let finalTotal = Number(
+    bookingDetails?.total ||
+      finalAdultPrice * adultCount + finalChildPrice * childCount
+  );
+
+  // If we have base prices and conversion rate, calculate converted prices
+  if (bookingDetails?.baseAdultPrice && conversionRate && userCurrency) {
+    const baseCurrency = bookingDetails?.baseCurrency || "NGN";
+
+    // Convert from base currency to user currency
+    if (baseCurrency === "NGN" && userCurrency === "USD") {
+      // Convert NGN to USD (assuming 1 USD = 1515 NGN)
+      const ngnToUsdRate = 1 / 1515;
+      finalAdultPrice = Number(bookingDetails.baseAdultPrice * ngnToUsdRate);
+      finalChildPrice = Number(bookingDetails.baseChildPrice * ngnToUsdRate);
+    }
+    // If base currency is USD and user has different currency
+    else if (baseCurrency === "USD") {
+      finalAdultPrice = Number(bookingDetails.baseAdultPrice * conversionRate);
+      finalChildPrice = Number(bookingDetails.baseChildPrice * conversionRate);
+    }
+    // If base currency is not USD but user wants USD
+    else if (userCurrency === "USD") {
+      finalAdultPrice = Number(bookingDetails.baseAdultPrice / conversionRate);
+      finalChildPrice = Number(bookingDetails.baseChildPrice / conversionRate);
+    }
+    // For other conversions, use the provided conversion rate
+    else {
+      finalAdultPrice = Number(bookingDetails.baseAdultPrice * conversionRate);
+      finalChildPrice = Number(bookingDetails.baseChildPrice * conversionRate);
+    }
+
+    finalTotal = finalAdultPrice * adultCount + finalChildPrice * childCount;
+  }
+
+  console.log("EventCheckout: Price calculation:", {
+    eventName: bookingDetails?.eventName,
+    baseAdultPrice: bookingDetails?.baseAdultPrice,
+    baseChildPrice: bookingDetails?.baseChildPrice,
+    unitPrice,
+    finalAdultPrice,
+    finalChildPrice,
+    finalTotal,
+    userCurrency,
+    conversionRate,
+  });
+
+  const convertedAdultPrice = finalAdultPrice;
+  const convertedChildPrice = finalChildPrice;
 
   // Derive guest fields from multiple possible shapes
   const deriveGuest = () => ({
@@ -121,12 +248,6 @@ export default function EventCheckout() {
 
     setIsProcessing(true);
     try {
-      const convertedAdultPrice = Number(
-        bookingDetails.convertedAdultPrice ?? bookingDetails.unitPrice ?? 0
-      );
-      const convertedChildPrice = Number(
-        bookingDetails.convertedChildPrice ?? convertedAdultPrice ?? 0
-      );
       const adults = Number(
         bookingDetails.adults ?? bookingDetails.guests ?? 1
       );
@@ -140,9 +261,9 @@ export default function EventCheckout() {
         email: updatedUser.email,
         phone: updatedUser.phone,
         address: updatedUser.address,
-        convertedAdultPrice,
-        convertedChildPrice,
-        displayCurrency: bookingDetails.displayCurrency,
+        convertedAdultPrice: finalAdultPrice,
+        convertedChildPrice: finalChildPrice,
+        displayCurrency: userCurrency || bookingDetails.displayCurrency,
         discountedPrice,
         adults,
         children,
@@ -151,6 +272,16 @@ export default function EventCheckout() {
         day: bookingDetails.day,
         from: bookingDetails.selectedFrom,
         to: bookingDetails.selectedTo,
+
+        // Add currency conversion details
+        userCurrency,
+        userCountry,
+        conversionRate,
+        baseCurrency:
+          bookingDetails.baseCurrency || bookingDetails.currency || "USD",
+        baseAdultPrice:
+          bookingDetails.baseAdultPrice || bookingDetails.unitPrice || 0,
+        baseChildPrice: bookingDetails.baseChildPrice || 0,
       };
 
       const resp = await createAttractionBooking({
@@ -337,13 +468,14 @@ export default function EventCheckout() {
                 {/* Adults line */}
                 <div className="flex justify-between">
                   <span>
-                    {currencyLabel} {convertedAdultPrice.toFixed(2)} ×{" "}
+                    {currencyLabel}{" "}
+                    {Number(convertedAdultPrice).toLocaleString()} ×{" "}
                     {adultCount} adult
                     {adultCount === 1 ? "" : "s"}
                   </span>
                   <span>
                     {currencyLabel}{" "}
-                    {(convertedAdultPrice * adultCount).toFixed(2)}
+                    {Number(convertedAdultPrice * adultCount).toLocaleString()}
                   </span>
                 </div>
 
@@ -351,13 +483,16 @@ export default function EventCheckout() {
                 {childCount > 0 && (
                   <div className="flex justify-between">
                     <span>
-                      {currencyLabel} {convertedChildPrice.toFixed(2)} ×{" "}
+                      {currencyLabel}{" "}
+                      {Number(convertedChildPrice).toLocaleString()} ×{" "}
                       {childCount} child
                       {childCount === 1 ? "" : "ren"}
                     </span>
                     <span>
                       {currencyLabel}{" "}
-                      {(convertedChildPrice * childCount).toFixed(2)}
+                      {Number(
+                        convertedChildPrice * childCount
+                      ).toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -365,7 +500,7 @@ export default function EventCheckout() {
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
                   <span>Total</span>
                   <span>
-                    {currencyLabel} {total.toFixed(2)}
+                    {currencyLabel} {Number(finalTotal).toLocaleString()}
                   </span>
                 </div>
 

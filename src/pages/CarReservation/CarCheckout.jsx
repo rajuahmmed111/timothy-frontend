@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 import { useCreateCarBookingMutation } from "../../redux/api/car/carApi";
 import { handleError, handleSuccess } from "./../../../toast";
+import { currencyByCountry } from "../../components/curenci";
 
 export default function CarCheckout() {
   const location = useLocation();
@@ -17,6 +18,80 @@ export default function CarCheckout() {
 
   const user = useSelector((state) => state?.auth?.user);
   const accessToken = useSelector((state) => state?.auth?.accessToken);
+
+  // Currency detection states
+  const [userCurrency, setUserCurrency] = useState(
+    bookingDetails?.userCurrency || "USD"
+  );
+  const [userCountry, setUserCountry] = useState(
+    bookingDetails?.userCountry || null
+  );
+  const [conversionRate, setConversionRate] = useState(
+    bookingDetails?.conversionRate || 1
+  );
+
+  // Currency detection effect (only if not provided from booking details)
+  React.useEffect(() => {
+    if (bookingDetails?.userCurrency && bookingDetails?.conversionRate) {
+      console.log("CarCheckout: Using currency from booking details:", {
+        userCurrency: bookingDetails.userCurrency,
+        userCountry: bookingDetails.userCountry,
+        conversionRate: bookingDetails.conversionRate,
+      });
+      return;
+    }
+
+    const detect = async () => {
+      try {
+        console.log("CarCheckout: Starting currency detection...");
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        console.log("CarCheckout: Location API response:", data);
+        const country = data.country;
+        console.log("CarCheckout: Detected country:", country);
+
+        if (country && currencyByCountry[country]) {
+          console.log("CarCheckout: Country found in mapping:", country);
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          console.log("CarCheckout: User currency code:", userCurr);
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: USD → user's currency
+          let rate = 1;
+
+          if ("USD" !== userCurr) {
+            console.log("CarCheckout: Converting from USD to", userCurr);
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+            console.log("CarCheckout: Exchange rate data:", rateData);
+
+            if (rateData?.rates) {
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = usdToUser;
+              console.log("CarCheckout: Calculated conversion rate:", rate);
+            }
+          } else {
+            console.log("CarCheckout: No conversion needed - USD");
+          }
+
+          setConversionRate(rate);
+        } else {
+          console.log("CarCheckout: Country not found in mapping, using USD");
+          setUserCurrency("USD");
+          setConversionRate(1);
+        }
+      } catch (e) {
+        console.error("CarCheckout: Detection or conversion failed:", e);
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, [bookingDetails]);
 
   const decodedUserInfo = useMemo(() => {
     if (!accessToken) return null;
@@ -48,16 +123,37 @@ export default function CarCheckout() {
   /* PRICE CALCULATIONS */
   const carPrice = useMemo(() => {
     if (!bookingDetails) return 0;
+
+    // Use converted price if available, otherwise convert base price
+    let price = Number(
+      bookingDetails.unitPrice || bookingDetails.pricePerDay || 0
+    );
+
+    // If we have base price and conversion rate, convert it
+    if (bookingDetails.basePrice && conversionRate && userCurrency) {
+      price = Number(bookingDetails.basePrice * conversionRate).toFixed(2);
+    }
+
+    // If total is provided and greater than 0, calculate per-day price
     const totalValue = Number(bookingDetails.total || 0);
     const daysCount = days || 1;
     if (totalValue > 0) {
-      return totalValue / daysCount;
+      price = totalValue / daysCount;
     }
-    const fallback = Number(
-      bookingDetails.unitPrice || bookingDetails.pricePerDay || 0
-    );
-    return fallback;
-  }, [bookingDetails, days]);
+
+    console.log("CarCheckout: Price calculation:", {
+      carName: bookingDetails.carName,
+      basePrice: bookingDetails.basePrice,
+      unitPrice: bookingDetails.unitPrice,
+      total: bookingDetails.total,
+      calculatedPrice: price,
+      days,
+      userCurrency,
+      conversionRate,
+    });
+
+    return price;
+  }, [bookingDetails, days, conversionRate, userCurrency]);
 
   const displayVat = useMemo(() => {
     return (carPrice * days * 0.05).toFixed(2);
@@ -153,18 +249,22 @@ export default function CarCheckout() {
         phone: updatedUser?.phone,
         address: updatedUser?.country,
 
-        // --- PRICE INFO (PER‑DAY) ---
+        // --- PRICE INFO (PER-DAY) ---
         // Backend will do: amount = totalPrice * days
-        convertedPrice: dailyPrice, // per‑day
-        totalPrice: dailyPrice, // per‑day
+        convertedPrice: carPrice, // per-day (already converted)
+        totalPrice: carPrice, // per-day (already converted)
         displayCurrency:
-          bookingDetails.displayCurrency || bookingDetails.currency,
+          userCurrency ||
+          bookingDetails.displayCurrency ||
+          bookingDetails.currency ||
+          "USD",
         discountedPrice: bookingDetails.discountedPrice || 0,
 
         // --- BOOKING INFO ---
         carBookedFromDate: bookingDetails.pickupDate,
         carBookedToDate: bookingDetails.returnDate,
-        currency: bookingDetails.currency,
+        currency:
+          bookingDetails.baseCurrency || bookingDetails.currency || "USD",
         location: bookingDetails.location,
         carName: bookingDetails.carName,
         carSeats: bookingDetails.carSeats,
@@ -172,12 +272,20 @@ export default function CarCheckout() {
         carCancelationPolicy: bookingDetails.carCancelationPolicy,
         days, // backend multiplies by this
         guests: bookingDetails.guests || 1,
-        unitPrice: bookingDetails.unitPrice, // keep per‑day here too
+        unitPrice: carPrice, // keep per-day here too (converted)
         description: bookingDetails.carDescription,
 
         // --- USER REF ---
         userId: userInfo.id,
         user: userInfo,
+
+        // --- CURRENCY CONVERSION DETAILS ---
+        userCurrency,
+        userCountry,
+        conversionRate,
+        baseCurrency:
+          bookingDetails.baseCurrency || bookingDetails.currency || "USD",
+        basePrice: bookingDetails.basePrice || bookingDetails.unitPrice || 0,
       };
 
       console.log("bookingPayload (per‑day sent to backend):", bookingPayload);
@@ -208,6 +316,17 @@ export default function CarCheckout() {
             // optional: keep vat just for showing breakdown
             vat: Number(displayVat),
             user: userInfo,
+
+            // Add currency conversion for payment page
+            userCurrency,
+            userCountry,
+            conversionRate,
+            displayFinalTotal: Number(displayFinalTotal),
+            displayCurrency:
+              userCurrency ||
+              bookingDetails.displayCurrency ||
+              bookingDetails.currency ||
+              "USD",
           },
         },
       });
@@ -367,17 +486,27 @@ export default function CarCheckout() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">
-                      {carPrice} × {days} {days === 1 ? "day" : "days"}
+                      {userCurrency ||
+                        bookingDetails.displayCurrency ||
+                        bookingDetails.currency}{" "}
+                      {Number(carPrice).toLocaleString()} × {days}{" "}
+                      {days === 1 ? "day" : "days"}
                     </span>
                     <span className="text-gray-900">
-                      {bookingDetails.currency} {carPrice * days}
+                      {userCurrency ||
+                        bookingDetails.displayCurrency ||
+                        bookingDetails.currency}{" "}
+                      {Number(carPrice * days).toLocaleString()}
                     </span>
                   </div>
 
                   <div className="flex justify-between">
                     <span className="text-gray-600">VAT 5%</span>
                     <span className="text-gray-900">
-                      {bookingDetails.currency} {displayVat}
+                      {userCurrency ||
+                        bookingDetails.displayCurrency ||
+                        bookingDetails.currency}{" "}
+                      {Number(displayVat).toLocaleString()}
                     </span>
                   </div>
 
@@ -387,7 +516,10 @@ export default function CarCheckout() {
                         Total Amount
                       </span>
                       <span className="text-lg font-semibold">
-                        {bookingDetails.currency} {displayFinalTotal}
+                        {userCurrency ||
+                          bookingDetails.displayCurrency ||
+                          bookingDetails.currency}{" "}
+                        {Number(displayFinalTotal).toLocaleString()}
                       </span>
                     </div>
                   </div>

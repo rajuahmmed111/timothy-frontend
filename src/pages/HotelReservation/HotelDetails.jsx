@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import HotelHeader from "./HotelHeader";
 import ImageGallery from "./ImageGallery";
@@ -8,8 +8,13 @@ import { useLocation, useParams } from "react-router-dom";
 import { useGetHotelReviewsQuery } from "../../redux/api/hotel/hotelReviewsApi";
 import { useGetHotelDetailsQuery } from "../../redux/api/hotel/hotelApi";
 import { MapPin, Star, ExternalLink } from "lucide-react";
+import { currencyByCountry } from "../../components/curenci";
 
 export default function HotelDetails() {
+  const [userCurrency, setUserCurrency] = useState("USD");
+  const [userCountry, setUserCountry] = useState(null);
+  const [conversionRate, setConversionRate] = useState(1);
+
   const location = useLocation();
   const { id: routeId } = useParams();
   const hotel = location.state?.hotel;
@@ -23,6 +28,62 @@ export default function HotelDetails() {
   console.log("hotelFromApi", hotelFromApi);
   const hotelData = hotel || hotelFromApi;
   console.log("hotelDatadsafsadf", hotelData);
+
+  // Currency detection and conversion
+  const basePrice = hotelData?.averagePrice ?? hotelData?.roomPrice ?? 0;
+  const baseCurrency = hotelData?.roomCurrency ?? "USD";
+  console.log("basePrice", basePrice, "baseCurrency", baseCurrency);
+
+  useEffect(() => {
+    const detect = async () => {
+      try {
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        const country = data.country;
+
+        if (country && currencyByCountry[country]) {
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: baseCurrency → user's currency
+          let rate = 1;
+
+          if (baseCurrency !== userCurr) {
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+
+            if (rateData?.rates) {
+              const baseToUSD =
+                baseCurrency === "USD" ? 1 : 1 / rateData.rates[baseCurrency];
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = baseToUSD * usdToUser;
+            }
+          }
+
+          setConversionRate(rate);
+        }
+      } catch (e) {
+        console.log("Detection or conversion failed", e);
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, [baseCurrency]);
+
+  // Price converted
+  const convertedPrice = Number(basePrice * conversionRate).toFixed(2);
+  console.log("Conversion details:", {
+    basePrice,
+    baseCurrency,
+    userCurrency,
+    conversionRate,
+    convertedPrice,
+  });
 
   // Build complete address for accurate location
   const fullAddress = [

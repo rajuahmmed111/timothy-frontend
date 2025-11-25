@@ -8,8 +8,106 @@ import { useSelector } from "react-redux";
 import { useMemo } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useBooking } from "../../context/BookingContext";
+import { currencyByCountry } from "../../components/curenci";
 
-export default function SecurityBookingForm({ data }) {
+export default function SecurityBookingForm({
+  data,
+  policy,
+  business,
+  guard,
+  userCurrency,
+  userCountry,
+  conversionRate,
+  convertedPrice,
+}) {
+  console.log("SecurityBookingForm received props:", {
+    userCurrency,
+    userCountry,
+    conversionRate,
+    convertedPrice,
+    business,
+    guard,
+  });
+
+  const [localUserCurrency, setLocalUserCurrency] = useState(
+    userCurrency || "USD"
+  );
+  const [localUserCountry, setLocalUserCountry] = useState(userCountry || null);
+  const [localConversionRate, setLocalConversionRate] = useState(
+    conversionRate || 1
+  );
+
+  // Fallback currency detection if props are not set properly
+  useEffect(() => {
+    if (
+      !userCurrency ||
+      userCurrency === "USD" ||
+      !conversionRate ||
+      conversionRate === 1
+    ) {
+      const detectCurrency = async () => {
+        try {
+          console.log(
+            "Running fallback currency detection in SecurityBookingForm..."
+          );
+          const res = await fetch("https://api.country.is/");
+          const data = await res.json();
+          console.log("Fallback location API response:", data);
+          const country = data.country;
+          console.log("Fallback detected country:", country);
+
+          if (country && currencyByCountry[country]) {
+            console.log("Fallback country found in mapping:", country);
+            const userCurr = currencyByCountry[country].code;
+            console.log("Fallback user currency code:", userCurr);
+            setLocalUserCurrency(userCurr);
+            setLocalUserCountry(country);
+
+            // Fetch conversion: baseCurrency → user's currency
+            const baseCurrency = business?.displayCurrency || "USD";
+            let rate = 1;
+
+            if (baseCurrency !== userCurr) {
+              console.log(
+                "Fallback converting from",
+                baseCurrency,
+                "to",
+                userCurr
+              );
+              const rateRes = await fetch(
+                "https://open.er-api.com/v6/latest/USD"
+              );
+              const rateData = await rateRes.json();
+              console.log("Fallback exchange rate data:", rateData);
+
+              if (rateData?.rates) {
+                const baseToUSD =
+                  baseCurrency === "USD" ? 1 : 1 / rateData.rates[baseCurrency];
+                const usdToUser = rateData.rates[userCurr] || 1;
+                rate = baseToUSD * usdToUser;
+                console.log("Fallback calculated conversion rate:", rate);
+              }
+            }
+
+            setLocalConversionRate(rate);
+          } else {
+            console.log("Fallback country not found in mapping, using USD");
+          }
+        } catch (e) {
+          console.error("Fallback currency detection failed:", e);
+        }
+      };
+
+      detectCurrency();
+    }
+  }, [userCurrency, conversionRate, business?.displayCurrency]);
+
+  console.log("Updated local state:", {
+    localUserCurrency,
+    localUserCountry,
+    localConversionRate,
+  });
+
   const navigate = useNavigate();
   const { search } = useLocation();
   const { bookingData, updateBookingData, updateGuests } = useBooking();
@@ -17,7 +115,7 @@ export default function SecurityBookingForm({ data }) {
   const [dateRange, setDateRange] = useState(null);
   const [isBooking, setIsBooking] = useState(false);
   const [personnelCount, setPersonnelCount] = useState(1);
-
+  const cancellationPolicy = policy?.[0]?.securityCancelationPolicy;
   const { RangePicker } = DatePicker;
   const params = new URLSearchParams(search || "");
   const fromDateParam = params.get("fromDate");
@@ -26,6 +124,7 @@ export default function SecurityBookingForm({ data }) {
   const toDate = toDateParam ? dayjs(toDateParam) : null;
   const user = useSelector((state) => state?.auth?.user);
   const accessToken = useSelector((state) => state?.auth?.accessToken);
+
   const userInfo = useMemo(() => {
     if (!accessToken) return null;
     try {
@@ -41,44 +140,80 @@ export default function SecurityBookingForm({ data }) {
     }
   }, [accessToken, user]);
 
-  // Derive guards list from incoming data (array or single object)
-  const guards = Array.isArray(data) ? data : data ? [data] : [];
+  // Derive guards list from available guards
+  console.log("Available props for guard extraction:", {
+    business,
+    guard,
+    data,
+    businessType: typeof business,
+    guardType: typeof guard,
+    dataType: typeof data,
+    businessIsArray: Array.isArray(business),
+    guardIsArray: Array.isArray(guard),
+    dataIsArray: Array.isArray(data),
+  });
+
+  const guards = Array.isArray(guard)
+    ? guard.filter((g) => String(g?.isBooked).toUpperCase() === "AVAILABLE")
+    : Array.isArray(business?.security_Guard)
+    ? business.security_Guard.filter(
+        (g) => String(g?.isBooked).toUpperCase() === "AVAILABLE"
+      )
+    : [];
+
+  console.log("Derived guards list (AVAILABLE only):", guards);
+  console.log("Guards list length:", guards.length);
+
   const [selectedGuardIndex, setSelectedGuardIndex] = useState(0);
   useEffect(() => {
     if (guards.length === 0) return;
-    const idx = guards.findIndex(
-      (g) => String(g?.isBooked).toUpperCase() === "AVAILABLE"
-    );
-    setSelectedGuardIndex(idx >= 0 ? idx : 0);
+    setSelectedGuardIndex(0); // Always select first available guard
   }, [JSON.stringify(guards)]);
 
   const selectedGuard = guards[selectedGuardIndex] || null;
-  const cancelationPolicy =
-    selectedGuard?.security?.securityCancelationPolicy ||
-    selectedGuard?.securityCancelationPolicy ||
-    null;
+  console.log("Selected guard:", selectedGuard);
 
-  console.log("booking-form:selectedGuard", selectedGuard);
-  console.log("booking-form:cancelationPolicy", cancelationPolicy);
-  const guardId = selectedGuard?.id ?? selectedGuard?._id ?? null;
+  // Enhanced guard info extraction with more fallbacks
+  const guardId =
+    selectedGuard?.id ??
+    selectedGuard?._id ??
+    business?.id ??
+    business?._id ??
+    null;
   const guardName =
     selectedGuard?.securityGuardName ||
     selectedGuard?.securityName ||
     selectedGuard?.name ||
-    null;
+    business?.securityBusinessName ||
+    business?.securityName ||
+    "Security Guard";
   const photo =
+    selectedGuard?.securityImages?.[0] ||
     selectedGuard?.photo ||
-    (Array.isArray(selectedGuard?.securityImages)
-      ? selectedGuard.securityImages[0]
-      : null);
+    business?.businessLogo ||
+    business?.user?.profileImage ||
+    "/placeholder.svg";
+
   const derivedPrice =
     selectedGuard?.securityPriceDay ||
     selectedGuard?.pricePerDay ||
-    selectedGuard?.securityPrice ||
+    business?.averagePrice ||
     500;
   const unitPrice = Number(derivedPrice) || 500;
   const currencyCode =
-    selectedGuard?.displayCurrency || selectedGuard?.currency || "USD";
+    selectedGuard?.currency || business?.securityurrency || "USD";
+
+  console.log("Enhanced guard info extraction:", {
+    guardId,
+    guardName,
+    photo,
+    hasPhoto: !!photo,
+    selectedGuardExists: !!selectedGuard,
+    businessExists: !!business,
+    derivedPrice,
+    unitPrice,
+    currencyCode,
+  });
 
   const serviceTypes = [
     {
@@ -87,6 +222,7 @@ export default function SecurityBookingForm({ data }) {
       description: "Dedicated protection for individuals",
       icon: <User className="w-5 h-5 text-blue-600" />,
       price: unitPrice,
+      convertedPrice: Number(unitPrice * localConversionRate),
     },
   ];
 
@@ -100,8 +236,21 @@ export default function SecurityBookingForm({ data }) {
         (dateRange[1].toDate().getTime() - dateRange[0].toDate().getTime()) /
           (1000 * 60 * 60 * 24)
       ) || 1;
-    return selectedService.price * days * personnelCount;
+    return selectedService.convertedPrice * days * personnelCount;
   };
+
+  // Calculate converted price for display
+  const displayPrice = Number(unitPrice * localConversionRate).toFixed(2);
+  const totalAmount = Number(calculateTotal()).toFixed(2);
+
+  console.log("Security booking conversion:", {
+    unitPrice,
+    currencyCode,
+    localUserCurrency,
+    localConversionRate,
+    displayPrice,
+    totalAmount,
+  });
 
   const handlePersonnelChange = (value) => {
     setPersonnelCount(value);
@@ -131,7 +280,7 @@ export default function SecurityBookingForm({ data }) {
     const endDate = dateRange[1].format("YYYY-MM-DD");
     const people = Number(personnelCount || 1);
     const perDay = Number(unitPrice || 0);
-    const computedTotal = Number(calculateTotal() || perDay * people);
+    const computedTotal = Number(calculateTotal());
 
     const payload = {
       // Dates
@@ -145,20 +294,20 @@ export default function SecurityBookingForm({ data }) {
       // Quantities and pricing
       personnelCount: people,
       number_of_security: people, // alias used by downstream
-      pricePerDay: perDay,
-      total: computedTotal,
-      convertedPrice: computedTotal, // alias used by PaymentConfirm
+      pricePerDay: Number(displayPrice),
+      total: Number(totalAmount),
+      convertedPrice: Number(displayPrice), // alias used by PaymentConfirm
 
       // Display currency aliases
-      currency: currencyCode,
-      displayCurrency: currencyCode,
-      cancelationPolicy,
+      currency: localUserCurrency,
+      displayCurrency: localUserCurrency,
+      cancellationPolicy,
       // Guard info
       guardId,
       guardName,
       photo,
     };
-    console.log("booking-form:payload", payload);
+
     if (accessToken) {
       // If user is logged in, navigate to checkout
       navigate("/security/checkout", { state: { payload } });
@@ -197,7 +346,7 @@ export default function SecurityBookingForm({ data }) {
               <div className="font-medium text-gray-900">{guardName}</div>
             )}
             <div className="text-sm text-gray-600">
-              {currencyCode} {unitPrice} / day
+              {localUserCurrency} {Number(displayPrice).toLocaleString()} / day
             </div>
           </div>
         </div>
@@ -271,7 +420,7 @@ export default function SecurityBookingForm({ data }) {
                   </div>
                 </div>
                 <div className="mt-1 text-sm font-medium">
-                  {currencyCode} {selectedService.price}{" "}
+                  {localUserCurrency} {Number(displayPrice).toLocaleString()}{" "}
                   <span className="text-gray-500 font-normal">/ day</span>
                 </div>
               </div>
@@ -285,7 +434,8 @@ export default function SecurityBookingForm({ data }) {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">
-                {currencyCode} {selectedService.price} per day per person
+                {localUserCurrency} {Number(displayPrice).toLocaleString()} per
+                day per person
               </span>
             </div>
             <div className="flex justify-between">
@@ -293,7 +443,8 @@ export default function SecurityBookingForm({ data }) {
                 {personnelCount} {personnelCount === 1 ? "person" : "people"}
               </span>
               <span>
-                {currencyCode} {selectedService.price * personnelCount} per day
+                {localUserCurrency}{" "}
+                {Number(displayPrice * personnelCount).toLocaleString()} per day
               </span>
             </div>
             {dateRange && dateRange[0] && dateRange[1] && (
@@ -302,7 +453,7 @@ export default function SecurityBookingForm({ data }) {
                   {getDays()} {getDays() === 1 ? "day" : "days"}
                 </span>
                 <span>
-                  {currencyCode} {calculateTotal()}
+                  {localUserCurrency} {Number(totalAmount).toLocaleString()}
                 </span>
               </div>
             )}
@@ -310,7 +461,7 @@ export default function SecurityBookingForm({ data }) {
             <div className="flex justify-between font-medium">
               <span>Total</span>
               <span>
-                {currencyCode} {calculateTotal()}
+                {localUserCurrency} {Number(totalAmount).toLocaleString()}
               </span>
             </div>
           </div>
@@ -326,7 +477,7 @@ export default function SecurityBookingForm({ data }) {
               : "hover:bg-blue-700"
           }`}
         >
-          {isBooking ? "Processing..." : "Reserve Now"}
+          {isBooking ? "Processing..." : "Reserve"}
         </button>
       </form>
     </div>

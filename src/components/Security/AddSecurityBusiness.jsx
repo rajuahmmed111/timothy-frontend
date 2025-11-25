@@ -228,7 +228,10 @@ export default function AddSecurityBusiness() {
                       required
                       value={formData.securityBusinessName}
                       onChange={(e) =>
-                        handleInputChange("securityBusinessName", e.target.value)
+                        handleInputChange(
+                          "securityBusinessName",
+                          e.target.value
+                        )
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Your Security Business Ltd."
@@ -236,7 +239,7 @@ export default function AddSecurityBusiness() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                     Full Name <span className="text-red-500">*</span>
+                      Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -257,7 +260,10 @@ export default function AddSecurityBusiness() {
                       required
                       value={formData.securityBusinessType}
                       onChange={(e) =>
-                        handleInputChange("securityBusinessType", e.target.value)
+                        handleInputChange(
+                          "securityBusinessType",
+                          e.target.value
+                        )
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
@@ -423,7 +429,10 @@ export default function AddSecurityBusiness() {
                       rows={3}
                       value={formData.securityProtocolDescription}
                       onChange={(e) =>
-                        handleInputChange("securityProtocolDescription", e.target.value)
+                        handleInputChange(
+                          "securityProtocolDescription",
+                          e.target.value
+                        )
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Describe your security business/protocols..."
@@ -436,14 +445,23 @@ export default function AddSecurityBusiness() {
                     <select
                       value={formData.securityProtocolType}
                       onChange={(e) =>
-                        handleInputChange("securityProtocolType", e.target.value)
+                        handleInputChange(
+                          "securityProtocolType",
+                          e.target.value
+                        )
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="Event Security">Event Security</option>
-                      <option value="Executive Protection">Executive Protection</option>
+                      <option value="Executive Protection">
+                        Executive Protection
+                      </option>
                       <option value="Security Guard">Security Guard</option>
-                      <option value="Personal Bodyguard">Personal Bodyguard</option>
+                      <option value="Personal Bodyguard">
+                        Personal Bodyguard
+                      </option>
+                      <option value="Escort">Escort</option>
+                      <option value="Vip">VIP Protection</option>
                     </select>
                   </div>
                   <div className="md:col-span-2">
@@ -479,58 +497,6 @@ export default function AddSecurityBusiness() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Free cancellation up to 48 hours before check-in. After that, one night charge will apply."
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Latitude
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={formData.hotelLate}
-                      onChange={(e) =>
-                        handleInputChange("hotelLate", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., 2.33"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Longitude
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={formData.hotelLong}
-                      onChange={(e) =>
-                        handleInputChange("hotelLong", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., 2.4"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Accommodation Type
-                    </label>
-                    <select
-                      value={formData.hotelAccommodationType}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "hotelAccommodationType",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="5-Star Luxury">5-Star Luxury</option>
-                      <option value="4-Star">4-Star</option>
-                      <option value="3-Star">3-Star</option>
-                      <option value="Boutique">Boutique Hotel</option>
-                      <option value="Resort">Resort</option>
-                      <option value="Budget">Budget Hotel</option>
-                    </select>
                   </div>
                 </div>
               </div>
@@ -624,7 +590,8 @@ export default function AddSecurityBusiness() {
                   )}
                 </div>
                 <p className="text-xs text-gray-500">
-                  Upload licenses, protocols, and other relevant documents (PDF, DOC, DOCX)
+                  Upload licenses, protocols, and other relevant documents (PDF,
+                  DOC, DOCX)
                 </p>
               </div>
             </div>

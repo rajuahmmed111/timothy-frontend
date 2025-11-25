@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -13,8 +13,13 @@ import {
 import { useCreateHotelBookingMutation } from "../../redux/api/hotel/hotelApi";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { handleError, handleSuccess } from "../../../toast";
+import { currencyByCountry } from "../../components/curenci";
 
 export default function Checkout() {
+  const [userCurrency, setUserCurrency] = useState("USD");
+  const [userCountry, setUserCountry] = useState(null);
+  const [conversionRate, setConversionRate] = useState(1);
+
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -26,6 +31,67 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [createHotelBooking, { isLoading }] = useCreateHotelBookingMutation();
 
+  // Currency detection and conversion
+  const basePrice = bookingData?.roomPrice ?? bookingData?.total ?? 0;
+  const baseCurrency = bookingData?.displayCurrency ?? "USD";
+  console.log("basePrice", basePrice, "baseCurrency", baseCurrency);
+
+  useEffect(() => {
+    const detect = async () => {
+      try {
+        console.log("Starting currency detection...");
+        const res = await fetch("https://api.country.is/");
+        const data = await res.json();
+        console.log("Location API response:", data);
+        const country = data.country;
+        console.log("Detected country:", country);
+
+        if (country && currencyByCountry[country]) {
+          console.log("Country found in mapping:", country);
+          setUserCountry(country);
+          const userCurr = currencyByCountry[country].code;
+          console.log("User currency code:", userCurr);
+          setUserCurrency(userCurr);
+
+          // Fetch conversion: baseCurrency → user's currency
+          let rate = 1;
+
+          if (baseCurrency !== userCurr) {
+            console.log("Converting from", baseCurrency, "to", userCurr);
+            const rateRes = await fetch(
+              "https://open.er-api.com/v6/latest/USD"
+            );
+            const rateData = await rateRes.json();
+            console.log("Exchange rate data:", rateData);
+
+            if (rateData?.rates) {
+              const baseToUSD =
+                baseCurrency === "USD" ? 1 : 1 / rateData.rates[baseCurrency];
+              const usdToUser = rateData.rates[userCurr] || 1;
+              rate = baseToUSD * usdToUser;
+              console.log("Calculated conversion rate:", rate);
+            }
+          } else {
+            console.log("No conversion needed - same currency");
+          }
+
+          setConversionRate(rate);
+        } else {
+          console.log(
+            "Country not found in mapping or country detection failed"
+          );
+          console.log("Available currencies:", Object.keys(currencyByCountry));
+        }
+      } catch (e) {
+        console.error("Detection or conversion failed:", e);
+        setUserCurrency("USD");
+        setConversionRate(1);
+      }
+    };
+
+    detect();
+  }, [baseCurrency]);
+
   const safeGuests = {
     adults: bookingData?.adults || 1,
     children: bookingData?.children || 0,
@@ -33,14 +99,35 @@ export default function Checkout() {
   };
 
   const vatRate = Number(bookingData?.vat) || 5;
+
+  // Use converted prices for calculations
+  const baseSubtotal = Number(
+    bookingData.convertedPrice || bookingData.total || 0
+  );
   const subtotal =
-    Number(bookingData.convertedPrice || 0) *
+    baseSubtotal *
+    conversionRate *
     (bookingData.nights || 1) *
     safeGuests.rooms;
+
   const vatAmount = subtotal * (vatRate / 100);
-  const discountAmount = Number(bookingData.discountedPrice || 0);
-  const serviceFee = Number(bookingData.serviceFee || 0);
+  const discountAmount =
+    Number(bookingData.discountedPrice || 0) * conversionRate;
+  const serviceFee = Number(bookingData.serviceFee || 0) * conversionRate;
   const totalAmount = subtotal + vatAmount - discountAmount + serviceFee;
+
+  // Price converted for display
+  const convertedDisplayPrice = Number(baseSubtotal * conversionRate).toFixed(
+    2
+  );
+  console.log("Conversion details:", {
+    baseSubtotal,
+    baseCurrency,
+    userCurrency,
+    conversionRate,
+    convertedDisplayPrice,
+    totalAmount,
+  });
 
   const [updatedUser, setUpdatedUser] = useState({
     name: guestInfo.fullName || user?.name || bookingData?.user?.fullName || "",
@@ -91,12 +178,10 @@ export default function Checkout() {
           bookingData.bookedFromDate || bookingData.checkIn
         ),
         bookedToDate: toYMD(bookingData.bookedToDate || bookingData.checkOut),
-        totalPrice: Number(bookingData.total || 0),
-        convertedPrice: Number(
-          bookingData.convertedPrice || bookingData.total || 0
-        ),
-        displayCurrency: bookingData.displayCurrency || "USD",
-        discountedPrice: Number(bookingData.discountedPrice || 0),
+        totalPrice: Number(totalAmount || 0),
+        convertedPrice: Number(baseSubtotal * conversionRate || 0),
+        displayCurrency: userCurrency || "USD",
+        discountedPrice: Number(discountAmount || 0),
         specialRequest: bookingData.specialRequest || null,
         bookingStatus: bookingData.bookingStatus || "PENDING",
         category: bookingData.roomType || "Standard",
@@ -325,21 +410,19 @@ export default function Checkout() {
               <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>
-                    {bookingData.displayCurrency} :-{" "}
-                    {bookingData.convertedPrice}× {bookingData.nights} nights ×{" "}
-                    {safeGuests.rooms}
+                    {userCurrency} {convertedDisplayPrice}× {bookingData.nights}{" "}
+                    nights × {safeGuests.rooms}
                   </span>
                   <span>
-                    {bookingData.displayCurrency} :- {subtotal.toFixed(2)}
+                    {userCurrency} {subtotal.toFixed(2)}
                   </span>
                 </div>
 
-                {bookingData.discountedPrice > 0 && (
+                {discountAmount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount</span>
                     <span>
-                      {bookingData.displayCurrency} :-{" "}
-                      {bookingData.discountedPrice}
+                      {userCurrency} {discountAmount.toFixed(2)}
                     </span>
                   </div>
                 )}
@@ -347,15 +430,15 @@ export default function Checkout() {
                 <div className="flex justify-between">
                   <span>VAT ({vatRate}%)</span>
                   <span>
-                    {bookingData.displayCurrency} :- {vatAmount.toFixed(2)}
+                    {userCurrency} {vatAmount.toFixed(2)}
                   </span>
                 </div>
 
-                {bookingData.serviceFee > 0 && (
+                {serviceFee > 0 && (
                   <div className="flex justify-between">
                     <span>Service Fee</span>
                     <span>
-                      {bookingData.displayCurrency} :- {bookingData.serviceFee}
+                      {userCurrency} {serviceFee.toFixed(2)}
                     </span>
                   </div>
                 )}
@@ -363,7 +446,7 @@ export default function Checkout() {
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
                   <span>Total</span>
                   <span>
-                    {bookingData.displayCurrency} :- {totalAmount.toFixed(2)}
+                    {userCurrency} {totalAmount.toFixed(2)}
                   </span>
                 </div>
 
