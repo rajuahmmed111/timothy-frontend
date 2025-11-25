@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useGetMyProfileQuery } from "../../redux/services/authApi";
+import { handleError, handleSuccess } from "../../../toast";
 
 import {
   MessageSquare,
@@ -26,7 +27,7 @@ export default function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const user = useSelector((s) => s?.auth?.user);
-console.log( "user from sidebar", user)
+  console.log("user from sidebar", user);
   // Payment dropdown
   const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
   const [stripeStatus, setStripeStatus] = useState(null);
@@ -189,10 +190,6 @@ console.log( "user from sidebar", user)
           </Section>
         )}
 
-        
-
-        
-
         {/* BUSINESS PARTNER Dashboard */}
         {role === "BUSINESS_PARTNER" && (
           <Section
@@ -343,8 +340,11 @@ console.log( "user from sidebar", user)
                   const res = await paystackAccountSubAccount(paystackFormData);
                   if (res?.data?.data?.integration_url) {
                     window.location.href = res.data.data.integration_url;
-                  } else {
-                    alert("Paystack onboarding failed");
+                  } else if (res?.data?.success) {
+                    // Auto-close modal on successful account creation
+                    setShowPaystackModal(false);
+                    // Optionally show success message
+                    alert("Paystack account created successfully!");
                   }
                 } catch (err) {
                   console.log(err);
