@@ -171,7 +171,7 @@ export default function ServiceProviderSignup() {
                 </div>
               </div>
 
-              {/* Country Dropdown - FULL LIST */}
+              {/* Country Dropdown */}
               <div className="w-full">
                 <label className="text-xl font-bold">Country</label>
                 <select
