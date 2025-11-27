@@ -80,6 +80,14 @@ export const attractionApi = baseApi.injectEndpoints({
       }),
       providesTags: ["attraction"],
     }),
+    createAttractionAppeal: builder.mutation({
+      query: ({ attractionBusinessId, data }) => ({
+        url: `/attractions/appeal/${attractionBusinessId}`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["attraction"],
+    }),
     addAttractionBusiness: builder.mutation({
       query: (businessData) => ({
         url: "/attractions",
@@ -90,6 +98,10 @@ export const attractionApi = baseApi.injectEndpoints({
     }),
     getAllAttractionBusiness: builder.query({
       query: (limit = 10) => `attractions?page=1&limit=${limit}`,
+      providesTags: ["attraction"],
+    }),
+    getPartenrsAllAttraction: builder.query({
+      query: () => `/attractions/partner`,
       providesTags: ["attraction"],
     }),
     updateAttractionBusiness: builder.mutation({
@@ -115,6 +127,10 @@ export const {
   useGetAttractionBookingsQuery,
   useGetAllActiveAttractionListingsQuery,
   useGetAttractionAvailableListingsQuery,
+
+  useCreateAttractionAppealMutation,
+  useGetPartenrsAllAttractionQuery,
+  
   useAddAttractionBusinessMutation,
   useGetAllAttractionBusinessQuery,
   useUpdateAttractionBusinessMutation,

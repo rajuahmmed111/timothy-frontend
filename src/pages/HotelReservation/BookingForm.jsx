@@ -300,12 +300,12 @@ export default function BookingForm({ hotel }) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-gray-900">
-              {currencySymbol}:{formatPrice(nightlyBase * roomsCount)}
+              {currencySymbol}:{formatPrice(nightlyPrice * roomsCount)}
             </span>
             {selectedRoomData?.discountedPrice > 0 && (
               <>
                 <span className="text-sm text-gray-400 line-through">
-                  {currencySymbol}:{formatPrice(nightlyPrice * roomsCount)}
+                  {currencySymbol}:{formatPrice(nightlyBase * roomsCount)}
                 </span>
 
                 <span className="text-xs bg-red-100 text-red-700 font-medium px-2 py-0.5 rounded">

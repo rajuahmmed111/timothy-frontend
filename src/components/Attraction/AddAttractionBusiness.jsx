@@ -92,19 +92,38 @@ export default function AddAttractionBusiness() {
     try {
       const formDataToSend = new FormData();
 
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value === null || value === "") return;
+      // Build the JSON payload in the required shape
+      const dataPayload = {
+        attractionBusinessName: formData.attractionBusinessName,
+        attractionName: formData.attractionName,
+        attractionBusinessType: formData.attractionBusinessType,
+        attractionType: formData.attractionType,
+        attractionRegNum: formData.attractionRegNum,
+        attractionRegDate: formData.attractionRegDate,
+        attractionPhone: formData.attractionPhone,
+        attractionEmail: formData.attractionEmail,
+        attractionBusinessTagline: formData.attractionBusinessTagline,
+        attractionBusinessDescription: formData.attractionBusinessDescription,
+        attractionBookingCondition: formData.attractionBookingCondition,
+        attractionCancelationPolicy: formData.attractionCancelationPolicy,
+      };
 
-        if (key === "attractionDocs") {
-          value.forEach((file) => {
+      // Append JSON data
+      formDataToSend.append("data", JSON.stringify(dataPayload));
+
+      // Append single logo file if present
+      if (formData.businessLogo instanceof File) {
+        formDataToSend.append("businessLogo", formData.businessLogo);
+      }
+
+      // Append multiple attractionDocs if present
+      if (Array.isArray(formData.attractionDocs)) {
+        formData.attractionDocs.forEach((file) => {
+          if (file instanceof File) {
             formDataToSend.append("attractionDocs", file);
-          });
-        } else if (value instanceof File) {
-          formDataToSend.append(key, value);
-        } else {
-          formDataToSend.append(key, value);
-        }
-      });
+          }
+        });
+      }
 
       const response = await addAttractionBusiness(formDataToSend).unwrap();
 
@@ -301,6 +320,45 @@ export default function AddAttractionBusiness() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
+              </div>
+
+              {/* attarACTION TYPE */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Attraction Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.attractionType}
+                  onChange={(e) =>
+                    handleInputChange("attractionType", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="Theme Park">Theme Park</option>
+<option value="Beach">Beach</option>
+<option value="Mountain & Hiking Spot">Mountain & Hiking Spot</option>
+<option value="Botanical Garden">Botanical Garden</option>
+<option value="Art Gallery">Art Gallery</option>
+<option value="Cultural Center">Cultural Center</option>
+<option value="Religious Landmark">Religious Landmark</option>
+<option value="Wildlife Sanctuary">Wildlife Sanctuary</option>
+<option value="City Park">City Park</option>
+<option value="Waterfall">Waterfall</option>
+<option value="Lakeside">Lakeside</option>
+<option value="Camping Site">Camping Site</option>
+<option value="Sky View Tower">Sky View Tower</option>
+<option value="Heritage Village">Heritage Village</option>
+<option value="Science Center">Science Center</option>
+<option value="Planetarium">Planetarium</option>
+<option value="Shopping Mall">Shopping Mall</option>
+<option value="Food Street">Food Street</option>
+<option value="Entertainment Complex">Entertainment Complex</option>
+<option value="Eco Park">Eco Park</option>
+<option value="Desert Safari">Desert Safari</option>
+<option value="Cruise Terminal">Cruise Terminal</option>
+<option value="Golf Course">Golf Course</option>
+                </select>
               </div>
             </div>
           </div>

@@ -156,11 +156,11 @@ export default function FasifyCouponUsage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-100">
+                  {/* <div className="mt-4 pt-4 border-t border-gray-100">
                     <button className="w-full bg-[#0064D2] text-white py-2 rounded-lg font-medium hover:bg-[#0052A3] transition-colors">
                       Use This Coupon
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             ))}

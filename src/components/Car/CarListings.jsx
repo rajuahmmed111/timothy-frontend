@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import { Table, ConfigProvider, Modal, Button } from "antd";
 import { Eye, Trash } from "lucide-react";
-import { useGetAllCarQuery, useDeleteCarMutation } from "../../redux/api/car/carApi";
+import {
+  useGetAllCarQuery,
+  useDeleteCarMutation,
+} from "../../redux/api/car/carApi";
+import { useNavigate } from "react-router-dom";
 
 export default function CarListings() {
+  const navigate = useNavigate();
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
@@ -171,7 +176,7 @@ export default function CarListings() {
   return (
     <div className="p-5">
       <div className="mb-5 flex justify-end items-center ">
-        <div className="space-y-2 w-[400px]">
+        <div className="space-y-2 flex justify-center gap-2 w-[400px]">
           <input
             type="text"
             placeholder="Search cars by name"
@@ -179,6 +184,14 @@ export default function CarListings() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
           />
+
+          <Button
+            type="primary"
+            onClick={() => navigate("/dashboard/add-car")}
+            className="bg-blue-600 text-white !py-6 hover:bg-blue-700 p-3"
+          >
+            Add Car
+          </Button>
         </div>
       </div>
       <ConfigProvider
@@ -354,7 +367,13 @@ export default function CarListings() {
           <Button key="cancel" onClick={() => setIsDeleteModalOpen(false)}>
             Cancel
           </Button>,
-          <Button key="delete" type="primary" danger onClick={handleDelete} loading={isDeleting}>
+          <Button
+            key="delete"
+            type="primary"
+            danger
+            onClick={handleDelete}
+            loading={isDeleting}
+          >
             Delete
           </Button>,
         ]}

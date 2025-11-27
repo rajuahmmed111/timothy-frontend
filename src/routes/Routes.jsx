@@ -73,8 +73,11 @@ import AddNewSecurity from "../components/Security/AddNewSecurity";
 import EventGuastLogin from "../pages/AttractionReservation/EventGuastLogin";
 import EventPaymentConfirm from "../pages/AttractionReservation/EventPaymentConfirm";
 import CarGuestLogin from "../pages/CarReservation/CarGuestLogin";
-import BookingCancellation from './../pages/HotelReservation/BookingCancellation';
+import BookingCancellation from "./../pages/HotelReservation/BookingCancellation";
 import ServiceProviderSignup from "../pages/Auth/ServiceProviderSignup";
+import CreateCar from "../components/Car/AddNewCar";
+import AddNewCar from "../components/Car/AddNewCar";
+import AddAttraction from "../components/Attraction/AddAttraction";
 
 export const routes = createBrowserRouter([
   {
@@ -270,6 +273,7 @@ export const routes = createBrowserRouter([
         path: "/popular-car",
         element: <PopularCarPage />,
       },
+
       {
         path: "/attraction-reservation",
         element: <AttractionReservation />,
@@ -367,6 +371,14 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "add-car",
+        element: (
+          <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+            <AddNewCar />,
+          </RoleRoute>
+        ),
+      },
+      {
         path: "add-security-listing",
         element: (
           <RoleRoute allowed={["BUSINESS_PARTNER"]}>
@@ -387,6 +399,14 @@ export const routes = createBrowserRouter([
         element: (
           <RoleRoute allowed={["BUSINESS_PARTNER"]}>
             <AttractionManagement />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "add-attraction",
+        element: (
+          <RoleRoute allowed={["BUSINESS_PARTNER"]}>
+            <AddAttraction />
           </RoleRoute>
         ),
       },

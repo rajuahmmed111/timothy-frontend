@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useRegisterUserMutation } from "../../redux/services/authApi";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
+import { Eye, EyeOff } from "lucide-react";
 
-export default function SignUp() {
+import { countries } from "../../components/country";
+
+export default function ServiceProviderSignup() {
+    const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -19,32 +23,77 @@ export default function SignUp() {
 
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Handle input change
+  // Auto-detect providers
+  const providers = [
+    {
+      name: "ipapi.co",
+      url: "https://ipapi.co/json/",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+    {
+      name: "extreme-ip-lookup",
+      url: "https://extreme-ip-lookup.com/json/",
+      parse: (data) => ({ iso: data.countryCode, raw: data }),
+    },
+    {
+      name: "ipinfo.io",
+      url: "https://ipinfo.io/json",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+  ];
+
+  // Auto detect country
+  useEffect(() => {
+    const detectCountry = async () => {
+      for (const provider of providers) {
+        try {
+          const res = await fetch(provider.url);
+          if (!res.ok) continue;
+
+          const json = await res.json();
+          const { iso } = provider.parse(json);
+
+          if (iso) {
+            setForm((prev) => ({ ...prev, country: iso }));
+            break;
+          }
+        } catch {}
+      }
+    };
+
+    detectCountry();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      const serviceFlags = {
+        isHotel: form.serviceType === "hotel",
+        isSecurity: form.serviceType === "security",
+        isCar: form.serviceType === "car",
+        isAttraction: form.serviceType === "attraction",
+      };
+
       const body = {
         fullName: form.fullName,
         email: form.email,
         password: form.password,
-        role: form.role || "USER",
+        role: "USER",
         country: form.country,
+        ...serviceFlags,
       };
 
       const res = await registerUser(body).unwrap();
       const { accessToken, refreshToken, user } = res?.data || {};
 
-      // Save redux credentials
       dispatch(setCredentials({ accessToken, refreshToken, user }));
 
-      // Remember me
       if (rememberMe) {
         localStorage.setItem(
           "rememberCredentials",
@@ -66,7 +115,7 @@ export default function SignUp() {
         <div className="flex justify-center items-center">
           <div className="w-full lg:w-1/2 bg-white p-5 md:px-18 md:py-28 shadow-[0px_10px_30px_rgba(0,0,0,0.1)] rounded-2xl">
             <h2 className="text-[#0D0D0D] text-2xl font-bold text-center mb-5">
-              Create your account
+              Create your business account
             </h2>
             <p className="text-[#6A6D76] text-center mb-10">
               Fill in the details to sign up.
@@ -75,102 +124,104 @@ export default function SignUp() {
             <form className="space-y-5" onSubmit={handleSubmit}>
               {/* Full Name */}
               <div className="w-full">
-                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
-                  Full name
-                </label>
+                <label className="text-xl font-bold">Full name</label>
                 <input
                   type="text"
                   name="fullName"
                   value={form.fullName}
                   onChange={handleChange}
-                  placeholder="e.g. Mehedi Hasan"
-                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
+                  className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
                   required
                 />
               </div>
 
               {/* Email */}
               <div className="w-full">
-                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
-                  Email
-                </label>
+                <label className="text-xl font-bold">Email</label>
                 <input
                   type="email"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="enter your gmail"
-                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
+                  className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
                   required
                 />
               </div>
-
-              {/* Password */}
+              {/* password */}
               <div className="w-full">
-                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="**********"
-                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
-                  required
-                />
+                <label className="text-xl font-bold">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2 pr-12"
+                    required
+                  />
+
+                  {/* Eye Icon */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-4 top-[50%] translate-y-[-50%] text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                  </button>
+                </div>
               </div>
 
-             
+     
 
-              {/* Country */}
+              {/* Country Dropdown - FULL LIST */}
               <div className="w-full">
-                <label className="text-xl text-[#0D0D0D] mb-2 font-bold">
-                  Country
-                </label>
-                <input
-                  type="text"
+                <label className="text-xl font-bold">Country</label>
+                <select
                   name="country"
                   value={form.country}
                   onChange={handleChange}
-                  placeholder="e.g. Bangladesh"
-                  className="w-full px-5 py-3 border-2 border-[#6A6D76] rounded-md outline-none mt-2"
+                  className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
                   required
-                />
+                >
+                  <option value="">Select your country</option>
+                  {countries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Remember Me */}
-              <div className="flex items-center gap-2 mt-3">
+              <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4"
                 />
-                <span className="text-[#6A6D76]">Remember credentials</span>
+                <span className="text-gray-600">Remember credentials</span>
               </div>
 
               {/* Buttons */}
-              <div className="flex justify-center items-center gap-4">
+              <div className="flex justify-center gap-4">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-1/3 bg-[#0064D2] text-white font-bold py-3 rounded-lg shadow-lg cursor-pointer mt-5 disabled:opacity-60"
+                  className="w-1/3 bg-blue-600 text-white font-bold py-3 rounded-lg disabled:opacity-60"
                 >
                   {isLoading ? "Creating..." : "Create account"}
                 </button>
 
                 <Link
                   to="/logIn"
-                  className="w-1/3 text-center border border-[#0064D2] text-[#0064D2] font-bold py-3 rounded-lg shadow-lg cursor-pointer mt-5"
+                  className="w-1/3 text-center border border-blue-600 text-blue-600 font-bold py-3 rounded-lg"
                 >
                   Log in
                 </Link>
               </div>
 
-              {/* Error */}
               {error && (
-                <p className="text-red-500 text-center mt-4 text-sm">
+                <p className="text-red-500 text-center mt-4">
                   {error?.data?.message || "Registration failed"}
                 </p>
               )}

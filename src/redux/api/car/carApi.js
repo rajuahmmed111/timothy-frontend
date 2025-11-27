@@ -43,19 +43,19 @@ export const carApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["car"],
     }),
-    addSecurityGuard: builder.mutation({
-      query: ({ formData, Id }) => ({
-        url: `/car-rentals/car/${Id}`,
-        method: "POST",
-        body: formData,
-      }),
-      invalidatesTags: ["security"],
-    }),
     addCarBusiness: builder.mutation({
       query: (businessData) => ({
         url: "/car-rentals",
         method: "POST",
         body: businessData,
+      }),
+      invalidatesTags: ["car"],
+    }),
+    createCar: builder.mutation({
+      query: ({ formData, businessId }) => ({
+        url: `/car-rentals/car/${businessId}`,
+        method: "POST",
+        body: formData,
       }),
       invalidatesTags: ["car"],
     }),
@@ -112,6 +112,17 @@ export const carApi = baseApi.injectEndpoints({
         body: credentials,
       }),
     }),
+    getCarBusinessPartner: builder.mutation({
+      query: ({ limit, page }) => ({
+        url: `/car-rentals/partner`,
+        method: "GET",
+        prepareHeaders: (headers) => {
+          headers.set("Accept", "application/json");
+          return headers;
+        },
+      }),
+      invalidatesTags: ["car"],
+    }),
   }),
 });
 
@@ -131,4 +142,6 @@ export const {
   useCarLoginWebsiteMutation,
   useCreateCarPaystackSessionMutation,
   useCreateCarStripeSessionMutation,
+  useCreateCarMutation,
+  useGetCarBusinessPartnerMutation,
 } = carApi;

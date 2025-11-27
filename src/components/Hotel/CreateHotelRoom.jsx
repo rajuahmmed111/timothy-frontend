@@ -126,6 +126,9 @@ export default function CreateHotelRoom() {
         }
       });
 
+      // Ensure currency is sent as per API response
+      formData.append("currency", "INR");
+
       // Append images
       hotelImages.forEach((image) => {
         formData.append("hotelRoomImages", image.file);
@@ -248,25 +251,6 @@ export default function CreateHotelRoom() {
                 </p>
               )}
             </div>
-
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Number of Rooms
-              </label>
-              <input
-                type="number"
-                {...register("hotelNumberOfRooms", {
-                  required: "Number of rooms is required",
-                  min: { value: 1, message: "At least one room is required" },
-                })}
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
-              />
-              {errors.hotelNumberOfRooms && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.hotelNumberOfRooms.message}
-                </p>
-              )}
-            </div> */}
 
             <div>
               <label className="block text-sm font-medium text-gray-700">

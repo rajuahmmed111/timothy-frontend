@@ -30,7 +30,10 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/dashboard" className="text-[#090909] font-semibold">
+                <Link
+                  to="/service-provider/sign-up"
+                  className="text-[#090909] font-semibold"
+                >
                   List Your Property
                 </Link>
               </li>

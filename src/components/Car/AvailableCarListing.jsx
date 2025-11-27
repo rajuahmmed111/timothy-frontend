@@ -173,7 +173,7 @@ export default function AvailableCarListing() {
 
   return (
     <div className="p-5">
-      <div className="mb-5 flex justify-end items-center ">
+      <div className="mb-5 flex justify-end items-center gap-2">
         <div className="space-y-2 w-[400px]">
           <input
             type="text"
@@ -183,6 +183,13 @@ export default function AvailableCarListing() {
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
           />
         </div>
+         <Button
+                    type="primary"
+                    onClick={() => navigate("/dashboard/add-car")}
+                    className="bg-blue-600 text-white !py-6 hover:bg-blue-700 p-3"
+                  >
+                   + Add Car
+                  </Button>
       </div>
       <ConfigProvider
         theme={{

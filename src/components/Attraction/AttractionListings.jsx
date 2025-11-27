@@ -2,21 +2,24 @@ import React, { useState } from "react";
 import { Table, ConfigProvider, Modal, Button, Tag } from "antd";
 import { Eye } from "lucide-react";
 import { useGetAllActiveAttractionListingsQuery } from "../../redux/api/attraction/attractionApi";
+import { useNavigate } from "react-router-dom";
 
 export default function AttractionListings() {
+  const navigate = useNavigate();
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedAttraction, setSelectedAttraction] = useState(null);
-
+  
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
-
-  const { data, isLoading } = useGetAllActiveAttractionListingsQuery({ 
-    page, 
-    limit: pageSize 
+  
+  const { data, isLoading } = useGetAllActiveAttractionListingsQuery({
+    page,
+    limit: pageSize,
   });
   
   const attractions = data?.data?.data || [];
+  console.log("data,", attractions);
   const meta = data?.data?.meta || {};
   const total = meta?.total ?? attractions.length;
 
@@ -28,7 +31,7 @@ export default function AttractionListings() {
     location: [
       attraction?.attractionCity,
       attraction?.attractionDistrict,
-      attraction?.attractionCountry
+      attraction?.attractionCountry,
     ]
       .filter(Boolean)
       .join(", "),
@@ -102,9 +105,7 @@ export default function AttractionListings() {
       dataIndex: "status",
       key: "status",
       render: (status) => (
-        <Tag color={status === "AVAILABLE" ? "green" : "red"}>
-          {status}
-        </Tag>
+        <Tag color={status === "AVAILABLE" ? "green" : "red"}>{status}</Tag>
       ),
     },
     {
@@ -135,14 +136,22 @@ export default function AttractionListings() {
   return (
     <div className="p-5">
       <div className="mb-5 flex justify-end items-center">
-        <div className="space-y-2 w-[400px]">
+        <div className="space-y-2 flex justify-center gap-2 w-[400px]">
           <input
             type="text"
-            placeholder="Search attractions by type, category or location"
+            placeholder="Search attraction by name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full p-3 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:border-[#0064D2]"
           />
+
+          <Button
+            type="primary"
+            onClick={() => navigate("/dashboard/add-attraction")}
+            className="bg-blue-600 text-white !py-6 hover:bg-blue-700 p-3"
+          >
+            Add Attraction
+          </Button>
         </div>
       </div>
       <ConfigProvider
@@ -213,7 +222,7 @@ export default function AttractionListings() {
             <h3 className="text-lg font-bold">
               {selectedAttraction.raw?.attractionDestinationType}
             </h3>
-            
+
             <div className="space-y-2">
               <p className="text-sm text-gray-700">
                 {selectedAttraction.raw?.attractionDescription}
@@ -227,7 +236,13 @@ export default function AttractionListings() {
               </div>
               <div>
                 <span className="font-semibold">Status:</span>{" "}
-                <Tag color={selectedAttraction.raw?.isBooked === "AVAILABLE" ? "green" : "red"}>
+                <Tag
+                  color={
+                    selectedAttraction.raw?.isBooked === "AVAILABLE"
+                      ? "green"
+                      : "red"
+                  }
+                >
                   {selectedAttraction.raw?.isBooked}
                 </Tag>
               </div>
@@ -241,8 +256,9 @@ export default function AttractionListings() {
               </div>
               <div>
                 <span className="font-semibold">Rating:</span>{" "}
-                {selectedAttraction.raw?.attractionRating ? 
-                  `⭐ ${selectedAttraction.raw?.attractionRating}` : "N/A"}
+                {selectedAttraction.raw?.attractionRating
+                  ? `⭐ ${selectedAttraction.raw?.attractionRating}`
+                  : "N/A"}
               </div>
               <div>
                 <span className="font-semibold">Review Count:</span>{" "}
@@ -288,37 +304,75 @@ export default function AttractionListings() {
               <h4 className="font-semibold mb-2">Amenities</h4>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className={selectedAttraction.raw?.attractionFreeWifi ? "text-green-600" : "text-gray-400"}>
+                  <span
+                    className={
+                      selectedAttraction.raw?.attractionFreeWifi
+                        ? "text-green-600"
+                        : "text-gray-400"
+                    }
+                  >
                     {selectedAttraction.raw?.attractionFreeWifi ? "✓" : "✗"}
                   </span>
                   <span>Free WiFi</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={selectedAttraction.raw?.attractionFreeParking ? "text-green-600" : "text-gray-400"}>
+                  <span
+                    className={
+                      selectedAttraction.raw?.attractionFreeParking
+                        ? "text-green-600"
+                        : "text-gray-400"
+                    }
+                  >
                     {selectedAttraction.raw?.attractionFreeParking ? "✓" : "✗"}
                   </span>
                   <span>Free Parking</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={selectedAttraction.raw?.attractionKitchen ? "text-green-600" : "text-gray-400"}>
+                  <span
+                    className={
+                      selectedAttraction.raw?.attractionKitchen
+                        ? "text-green-600"
+                        : "text-gray-400"
+                    }
+                  >
                     {selectedAttraction.raw?.attractionKitchen ? "✓" : "✗"}
                   </span>
                   <span>Kitchen</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={selectedAttraction.raw?.attractionTv ? "text-green-600" : "text-gray-400"}>
+                  <span
+                    className={
+                      selectedAttraction.raw?.attractionTv
+                        ? "text-green-600"
+                        : "text-gray-400"
+                    }
+                  >
                     {selectedAttraction.raw?.attractionTv ? "✓" : "✗"}
                   </span>
                   <span>TV</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={selectedAttraction.raw?.attractionAirConditioning ? "text-green-600" : "text-gray-400"}>
-                    {selectedAttraction.raw?.attractionAirConditioning ? "✓" : "✗"}
+                  <span
+                    className={
+                      selectedAttraction.raw?.attractionAirConditioning
+                        ? "text-green-600"
+                        : "text-gray-400"
+                    }
+                  >
+                    {selectedAttraction.raw?.attractionAirConditioning
+                      ? "✓"
+                      : "✗"}
                   </span>
                   <span>Air Conditioning</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={selectedAttraction.raw?.attractionPool ? "text-green-600" : "text-gray-400"}>
+                  <span
+                    className={
+                      selectedAttraction.raw?.attractionPool
+                        ? "text-green-600"
+                        : "text-gray-400"
+                    }
+                  >
                     {selectedAttraction.raw?.attractionPool ? "✓" : "✗"}
                   </span>
                   <span>Pool</span>
@@ -330,11 +384,13 @@ export default function AttractionListings() {
               <div className="border-t pt-3">
                 <h4 className="font-semibold mb-2">Services Offered</h4>
                 <div className="flex flex-wrap gap-2">
-                  {selectedAttraction.raw.attractionServicesOffered.map((service, idx) => (
-                    <Tag key={idx} color="blue">
-                      {service}
-                    </Tag>
-                  ))}
+                  {selectedAttraction.raw.attractionServicesOffered.map(
+                    (service, idx) => (
+                      <Tag key={idx} color="blue">
+                        {service}
+                      </Tag>
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -343,11 +399,15 @@ export default function AttractionListings() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <span className="font-semibold">Created:</span>{" "}
-                  {new Date(selectedAttraction.raw?.createdAt).toLocaleDateString()}
+                  {new Date(
+                    selectedAttraction.raw?.createdAt
+                  ).toLocaleDateString()}
                 </div>
                 <div>
                   <span className="font-semibold">Updated:</span>{" "}
-                  {new Date(selectedAttraction.raw?.updatedAt).toLocaleDateString()}
+                  {new Date(
+                    selectedAttraction.raw?.updatedAt
+                  ).toLocaleDateString()}
                 </div>
               </div>
             </div>

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useGetRefundPoliciesQuery } from "../../redux/api/policy/refund";
 
 export default function RefundPolicies() {
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState("accept");
   const {
     data: refundPolicies,
     isLoading,
@@ -35,6 +35,16 @@ export default function RefundPolicies() {
               General Policies
             </button>
             <button
+              onClick={() => setActiveTab("accept")}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "accept"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Acceptable Use Policy
+            </button>
+            <button
               onClick={() => setActiveTab("dynamic")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "dynamic"
@@ -46,7 +56,100 @@ export default function RefundPolicies() {
             </button>
           </nav>
         </div>
+        {activeTab === "accept" && (
+          <div className="prose prose-lg max-w-none">
+            {/* Acceptable Use Policy */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Fasify – Acceptable Use Policy
+              </h2>
 
+              <div className="bg-gray-50 p-6 rounded-lg space-y-6 text-gray-700">
+                <p>
+                  This Acceptable Use Policy ("AUP") governs the use of the
+                  Fasify platform by all Guests, Property Owners, and Vendors.
+                  By accessing Fasify, you agree to comply with all standards,
+                  rules, and obligations outlined herein.
+                </p>
+
+                {/* 1. Prohibited Conduct */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    1. Prohibited Conduct
+                  </h3>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li>
+                      Fraud, misrepresentation, or provision of false documents
+                    </li>
+                    <li>Listing properties without legal authorization</li>
+                    <li>Abuse, harassment, or threatening behavior</li>
+                    <li>
+                      Uploading unlawful, obscene, defamatory, or misleading
+                      content
+                    </li>
+                    <li>
+                      Security violations, hacking attempts, reverse
+                      engineering, or malware distribution
+                    </li>
+                    <li>
+                      Any activity that violates local, national, or
+                      international law
+                    </li>
+                  </ul>
+                </div>
+
+                {/* 2. Obligations of Property Owners */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    2. Obligations of Property Owners
+                  </h3>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li>Provide truthful property descriptions</li>
+                    <li>Maintain legally compliant and safe accommodations</li>
+                    <li>Uphold all confirmed bookings</li>
+                    <li>
+                      Ensure compliance with housing, zoning, and regulatory
+                      requirements
+                    </li>
+                  </ul>
+                </div>
+
+                {/* 3. Obligations of Guests */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    3. Obligations of Guests
+                  </h3>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li>Provide accurate identifying information</li>
+                    <li>Comply with property rules and respect neighbors</li>
+                    <li>
+                      Avoid property damage or illegal use of the premises
+                    </li>
+                  </ul>
+                </div>
+
+                {/* 4. Enforcement */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    4. Enforcement
+                  </h3>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li>Suspend or terminate accounts</li>
+                    <li>Remove listings or block transactions</li>
+                    <li>Report unlawful activities to regulatory bodies</li>
+                  </ul>
+                </div>
+
+                {/* Contact */}
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <p className="text-gray-700">
+                    <strong>Contact:</strong> support@fasifys.com
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Tab Content */}
         {activeTab === "general" && (
           <div className="prose prose-lg max-w-none">
