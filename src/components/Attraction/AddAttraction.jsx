@@ -16,6 +16,7 @@ const days = [
   "Saturday",
 ];
 
+// function to generate time slots
 const generateTimeSlots = () => {
   const slots = [];
   for (let hour = 8; hour <= 18; hour += 2) {
