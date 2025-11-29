@@ -419,7 +419,9 @@ export default function BookingForm({ hotel }) {
             <span className="text-2xl font-bold text-gray-900">
               {currencySymbol}
 
-              {formatPrice(nightlyPrice * roomsCount)}
+              {selectedRoomData?.discountedPrice > 0
+                ? formatPrice(nightlyPrice * roomsCount)
+                : formatPrice(nightlyBase * roomsCount)}
             </span>
 
             {selectedRoomData?.discountedPrice > 0 && (
@@ -662,10 +664,12 @@ export default function BookingForm({ hotel }) {
                 </div>
 
                 <div className="text-right">
-                  <div className="font-semibold text-gray-900">
+                  {/* <div className="font-semibold text-gray-900">
                     {currencySymbol}
 
-                    {formatPrice(nightlyPrice * roomsCount)}
+                    {selectedRoomData?.discountedPrice > 0
+                      ? formatPrice(nightlyPrice * roomsCount)
+                      : formatPrice(nightlyBase * roomsCount)}
                   </div>
 
                   {selectedRoomData?.discountedPrice > 0 && (
@@ -680,9 +684,9 @@ export default function BookingForm({ hotel }) {
                         -{Math.round(Number(selectedRoomData.discountedPrice))}%
                       </span>
                     </>
-                  )}
+                  )} */}
 
-                  <div className="text-xs text-gray-500">Per night</div>
+                  {/* <div className="text-xs text-gray-500">Per night</div> */}
                 </div>
               </div>
             </div>

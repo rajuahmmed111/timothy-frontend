@@ -44,394 +44,199 @@ export default function RefundPolicies() {
             >
               Acceptable Use Policy
             </button>
-            <button
-              onClick={() => setActiveTab("dynamic")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "dynamic"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Dynamic Policies
-            </button>
           </nav>
         </div>
         {activeTab === "accept" && (
-          <div className="prose prose-lg max-w-none">
-            {/* Acceptable Use Policy */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="min-h-screen  ">
+            <div className=" mx-auto bg-white p-6 rounded-lg shadow-sm">
+              <h1 className="text-2xl font-bold mb-4">
                 Fasify – Acceptable Use Policy
-              </h2>
+              </h1>
 
-              <div className="bg-gray-50 p-6 rounded-lg space-y-6 text-gray-700">
-                <p>
-                  This Acceptable Use Policy ("AUP") governs the use of the
-                  Fasify platform by all Guests, Property Owners, and Vendors.
-                  By accessing Fasify, you agree to comply with all standards,
-                  rules, and obligations outlined herein.
+              <p className="mb-4 text-gray-700">
+                This Acceptable Use Policy (“AUP”) governs the use of the Fasify
+                platform by all Guests, Property Owners, and Vendors. By
+                accessing Fasify, you agree to comply with all standards, rules,
+                and obligations outlined herein.
+              </p>
+
+              <section className="mt-4">
+                <h2 className="text-lg font-semibold mb-2">
+                  <span className="font-semibold mr-2">1.</span> Prohibited
+                  Conduct
+                </h2>
+                <p className="text-gray-700">Users shall not engage in:</p>
+                <ul className="list-disc pl-6 mt-2 space-y-1 text-gray-700">
+                  <li>
+                    Fraud, misrepresentation, or provision of false documents.
+                  </li>
+                  <li>Listing properties without legal authorization.</li>
+                  <li>Abuse, harassment, or threatening behavior.</li>
+                  <li>
+                    Uploading unlawful, obscene, defamatory, or misleading
+                    content.
+                  </li>
+                  <li>
+                    Security violations, hacking attempts, reverse engineering,
+                    or distribution of malware.
+                  </li>
+                  <li>
+                    Any activity that violates local, national, or international
+                    law.
+                  </li>
+                </ul>
+              </section>
+
+              <section className="mt-6">
+                <h2 className="text-lg font-semibold mb-2">
+                  <span className="font-semibold mr-2">2.</span> Obligations of
+                  Property Owners
+                </h2>
+                <p className="text-gray-700">Owners must:</p>
+                <ul className="list-disc pl-6 mt-2 space-y-1 text-gray-700">
+                  <li>Provide truthful property descriptions.</li>
+                  <li>Maintain legally compliant and safe accommodations.</li>
+                  <li>Uphold all confirmed bookings.</li>
+                  <li>
+                    Ensure compliance with housing, zoning, and regulatory
+                    requirements.
+                  </li>
+                </ul>
+              </section>
+
+              <section className="mt-6">
+                <h2 className="text-lg font-semibold mb-2">
+                  <span className="font-semibold mr-2">3.</span> Obligations of
+                  Guests
+                </h2>
+                <p className="text-gray-700">Guests must:</p>
+                <ul className="list-disc pl-6 mt-2 space-y-1 text-gray-700">
+                  <li>Provide accurate identifying information.</li>
+                  <li>Comply with property rules and respect neighbors.</li>
+                  <li>Avoid property damage or illegal use of the premises.</li>
+                </ul>
+              </section>
+
+              <section className="mt-6">
+                <h2 className="text-lg font-semibold mb-2">
+                  <span className="font-semibold mr-2">4.</span> Enforcement
+                </h2>
+                <p className="text-gray-700">Fasify reserves the right to:</p>
+                <ul className="list-disc pl-6 mt-2 space-y-1 text-gray-700">
+                  <li>Suspend or terminate accounts.</li>
+                  <li>Remove listings or block transactions.</li>
+                  <li>Report unlawful activities to regulatory bodies.</li>
+                </ul>
+              </section>
+
+              <section className="mt-6 border-t pt-4">
+                <h3 className="text-md font-semibold">Contact</h3>
+                <p className="text-gray-700">
+                  For questions, contact us at{" "}
+                  <a
+                    href="mailto:support@fasifys.com"
+                    className="text-blue-600 hover:underline"
+                  >
+                    support@fasifys.com
+                  </a>
+                  .
                 </p>
-
-                {/* 1. Prohibited Conduct */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    1. Prohibited Conduct
-                  </h3>
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li>
-                      Fraud, misrepresentation, or provision of false documents
-                    </li>
-                    <li>Listing properties without legal authorization</li>
-                    <li>Abuse, harassment, or threatening behavior</li>
-                    <li>
-                      Uploading unlawful, obscene, defamatory, or misleading
-                      content
-                    </li>
-                    <li>
-                      Security violations, hacking attempts, reverse
-                      engineering, or malware distribution
-                    </li>
-                    <li>
-                      Any activity that violates local, national, or
-                      international law
-                    </li>
-                  </ul>
-                </div>
-
-                {/* 2. Obligations of Property Owners */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    2. Obligations of Property Owners
-                  </h3>
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li>Provide truthful property descriptions</li>
-                    <li>Maintain legally compliant and safe accommodations</li>
-                    <li>Uphold all confirmed bookings</li>
-                    <li>
-                      Ensure compliance with housing, zoning, and regulatory
-                      requirements
-                    </li>
-                  </ul>
-                </div>
-
-                {/* 3. Obligations of Guests */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    3. Obligations of Guests
-                  </h3>
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li>Provide accurate identifying information</li>
-                    <li>Comply with property rules and respect neighbors</li>
-                    <li>
-                      Avoid property damage or illegal use of the premises
-                    </li>
-                  </ul>
-                </div>
-
-                {/* 4. Enforcement */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    4. Enforcement
-                  </h3>
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li>Suspend or terminate accounts</li>
-                    <li>Remove listings or block transactions</li>
-                    <li>Report unlawful activities to regulatory bodies</li>
-                  </ul>
-                </div>
-
-                {/* Contact */}
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <p className="text-gray-700">
-                    <strong>Contact:</strong> support@fasifys.com
-                  </p>
-                </div>
-              </div>
+              </section>
             </div>
           </div>
         )}
         {/* Tab Content */}
         {activeTab === "general" && (
-          <div className="prose prose-lg max-w-none">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Fasify – Refund Policy
+          <div className="mx-auto bg-white p-6 rounded-lg shadow-sm ">
+            <h1 className="text-2xl font-bold mb-4">Fasify – Refund Policy</h1>
+
+            <p className="text-gray-700 mb-4">
+              This Refund Policy outlines the conditions under which refunds may
+              be issued to users of Fasify.
+            </p>
+
+            <section className="mt-4">
+              <h2 className="text-lg font-semibold mb-2">
+                <span className="font-semibold mr-2">1.</span> Guest
+                Cancellations
               </h2>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <p className="text-gray-700 mb-6">
-                  This Refund Policy outlines the conditions under which refunds
-                  may be issued to users of Fasify.
-                </p>
-
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      1. Guest Cancellations
-                    </h3>
-                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                      <li>
-                        Free cancellation within 24-48 hours before check-in
-                      </li>
-                      <li>
-                        50% refund for cancellations less than 24 hours before
-                        check-in
-                      </li>
-                      <li>
-                        No refund within 12 hours of check-in except for special
-                        circumstances
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      2. Host Cancellations
-                    </h3>
-                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                      <li>100% refund to guest</li>
-                      <li>Fasify provides priority rebooking support</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      3. Property Not as Described
-                    </h3>
-                    <p className="text-gray-700 mb-2">
-                      Refunds or relocations may be offered if:
-                    </p>
-                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                      <li>Property access is denied</li>
-                      <li>Listing is materially inaccurate</li>
-                      <li>Property is unsafe or uninhabitable</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      4. Special Circumstances
-                    </h3>
-                    <p className="text-gray-700 mb-2">
-                      May require documentation:
-                    </p>
-                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                      <li>Medical emergencies</li>
-                      <li>Natural disasters</li>
-                      <li>Government restrictions</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      5. Refund Processing
-                    </h3>
-                    <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                      <li>Refunds issued within 5–10 business days</li>
-                    </ul>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <p className="text-gray-700">
-                      <strong>Contact:</strong> support@fasifys.com
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Refund Timeline
-              </h2>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <div className="space-y-6">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-blue-600 font-medium">1</span>
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        Request Received
-                      </h3>
-                      <p className="mt-1 text-gray-600">
-                        Immediately after submission
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-blue-600 font-medium">2</span>
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        Processing
-                      </h3>
-                      <p className="mt-1 text-gray-600">1-3 business days</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-blue-600 font-medium">3</span>
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        Refund Issued
-                      </h3>
-                      <p className="mt-1 text-gray-600">7-10 business days</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Time may vary by payment method and financial
-                        institution
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Refund Policies
-              </h2>
-              <div className="space-y-6">
-                <div className="border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Standard Bookings
-                  </h3>
-                  <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                    <li>Full refund if cancelled 48+ hours before check-in</li>
-                    <li>
-                      50% refund if cancelled within 24-48 hours of check-in
-                    </li>
-                    <li>
-                      No refund for no-shows or cancellations within 24 hours of
-                      check-in
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Non-Refundable Rates
-                  </h3>
-                  <p className="text-gray-700">
-                    Some special rates or offers may be non-refundable. These
-                    will be clearly marked at the time of booking.
-                  </p>
-                </div>
-
-                <div className="border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Third-Party Bookings
-                  </h3>
-                  <p className="text-gray-700">
-                    Bookings made through third-party websites or travel
-                    agencies are subject to their specific refund policies.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-8 bg-yellow-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-yellow-800 mb-3">
-                Important Information
-              </h3>
-              <ul className="list-disc pl-6 text-yellow-700 space-y-2">
+              <ul className="list-disc pl-6 text-gray-700 space-y-1">
+                <li>Free cancellation within 24–48 hours before check-in.</li>
                 <li>
-                  Refund processing times are estimates and may vary by
-                  financial institution
+                  50% refund for cancellations less than 24 hours before
+                  check-in.
                 </li>
                 <li>
-                  Original payment method will be credited unless otherwise
-                  specified
+                  No refund within 12 hours of check-in except for special
+                  circumstances.
                 </li>
-                <li>Currency conversion fees are non-refundable</li>
-                <li>Service fees may be non-refundable in certain cases</li>
               </ul>
-            </div>
+            </section>
 
-            <div className="bg-blue-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-blue-800 mb-3">
-                Need Assistance?
-              </h3>
-              <p className="text-blue-700">
-                If you have questions about your refund or need further
-                assistance, please contact our support team at
+            <section className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">
+                <span className="font-semibold mr-2">2.</span> Host
+                Cancellations
+              </h2>
+              <ul className="list-disc pl-6 text-gray-700 space-y-1">
+                <li>100% refund to guest.</li>
+                <li>Fasify provides priority rebooking support.</li>
+              </ul>
+            </section>
+
+            <section className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">
+                <span className="font-semibold mr-2">3.</span> Property Not as
+                Described
+              </h2>
+              <p className="text-gray-700 mb-2">
+                Refunds or relocations may be offered if:
+              </p>
+              <ul className="list-disc pl-6 text-gray-700 space-y-1">
+                <li>Property access is denied.</li>
+                <li>Listing is materially inaccurate.</li>
+                <li>Property is unsafe or uninhabitable.</li>
+              </ul>
+            </section>
+
+            <section className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">
+                <span className="font-semibold mr-2">4.</span> Special
+                Circumstances
+              </h2>
+              <p className="text-gray-700 mb-2">
+                Special circumstances may require documentation, including but
+                not limited to:
+              </p>
+              <ul className="list-disc pl-6 text-gray-700 space-y-1">
+                <li>Medical emergencies.</li>
+                <li>Natural disasters.</li>
+                <li>Government restrictions.</li>
+              </ul>
+            </section>
+
+            <section className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">
+                <span className="font-semibold mr-2">5.</span> Refund Processing
+              </h2>
+              <ul className="list-disc pl-6 text-gray-700 space-y-1">
+                <li>Refunds are typically issued within 5–10 business days.</li>
+              </ul>
+            </section>
+
+            <section className="mt-6 border-t pt-4">
+              <h2 className="text-lg font-semibold mb-2">Contact</h2>
+              <p className="text-gray-700">
+                For questions or support regarding refunds, please contact us at{" "}
                 <a
-                  href="mailto:refunds@fasify.com"
+                  href="mailto:support@fasifys.com"
                   className="text-blue-600 hover:underline"
                 >
-                  refunds@fasify.com
+                  support@fasifys.com
                 </a>
-                or call us at +1 (555) 987-6544.
+                .
               </p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "dynamic" && (
-          <div className="prose prose-lg max-w-none">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Dynamic Refund Policies
-              </h2>
-
-              {isLoading && (
-                <div className="text-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <p className="mt-2 text-gray-600">
-                    Loading refund policies...
-                  </p>
-                </div>
-              )}
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                  <h3 className="text-red-800 font-medium">
-                    Error Loading Policies
-                  </h3>
-                  <p className="text-red-600 mt-1">
-                    Unable to load refund policies. Please try again later or
-                    contact support.
-                  </p>
-                </div>
-              )}
-
-              {refundPolicies?.data?.length > 0 && (
-                <div className="space-y-6">
-                  {refundPolicies.data.map((policy) => (
-                    <div key={policy.id} className="bg-gray-50 p-6 rounded-lg">
-                      <div className="prose max-w-none">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                          Refund Policy
-                        </h3>
-                        <div className="text-gray-700">
-                          <p>{policy.description}</p>
-                        </div>
-                        <div className="mt-4 text-sm text-gray-500">
-                          <p>
-                            Last updated:{" "}
-                            {new Date(policy.updatedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="mt-6 bg-green-50 border border-green-200 rounded-md p-4">
-                <h3 className="text-green-800 font-medium mb-2">
-                  Policy Information
-                </h3>
-                <p className="text-green-700">
-                  These refund policies are dynamically updated to reflect the
-                  most current terms and conditions. Please review them
-                  carefully before making any booking decisions.
-                </p>
-              </div>
-            </div>
+            </section>
           </div>
         )}
       </div>

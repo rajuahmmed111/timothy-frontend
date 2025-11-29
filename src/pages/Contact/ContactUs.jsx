@@ -79,16 +79,14 @@ export default function ContactUs() {
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-bold text-gray-900">
-                      Visit Us
+                      Contact Us
                     </h3>
                     <p className="mt-1 text-gray-600">
-                      <b>Address 1:</b>
-                      <br /> 6 Esomo Close <br /> Off Toyin Street <br /> Ikeja,
-                      Lagos State <br /> Nigeria.
+                       6 Esomo Close Off Toyin Street <br /> Ikeja, Lagos
+                      State <br /> Nigeria.
                       <br />
-                      <b>Address 2:</b>
                       <br /> 103 Marsh Hill
-                      <br /> Birmingham <br /> United Kingdom
+                      <br /> Birmingham United Kingdom
                       <br /> B23 7DU
                     </p>
                   </div>
@@ -125,8 +123,7 @@ export default function ContactUs() {
                   </div>
                 </div>
 
-                {/* call us section it will be implemented after 1 moth */}
-                {/* <div className="flex items-start">
+                <div className="flex items-start">
                   <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                     <svg
                       className="h-5 w-5 text-blue-600"
@@ -151,11 +148,11 @@ export default function ContactUs() {
                         href="tel:+15551234567"
                         className="text-blue-600 hover:underline"
                       >
-                        +1 (555) 123-4567
+                        +447521010080
                       </a>
                     </p>
                   </div>
-                </div> */}
+                </div>
               </div>
             </div>
           </div>
