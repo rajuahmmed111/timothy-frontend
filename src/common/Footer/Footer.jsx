@@ -1,5 +1,5 @@
 import React from "react";
-import { Instagram, Facebook, Youtube } from "lucide-react";
+import { Instagram, Facebook, Youtube, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Footer() {
@@ -79,31 +79,40 @@ export default function Footer() {
             <h3 className="text-xl font-bold mb-5 text-[#090909]">Social</h3>
             <ul className="space-y-3">
               <li>
-                <Link
-                  href="#"
+                <a
+                  href="https://www.instagram.com/fasify_ltd?igsh=MXUxMzdncjE4bWptYg%3D%3D&utm_source=qr"
                   className="flex items-center gap-2 text-[#090909]"
                 >
                   <Instagram className="w-6 h-6 text-[#090909]" />
                   Instagram
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="#"
+                <a
+                  href="https://www.facebook.com/share/1AvucPSEMu/?mibextid=wwXIfr"
                   className="flex items-center gap-2 text-[#090909]"
                 >
                   <Facebook className="w-6 h-6" />
                   Facebook
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="#"
+                <a
+                  href="https://youtube.com/@fasify?si=0NLp-0tuDPMHIUzX"
                   className="flex items-center gap-2 text-[#090909]"
                 >
                   <Youtube className="w-6 h-6" />
                   Youtube
-                </Link>
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.linkedin.com/company/fasify/?viewAsMember=true"
+                  className="flex items-center gap-2 text-[#090909]"
+                >
+                  <Linkedin className="w-6 h-6" />
+                  LinkDin
+                </a>
               </li>
             </ul>
           </div>

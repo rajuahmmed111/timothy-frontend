@@ -76,10 +76,8 @@ const isAfricanCountry = (country) => {
 
 import {
   Calendar,
-  CreditCard,
   MapPin,
   Users,
-  Wallet,
   ShieldCheck,
   ArrowLeft,
   Phone,
@@ -90,11 +88,11 @@ export default function PaymentConfirm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("stripe");
+
   const bookingDetails = location.state?.data;
   const hotelData = bookingDetails?.data || bookingDetails || {};
-  console.log("Booking details:", bookingDetails);
 
-  // Set payment method based on country when component mounts or country changes
+  // Set payment method based on country
   useEffect(() => {
     if (bookingDetails?.user?.country) {
       const country = bookingDetails.user.country.toLowerCase();
@@ -113,137 +111,89 @@ export default function PaymentConfirm() {
     const parsedSubtotal = Number(
       bookingDetails?.subtotal ?? hotelData?.subtotal ?? 0
     );
-    const discount = Number(
-      bookingDetails?.discountedPrice ?? hotelData?.discountedPrice ?? 0
-    );
     const vatRate = Number(bookingDetails?.vat ?? hotelData?.vat ?? 12) || 12;
-    const baseVatAmount = parsedSubtotal * (vatRate / 100);
-    const vatAmount =
-      Number(bookingDetails?.vatAmount ?? hotelData?.vatAmount ?? 0) ||
-      baseVatAmount;
-    const serviceFee = Number(
-      bookingDetails?.serviceFee ?? hotelData?.serviceFee ?? 0
-    );
-    const fallbackTotal = parsedSubtotal + vatAmount - discount + serviceFee;
-    const total =
-      Number(bookingDetails?.total ?? hotelData?.total ?? 0) || fallbackTotal;
+    const vatAmount = parsedSubtotal * (vatRate / 100);
+    const total = parsedSubtotal + vatAmount;
 
-    return {
-      subtotal: parsedSubtotal,
-      discount,
-      vatRate,
-      vatAmount,
-      serviceFee,
-      total,
-    };
+    return { subtotal: parsedSubtotal, vatRate, vatAmount, total };
   };
 
-  const { subtotal, discount, vatRate, vatAmount, serviceFee, total } =
-    calculateTotal();
+  const { subtotal, vatRate, vatAmount, total } = calculateTotal();
 
-  // Format date to be more readable
   const formatDate = (dateString) => {
     if (!dateString) return "";
-    const options = { year: "numeric", month: "short", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("en-US", options);
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
-  // Get booking ID from URL params or state
+
   const searchParams = new URLSearchParams(location.search);
 
-  // Debug logging for all potential ID sources
-  console.log("Debug - Booking ID sources:", {
-    fromUrl: searchParams.get("bookingId"),
-    fromLocationState: location.state?.createdBookingId,
-    fromBookingDetails: bookingDetails?.id,
-    fullLocationState: location.state,
-    fullBookingDetails: bookingDetails,
-  });
-
-  // Get booking ID from multiple sources with fallback
   const bookingId = (() => {
-    // Try URL parameters first
     const fromUrl = searchParams.get("bookingId");
     if (fromUrl) return fromUrl;
 
-    // Then try location state
-    if (location.state?.createdBookingId) {
+    if (location.state?.createdBookingId)
       return location.state.createdBookingId;
-    }
 
-    // Then try booking details
-    if (bookingDetails?.id) {
-      return bookingDetails.id.toString();
-    }
+    if (bookingDetails?.id) return bookingDetails.id.toString();
 
-    // If we have a booking reference in the URL path
     const pathParts = window.location.pathname.split("/");
     const possibleId = pathParts[pathParts.length - 1];
-    if (possibleId && possibleId.length > 10) {
-      // Simple validation for ID length
-      return possibleId;
-    }
+    if (possibleId && possibleId.length > 10) return possibleId;
 
     return null;
   })();
 
-  console.log("Current booking ID:", bookingId);
-
   const handlePayment = async () => {
-    // Prevent execution if total is not valid
-    if (!total || total <= 0) {
-      console.log("Payment not processed: Invalid total amount");
-      return;
-    }
-    // Use the already retrieved bookingId
+    if (!total || total <= 0) return;
     const currentBookingId = bookingId;
+
     if (!bookingDetails?.user?.country) {
       toast.error("Please select a country");
       return;
     }
 
     setIsLoading(true);
+
     try {
       if (!currentBookingId) {
-        console.error("No booking ID found in any source");
-        toast.error(
-          "Booking reference not found. Please try refreshing the page or contact support."
-        );
+        toast.error("Booking reference not found.");
         return;
       }
+
       const successUrl = `${window.location.origin}/booking-confirmation`;
       const cancelUrl = `${window.location.origin}/hotel/checkout`;
-      // Use the already retrieved bookingId
 
-      // Prepare user information
       const userInfo = bookingDetails.user;
 
-      const bookingConfirmationData = {
-        bookingId: currentBookingId,
-        hotelName: bookingDetails.hotelName,
-        checkIn: bookingDetails.checkIn,
-        checkOut: bookingDetails.checkOut,
-        guests: bookingDetails.guests || 1,
-        total,
-        roomType: bookingDetails.roomType,
-        location: bookingDetails.location,
-        rooms: bookingDetails.rooms,
-        adults: bookingDetails.adults,
-        children: bookingDetails.children,
-        isRefundable: bookingDetails.isRefundable,
-        cancelationPolicy: bookingDetails.cancelationPolicy,
-        vat: bookingDetails.vat,
-        nights: bookingDetails.nights,
-        user: userInfo,
-      };
-
-      // Store in session storage as fallback
+      // Save booking info
       sessionStorage.setItem(
         "lastBooking",
-        JSON.stringify(bookingConfirmationData)
+        JSON.stringify({
+          bookingId: currentBookingId,
+          hotelName: bookingDetails.hotelName,
+          checkIn: bookingDetails.checkIn,
+          checkOut: bookingDetails.checkOut,
+          guests: bookingDetails.guests || 1,
+          total,
+          roomType: bookingDetails.roomType,
+          location: bookingDetails.location,
+          rooms: bookingDetails.rooms,
+          adults: bookingDetails.adults,
+          children: bookingDetails.children,
+          isRefundable: bookingDetails.isRefundable,
+          cancelationPolicy: bookingDetails.cancelationPolicy,
+          vat: bookingDetails.vat,
+          nights: bookingDetails.nights,
+          user: userInfo,
+        })
       );
 
       const paymentData = {
-        amount: Math.round(total * 100), // smallest currency unit
+        amount: Math.round(total * 100),
         email: bookingDetails.user.email || "",
         name:
           bookingDetails.user.fullName ||
@@ -251,7 +201,7 @@ export default function PaymentConfirm() {
           "Customer",
         phone:
           bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
-        currency: "NGN", // default Paystack
+        currency: "NGN",
         hotelId: bookingDetails.hotelId,
         roomId: bookingDetails.roomId,
         userId: bookingDetails.user.id,
@@ -268,8 +218,8 @@ export default function PaymentConfirm() {
       const userCountry = (bookingDetails.user.country || "").toLowerCase();
       const isUserInAfrica = isAfricanCountry(userCountry);
 
+      // PAYSTACK
       if (paymentMethod === "paystack" && isUserInAfrica) {
-        console.log("Processing Paystack payment for:", userCountry);
         const response = await createPaystackSession({
           bookingId: currentBookingId,
           body: {
@@ -285,10 +235,8 @@ export default function PaymentConfirm() {
           response?.data?.authorization_url ||
           response?.authorization_url;
 
-        if (!checkoutUrl)
-          throw new Error("No valid checkout URL found in Paystack response");
+        if (!checkoutUrl) throw new Error("No valid checkout URL found");
 
-        // Store booking data in session storage before redirecting
         sessionStorage.setItem(
           "pendingBooking",
           JSON.stringify({
@@ -300,16 +248,21 @@ export default function PaymentConfirm() {
           })
         );
 
-        // Redirect directly to Paystack checkout
         window.location.href = checkoutUrl;
-      } else {
-        console.log("Processing Stripe payment for:", userCountry);
+      }
+
+      // STRIPE (fixed)
+      else {
         paymentData.currency = "USD";
 
         const result = await createStripeSession({
           bookingId: currentBookingId,
           body: {
             ...paymentData,
+
+            // ❗ FIX ADDED BELOW — remove transfer_data
+            payment_intent_data: {},
+
             line_items: [
               {
                 price_data: {
@@ -340,10 +293,8 @@ export default function PaymentConfirm() {
         const checkoutUrl =
           result?.data?.checkoutUrl || result?.data?.url || result?.url;
 
-        if (!checkoutUrl)
-          throw new Error("Could not retrieve Stripe checkout URL");
+        if (!checkoutUrl) throw new Error("Stripe checkout URL missing");
 
-        // Store booking data in session storage before redirecting
         sessionStorage.setItem(
           "pendingBooking",
           JSON.stringify({
@@ -355,17 +306,11 @@ export default function PaymentConfirm() {
           })
         );
 
-        // Redirect directly to Stripe checkout
         window.location.href = checkoutUrl;
       }
     } catch (error) {
       console.error("Payment error:", error);
-      const errorMessage =
-        error?.data?.message ||
-        error?.error ||
-        error?.message ||
-        "Payment processing failed. Please try again.";
-      toast.error(`Payment Error: ${errorMessage}`);
+      toast.error(error?.data?.message || error?.message || "Payment failed");
     } finally {
       setIsLoading(false);
     }
@@ -390,7 +335,7 @@ export default function PaymentConfirm() {
           </h1>
 
           <div className="p-6 md:flex gap-10">
-            {/* LEFT COLUMN */}
+            {/* LEFT */}
             <div className="md:w-2/3 space-y-8">
               {/* Hotel Info */}
               <div className="bg-gray-50 p-5 rounded-lg ">
@@ -403,17 +348,16 @@ export default function PaymentConfirm() {
                 </div>
               </div>
 
-              {/* Booking Grid */}
+              {/* Grid */}
               <div className="grid sm:grid-cols-2 gap-6">
-                {/* Date Card */}
+                {/* Dates */}
                 <div className="bg-white  rounded-lg p-4 shadow-sm space-y-4">
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">Check-in</p>
                       <p className="font-medium">
-                        {formatDate(hotelData.bookedFromDate) ||
-                          "Not specified"}
+                        {formatDate(hotelData.bookedFromDate)}
                       </p>
                     </div>
                   </div>
@@ -423,7 +367,7 @@ export default function PaymentConfirm() {
                     <div>
                       <p className="text-sm text-gray-500">Check-out</p>
                       <p className="font-medium">
-                        {formatDate(hotelData.bookedToDate) || "Not specified"}
+                        {formatDate(hotelData.bookedToDate)}
                       </p>
                     </div>
                   </div>
@@ -432,14 +376,12 @@ export default function PaymentConfirm() {
                     <Calendar className="w-5 h-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">Nights</p>
-                      <p className="font-medium">
-                        {bookingDetails.nights} night
-                      </p>
+                      <p className="font-medium">{bookingDetails.nights}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Guest/Card */}
+                {/* Guests */}
                 <div className="bg-white  rounded-lg p-4 shadow-sm space-y-4">
                   <div className="flex items-center gap-3">
                     <Users className="w-5 h-5 text-gray-500" />
@@ -475,8 +417,7 @@ export default function PaymentConfirm() {
                       </p>
                       <p className="text-sm text-gray-600">
                         {bookingDetails?.cancelationPolicy ||
-                          hotelData?.cancelationPolicy ||
-                          "Non-refundable booking."}
+                          hotelData?.cancelationPolicy}
                       </p>
                     </div>
                   </div>
@@ -486,7 +427,7 @@ export default function PaymentConfirm() {
                     <div>
                       <p className="text-sm text-gray-500">Country</p>
                       <p className="font-medium">
-                        {bookingDetails?.user?.country || "Not provided"}
+                        {bookingDetails?.user?.country || ""}
                       </p>
                     </div>
                   </div>
@@ -494,7 +435,7 @@ export default function PaymentConfirm() {
               </div>
             </div>
 
-            {/* RIGHT COLUMN - PRICE */}
+            {/* RIGHT - Price */}
             <div className="md:w-1/3 mt-10 md:mt-0">
               <div className="bg-white p-6  rounded-lg shadow-sm sticky top-6">
                 <h2 className="text-xl font-semibold mb-5">Price Summary</h2>
@@ -507,25 +448,6 @@ export default function PaymentConfirm() {
                     </span>
                   </div>
 
-                  {/* {discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>
-                        -{hotelData.displayCurrency} {discount.toFixed(2)}
-                      </span>
-                    </div>
-                  )} */}
-
-                  {serviceFee > 0 && (
-                    <div className="flex justify-between">
-                      <span>Service Fee</span>
-                      <span>
-                        {hotelData.displayCurrency} {serviceFee.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Divider */}
                   <div className="border-t pt-3 mt-3">
                     <div className="flex justify-between text-lg font-semibold">
                       <span>Total</span>

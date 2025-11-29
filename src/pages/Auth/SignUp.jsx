@@ -103,7 +103,7 @@ export default function ServiceProviderSignup() {
         localStorage.removeItem("rememberCredentials");
       }
 
-      navigate("/");
+      navigate("/login");
     } catch (err) {
       console.error("Registration failed", err);
     }

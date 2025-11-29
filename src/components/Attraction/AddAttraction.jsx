@@ -5,6 +5,7 @@ import {
   useGetPartenrsAllAttractionQuery,
 } from "../../redux/api/attraction/attractionApi";
 import { currencyByCountry } from "../curenci";
+import { countries } from "../../components/country";
 
 const days = [
   "Sunday",
@@ -33,8 +34,8 @@ const AddAttraction = () => {
   const [attractionImages, setAttractionImages] = useState([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState("");
   const [form, setForm] = useState({
-    attractionDestinationType: "Art Gallery",
-    category: "Cultural",
+    attractionDestinationType: "",
+    category: "",
     description: "",
     address: "",
     city: "",
@@ -45,7 +46,7 @@ const AddAttraction = () => {
     childPrice: "",
     discount: "",
     vat: "",
-    currency: "BDT",
+    currency: "",
     freeWifi: false,
     freeParking: false,
     kitchen: false,
@@ -73,6 +74,46 @@ const AddAttraction = () => {
       if (id) setSelectedBusinessId(id);
     }
   }, [attractions]);
+
+  // Auto-detect country
+  const providers = [
+    {
+      name: "ipapi.co",
+      url: "https://ipapi.co/json/",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+    {
+      name: "extreme-ip-lookup",
+      url: "https://extreme-ip-lookup.com/json/",
+      parse: (data) => ({ iso: data.countryCode, raw: data }),
+    },
+    {
+      name: "ipinfo.io",
+      url: "https://ipinfo.io/json",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+  ];
+
+  // Auto detect country
+  useEffect(() => {
+    const detectCountry = async () => {
+      for (const provider of providers) {
+        try {
+          const res = await fetch(provider.url);
+          if (!res.ok) continue;
+
+          const json = await res.json();
+          const { iso } = provider.parse(json);
+
+          if (iso) {
+            setForm((prev) => ({ ...prev, country: iso }));
+            break;
+          }
+        } catch {}
+      }
+    };
+    detectCountry();
+  }, []);
 
   const toggleSlot = (day, slot) => {
     setSelectedSlots((prev) => {
@@ -265,7 +306,6 @@ const AddAttraction = () => {
               { key: "city", label: "City" },
               { key: "postalCode", label: "Postal Code" },
               { key: "district", label: "District" },
-              { key: "country", label: "Country" },
             ].map((f) => (
               <div key={f.key} className="flex flex-col">
                 <label className="text-sm font-medium text-gray-700 mb-1">{f.label}</label>
@@ -276,6 +316,27 @@ const AddAttraction = () => {
                 />
               </div>
             ))}
+
+            {/* Country Dropdown */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Country
+              </label>
+              <select
+                value={form.country}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, country: e.target.value }))
+                }
+                className="p-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-blue-400 outline-none"
+              >
+                <option value="">Select Country</option>
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Features */}
             <div className="md:col-span-2">

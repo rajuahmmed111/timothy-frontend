@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useGetMyProfileQuery } from "../../redux/services/authApi";
 import { handleError, handleSuccess } from "../../../toast";
+import { Modal, Button } from "antd";
 
 import {
   MessageSquare,
@@ -33,6 +34,10 @@ export default function Sidebar() {
   const [stripeStatus, setStripeStatus] = useState(null);
   const [paystackStatus, setPaystackStatus] = useState(null);
   const [showPaystackModal, setShowPaystackModal] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [userCancelledVerification, setUserCancelledVerification] =
+    useState(false);
+  const [showPaymentOptionsModal, setShowPaymentOptionsModal] = useState(false);
   const [paystackFormData, setPaystackFormData] = useState({
     business_name: "",
     settlement_bank: "",
@@ -51,6 +56,16 @@ export default function Sidebar() {
   // Hooks for API Mutations
   const [stripeAccountOnboarding] = useStripeAccountOnboardingMutation();
   const [paystackAccountSubAccount] = usePaystackAccountSubAccountMutation();
+
+  // Check if user is verified (both Stripe and Paystack) - MOVED UP
+  const isUserVerified = () => {
+    const stripeVerified = stripeStatus === "verified";
+    const paystackVerified =
+      paystackStatus?.data?.status === "active" ||
+      paystackStatus?.data?.data?.data?.is_verified;
+
+    return stripeVerified || paystackVerified;
+  };
 
   // Check Stripe status on component mount
   useEffect(() => {
@@ -111,6 +126,60 @@ export default function Sidebar() {
     paystackFormData,
   ]);
 
+  // Check verification status on dashboard load and show modal if needed
+  useEffect(() => {
+    if (
+      role === "BUSINESS_PARTNER" &&
+      accessToken &&
+      stripeStatus &&
+      paystackStatus
+    ) {
+      console.log("Dashboard verification check:", {
+        role,
+        stripeStatus,
+        paystackStatus,
+        isVerified: isUserVerified(),
+      });
+
+      if (!isUserVerified()) {
+        // Show verification modal after a short delay to allow dashboard to load
+        const timer = setTimeout(() => {
+          setShowVerificationModal(true);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [role, accessToken, stripeStatus, paystackStatus]);
+
+  // Keep showing modal every 30 seconds if user is still not verified and hasn't cancelled
+  useEffect(() => {
+    if (
+      role === "BUSINESS_PARTNER" &&
+      accessToken &&
+      stripeStatus &&
+      paystackStatus &&
+      !isUserVerified() &&
+      !userCancelledVerification
+    ) {
+      console.log("User not verified, setting up periodic modal reminders");
+
+      const interval = setInterval(() => {
+        setShowVerificationModal(true);
+        console.log("Showing verification reminder modal");
+      }, 30000); // Show every 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [
+    role,
+    accessToken,
+    stripeStatus,
+    paystackStatus,
+    isUserVerified,
+    userCancelledVerification,
+  ]);
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -122,6 +191,14 @@ export default function Sidebar() {
   }, []);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  // Handle navigation with verification check
+  const handleNavigationClick = (e, path) => {
+    if (!isUserVerified() && role === "BUSINESS_PARTNER") {
+      e.preventDefault();
+      setShowVerificationModal(true);
+    }
+  };
 
   return (
     <>
@@ -209,6 +286,10 @@ export default function Sidebar() {
                 icon={<List size={18} />}
                 text="Hotel Management"
                 onClick={isMobile ? toggleSidebar : undefined}
+                requireVerification={true}
+                isUserVerified={isUserVerified()}
+                role={role}
+                setShowVerificationModal={setShowVerificationModal}
               />
             )}
 
@@ -218,6 +299,10 @@ export default function Sidebar() {
                 icon={<Package size={18} />}
                 text="Security Management"
                 onClick={isMobile ? toggleSidebar : undefined}
+                requireVerification={true}
+                isUserVerified={isUserVerified()}
+                role={role}
+                setShowVerificationModal={setShowVerificationModal}
               />
             )}
 
@@ -227,6 +312,10 @@ export default function Sidebar() {
                 icon={<Pin size={18} />}
                 text="Car Management"
                 onClick={isMobile ? toggleSidebar : undefined}
+                requireVerification={true}
+                isUserVerified={isUserVerified()}
+                role={role}
+                setShowVerificationModal={setShowVerificationModal}
               />
             )}
 
@@ -238,6 +327,10 @@ export default function Sidebar() {
                   icon={<Mail size={18} />}
                   text="Attraction Management"
                   onClick={isMobile ? toggleSidebar : undefined}
+                  requireVerification={true}
+                  isUserVerified={isUserVerified()}
+                  role={role}
+                  setShowVerificationModal={setShowVerificationModal}
                 />
               </div>
             )}
@@ -250,6 +343,7 @@ export default function Sidebar() {
                   <button
                     onClick={() => setShowPaymentDropdown((prev) => !prev)}
                     className="ml-6 mt-1 text-sm text-blue-600 hover:underline"
+                    data-payment-dropdown
                   >
                     Payment Options ▼
                   </button>
@@ -453,6 +547,148 @@ export default function Sidebar() {
           </div>
         </div>
       )}
+
+      {/* Verification Required Modal */}
+      <Modal
+        title="Account Verification Required"
+        open={showVerificationModal}
+        onCancel={() => setShowVerificationModal(false)}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => {
+              setShowVerificationModal(false);
+              setUserCancelledVerification(true);
+            }}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="verify"
+            type="primary"
+            onClick={() => {
+              setShowVerificationModal(false);
+              setUserCancelledVerification(false);
+              // Show payment options modal
+              setShowPaymentOptionsModal(true);
+            }}
+          >
+            Verify Account
+          </Button>,
+        ]}
+      >
+        <div className="space-y-4">
+          <div className="text-center py-4">
+            <div className="text-6xl mb-4">🔒</div>
+            <h3 className="text-lg font-semibold mb-2">
+              Verify Your Account First
+            </h3>
+            <p className="text-gray-600 mb-4">
+              You need to verify your payment account (Stripe or Paystack)
+              before you can manage your business services.
+            </p>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-medium text-blue-900 mb-2">
+              Why verification is required:
+            </h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• To receive payments from customers</li>
+              <li>• To ensure secure transactions</li>
+              <li>• To comply with financial regulations</li>
+              <li>• To protect both you and your customers</li>
+            </ul>
+          </div>
+
+          <div className="text-sm text-gray-500 text-center">
+            Click "Verify Account" to complete your payment setup and start
+            managing your services.
+          </div>
+        </div>
+      </Modal>
+
+      {/* Payment Options Modal */}
+      <Modal
+        title="Choose Payment Method"
+        open={showPaymentOptionsModal}
+        onCancel={() => setShowPaymentOptionsModal(false)}
+        footer={null}
+        width={400}
+      >
+        <div className="space-y-3">
+          {/* Stripe */}
+          <button
+            onClick={async () => {
+              try {
+                const res = await stripeAccountOnboarding({});
+                if (res?.data?.data?.onboardingLink) {
+                  window.location.href = res.data.data.onboardingLink;
+                } else if (res?.data?.data?.status === "verified") {
+                  alert("Your Stripe account is already verified!");
+                  setShowPaymentOptionsModal(false);
+                } else {
+                  alert("Stripe onboarding failed");
+                }
+              } catch (err) {
+                console.log(err);
+                alert("Stripe error");
+              }
+            }}
+            className="w-full text-left px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-sm font-bold">
+                S
+              </div>
+              <div>
+                <div className="font-medium">Stripe</div>
+                <div className="text-sm text-gray-500">
+                  {stripeStatus === "verified" ? "Verified" : "Setup Required"}
+                </div>
+              </div>
+            </div>
+            <span className="text-gray-400">→</span>
+          </button>
+
+          {/* Paystack */}
+          <button
+            onClick={() => {
+              if (
+                paystackStatus?.data?.status === "active" ||
+                paystackStatus?.data?.data?.data?.is_verified
+              ) {
+                alert("Your Paystack account is already verified!");
+                setShowPaymentOptionsModal(false);
+              } else {
+                setShowPaymentOptionsModal(false);
+                setShowPaystackModal(true);
+              }
+            }}
+            className="w-full text-left px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center text-white text-sm font-bold">
+                P
+              </div>
+              <div>
+                <div className="font-medium">Paystack</div>
+                <div className="text-sm text-gray-500">
+                  {paystackStatus?.data?.status === "active" ||
+                  paystackStatus?.data?.data?.data?.is_verified
+                    ? "Verified"
+                    : "Setup Required"}
+                </div>
+              </div>
+            </div>
+            <span className="text-gray-400">→</span>
+          </button>
+
+          <div className="text-xs text-gray-500 text-center pt-2">
+            Choose one payment method to receive payments from customers
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }
@@ -472,11 +708,33 @@ function Section({ title, children, isActive }) {
   );
 }
 
-function SidebarButton({ to, icon, text, onClick }) {
+function SidebarButton({
+  to,
+  icon,
+  text,
+  onClick,
+  requireVerification = false,
+  isUserVerified,
+  role,
+  setShowVerificationModal,
+}) {
+  const handleClick = (e) => {
+    if (
+      requireVerification &&
+      !isUserVerified() &&
+      role === "BUSINESS_PARTNER"
+    ) {
+      e.preventDefault();
+      setShowVerificationModal(true);
+      return;
+    }
+    if (onClick) onClick();
+  };
+
   return (
     <NavLink
       to={to}
-      onClick={onClick}
+      onClick={handleClick}
       className={({ isActive }) =>
         `flex items-center gap-2 px-3 py-2 rounded-md bg-white transition ${
           isActive

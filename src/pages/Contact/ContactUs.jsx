@@ -82,8 +82,8 @@ export default function ContactUs() {
                       Contact Us
                     </h3>
                     <p className="mt-1 text-gray-600">
-                       6 Esomo Close Off Toyin Street <br /> Ikeja, Lagos
-                      State <br /> Nigeria.
+                      6 Esomo Close Off Toyin Street <br /> Ikeja, Lagos State{" "}
+                      <br /> Nigeria.
                       <br />
                       <br /> 103 Marsh Hill
                       <br /> Birmingham United Kingdom

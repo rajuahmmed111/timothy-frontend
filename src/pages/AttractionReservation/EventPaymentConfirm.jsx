@@ -690,7 +690,7 @@ export default function EventPaymentConfirm() {
                     </div>
                   )}
 
-                  {attractionDetails?.data?.discountedPrice > 0 && (
+                  {/* {attractionDetails?.data?.discountedPrice > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
                       <span>
@@ -700,7 +700,7 @@ export default function EventPaymentConfirm() {
                           : attractionDetails?.data?.discountedPrice || 0}
                       </span>
                     </div>
-                  )}
+                  )} */}
 
                   <div className="flex justify-between">
                     <div className="border-t w-full border-gray-200 pt-3 mt-3">

@@ -3,7 +3,14 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Upload, X } from "lucide-react";
 import Swal from "sweetalert2";
-import { useAddHotelRoomMutation, useGetHotelBusinessPartnerMutation } from "../../redux/api/hotel/hotelApi";
+import {
+  useAddHotelRoomMutation,
+  useGetHotelBusinessPartnerMutation,
+} from "../../redux/api/hotel/hotelApi";
+import { countries } from "../../components/country";
+import { currencyByCountry } from "../curenci";
+
+
 
 export default function CreateHotelRoom() {
   const [loading, setLoading] = useState(false);
@@ -15,31 +22,32 @@ export default function CreateHotelRoom() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      hotelRoomType: "Deluxe Suite",
+      hotelRoomType: "",
       hotelAC: true,
       hotelParking: true,
       hotelWifi: true,
       hotelBreakfast: true,
       hotelPool: false,
-      hotelRating: "4.5",
+      hotelRating: "",
       hotelSmoking: false,
       hotelTv: true,
       hotelWashing: true,
-      hotelRoomDescription:
-        "A spacious deluxe suite with ocean view and modern amenities.",
-      hotelAddress: "123 Beach Avenue",
-      hotelCity: "Miami",
-      hotelPostalCode: "33101",
-      hotelDistrict: "Downtown",
-      hotelCountry: "USA",
-      hotelRoomCapacity: "3 Adults",
+      hotelRoomDescription: "",
+      hotelAddress: "",
+      hotelCity: "",
+      hotelPostalCode: "",
+      hotelDistrict: "",
+      hotelCountry: "",
+      hotelRoomCapacity: "",
       hotelNumberOfRooms: 5,
       hotelNumAdults: 2,
       hotelNumChildren: 1,
-      hotelAccommodationType: "Suite",
+      hotelAccommodationType: "",
       hotelKitchen: true,
       hotelRestaurant: true,
       hotelGym: true,
@@ -55,9 +63,10 @@ export default function CreateHotelRoom() {
       hotelLocationFeatureIsland: false,
       hotelCoffeeBar: true,
       hotelRoomPriceNight: 150,
-      category: "Luxury",
-      discount: 10.5,
+      category: "",
+      discount: 10,
       hotelReviewCount: 12,
+      currency: "",
     },
   });
   const [getPartner, { data: hotelData, isLoading: isPartnerLoading }] =
@@ -126,8 +135,7 @@ export default function CreateHotelRoom() {
         }
       });
 
-      // Ensure currency is sent as per API response
-      formData.append("currency", "INR");
+      // Currency will be included from form data; do not override here
 
       // Append images
       hotelImages.forEach((image) => {
@@ -179,6 +187,46 @@ export default function CreateHotelRoom() {
     }
   };
 
+  // Auto-detect providers
+  const providers = [
+    {
+      name: "ipapi.co",
+      url: "https://ipapi.co/json/",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+    {
+      name: "extreme-ip-lookup",
+      url: "https://extreme-ip-lookup.com/json/",
+      parse: (data) => ({ iso: data.countryCode, raw: data }),
+    },
+    {
+      name: "ipinfo.io",
+      url: "https://ipinfo.io/json",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+  ];
+
+  // Auto detect country
+  useEffect(() => {
+    const detectCountry = async () => {
+      for (const provider of providers) {
+        try {
+          const res = await fetch(provider.url);
+          if (!res.ok) continue;
+
+          const json = await res.json();
+          const { iso } = provider.parse(json);
+
+          if (iso) {
+            setValue("hotelCountry", iso);
+            break;
+          }
+        } catch {}
+      }
+    };
+    detectCountry();
+  }, []);
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Create New Hotel Room</h1>
@@ -201,7 +249,6 @@ export default function CreateHotelRoom() {
                 {hotels.map((h) => (
                   <option key={h.id} value={h.id}>
                     {h.hotelBusinessName}
-                    
                   </option>
                 ))}
               </select>
@@ -250,6 +297,23 @@ export default function CreateHotelRoom() {
                   {errors.hotelRoomPriceNight.message}
                 </p>
               )}
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">Currency</label>
+              <select
+                value={watch("currency")}
+                onChange={(e) => setValue("currency", e.target.value, { shouldValidate: true })}
+                className="p-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-blue-400 outline-none"
+              >
+                {Array.from(new Set(Object.values(currencyByCountry).map((c) => c.code))).map(
+                  (code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  )
+                )}
+              </select>
             </div>
 
             <div>
@@ -385,13 +449,19 @@ export default function CreateHotelRoom() {
               <label className="block text-sm font-medium text-gray-700">
                 Country
               </label>
-              <input
-                type="text"
+              <select
                 {...register("hotelCountry", {
                   required: "Country is required",
                 })}
                 className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
-              />
+              >
+                <option value="">Select your country</option>
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
               {errors.hotelCountry && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.hotelCountry.message}

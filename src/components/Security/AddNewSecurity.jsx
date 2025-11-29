@@ -7,6 +7,8 @@ import {
   useAddSecurityGuardMutation,
   useGetSecurityPartnerQuery,
 } from "../../redux/api/security/securityApi";
+import { countries } from "../../components/country";
+import { currencyByCountry } from "../curenci";
 
 export default function AddNewSecurity() {
   const [loading, setLoading] = useState(false);
@@ -19,25 +21,26 @@ export default function AddNewSecurity() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
     watch,
   } = useForm({
     defaultValues: {
-      securityGuardName: "aman-create-security-1",
-      securityAddress: "Dhaka",
-      securityPostalCode: "1207",
-      securityDistrict: "Dhaka",
-      securityCity: "Dhaka",
-      securityCountry: "Bangladesh",
+      securityGuardName: "",
+      securityAddress: "",
+      securityPostalCode: "",
+      securityDistrict: "",
+      securityCity: "",
+      securityCountry: "",
       securityGuardDescription:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+        "",
       experience: 5,
       availability: "24/7",
-      languages: "English",
-      securityServicesOffered: "Patrolling",
-      certification: "CSP",
-      securityRating: "5",
-      currency: "BDT",
+      languages: "",
+      securityServicesOffered: "",
+      certification: "",
+      securityRating: "",
+      currency: "",
     },
   });
 
@@ -73,6 +76,46 @@ export default function AddNewSecurity() {
     return () => {
       active = false;
     };
+  }, []);
+
+  // Auto-detect providers
+  const providers = [
+    {
+      name: "ipapi.co",
+      url: "https://ipapi.co/json/",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+    {
+      name: "extreme-ip-lookup",
+      url: "https://extreme-ip-lookup.com/json/",
+      parse: (data) => ({ iso: data.countryCode, raw: data }),
+    },
+    {
+      name: "ipinfo.io",
+      url: "https://ipinfo.io/json",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+  ];
+
+  // Auto detect country
+  useEffect(() => {
+    const detectCountry = async () => {
+      for (const provider of providers) {
+        try {
+          const res = await fetch(provider.url);
+          if (!res.ok) continue;
+
+          const json = await res.json();
+          const { iso } = provider.parse(json);
+
+          if (iso) {
+            setValue("securityCountry", iso);
+            break;
+          }
+        } catch { }
+      }
+    };
+    detectCountry();
   }, []);
 
   const securityListings = securityData?.data?.data || [];
@@ -315,30 +358,21 @@ export default function AddNewSecurity() {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
                 Currency
               </label>
               <select
-                {...register("currency")}
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+                value={watch("currency")}
+                onChange={(e) => setValue("currency", e.target.value, { shouldValidate: true })}
+                className="p-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-blue-400 outline-none"
               >
-                {rates ? (
-                  Object.keys(rates)
-                    .sort()
-                    .map((code) => (
-                      <option key={code} value={code}>
-                        {code}
-                      </option>
-                    ))
-                ) : (
-                  <>
-                    <option value="BDT">BDT</option>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="NGN">NGN</option>
-                    <option value="AED">AED</option>
-                  </>
+                {Array.from(new Set(Object.values(currencyByCountry).map((c) => c.code))).map(
+                  (code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  )
                 )}
               </select>
               {/* Show current rate for selected currency relative to USD */}
@@ -455,13 +489,19 @@ export default function AddNewSecurity() {
               <label className="block text-sm font-medium text-gray-700">
                 Country
               </label>
-              <input
-                type="text"
+              <select
                 {...register("securityCountry", {
                   required: "Country is required",
                 })}
                 className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
-              />
+              >
+                <option value="">Select your country</option>
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
               {errors.securityCountry && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.securityCountry.message}

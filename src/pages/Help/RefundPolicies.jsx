@@ -32,7 +32,7 @@ export default function RefundPolicies() {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
-              General Policies
+              Refund Policies
             </button>
             <button
               onClick={() => setActiveTab("accept")}

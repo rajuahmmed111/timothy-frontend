@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Upload, X, FileText } from "lucide-react";
 import Swal from "sweetalert2";
 import { useAddAttractionBusinessMutation } from "../../redux/api/attraction/attractionApi";
+import { countries } from "../../components/country";
 
 export default function AddAttractionBusiness() {
   const [formData, setFormData] = useState({
     attractionBusinessName: "",
     attractionName: "",
-    attractionBusinessType: "Resort & Waterpark",
+    attractionBusinessType: "",
     attractionRegNum: "",
     attractionRegDate: "",
     attractionPhone: "",
@@ -16,6 +17,7 @@ export default function AddAttractionBusiness() {
     attractionBusinessDescription: "",
     attractionBookingCondition: "",
     attractionCancelationPolicy: "",
+    attractionCountry: "",
     businessLogo: null,
     attractionDocs: [],
   });
@@ -106,6 +108,7 @@ export default function AddAttractionBusiness() {
         attractionBusinessDescription: formData.attractionBusinessDescription,
         attractionBookingCondition: formData.attractionBookingCondition,
         attractionCancelationPolicy: formData.attractionCancelationPolicy,
+        attractionCountry: formData.attractionCountry,
       };
 
       // Append JSON data
@@ -142,7 +145,7 @@ export default function AddAttractionBusiness() {
         const resetForm = {
           attractionBusinessName: "",
           attractionName: "",
-          attractionBusinessType: "Resort & Waterpark",
+          attractionBusinessType: "",
           attractionRegNum: "",
           attractionRegDate: "",
           attractionPhone: "",
@@ -151,6 +154,7 @@ export default function AddAttractionBusiness() {
           attractionBusinessDescription: "",
           attractionBookingCondition: "",
           attractionCancelationPolicy: "",
+          attractionCountry: "",
           businessLogo: null,
           attractionDocs: [],
         };
@@ -178,8 +182,48 @@ export default function AddAttractionBusiness() {
     }
   };
 
+  // Auto-detect providers
+  const providers = [
+    {
+      name: "ipapi.co",
+      url: "https://ipapi.co/json/",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+    {
+      name: "extreme-ip-lookup",
+      url: "https://extreme-ip-lookup.com/json/",
+      parse: (data) => ({ iso: data.countryCode, raw: data }),
+    },
+    {
+      name: "ipinfo.io",
+      url: "https://ipinfo.io/json",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+  ];
+
+  // Auto detect country
+  useEffect(() => {
+    const detectCountry = async () => {
+      for (const provider of providers) {
+        try {
+          const res = await fetch(provider.url);
+          if (!res.ok) continue;
+
+          const json = await res.json();
+          const { iso } = provider.parse(json);
+
+          if (iso) {
+            setFormData((prev) => ({ ...prev, attractionCountry: iso }));
+            break;
+          }
+        } catch {}
+      }
+    };
+    detectCountry();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-8 px-5">
       <div className=" mx-auto bg-white rounded-lg shadow-md overflow-hidden">
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-2xl font-bold text-gray-800">
@@ -320,6 +364,28 @@ export default function AddAttractionBusiness() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
+              </div>
+
+              {/* Country Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Country <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.attractionCountry}
+                  onChange={(e) =>
+                    handleInputChange("attractionCountry", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select Country</option>
+                  {countries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* attarACTION TYPE */}

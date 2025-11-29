@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useRegisterUserMutation } from "../../redux/services/authApi";
+import { useRegisterPartnerMutation } from "../../redux/services/authApi";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { Eye, EyeOff } from "lucide-react";
@@ -12,7 +12,7 @@ export default function ServiceProviderSignup() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [registerUser, { isLoading, error }] = useRegisterUserMutation();
+  const [registerUser, { isLoading, error }] = useRegisterPartnerMutation();
 
   const [form, setForm] = useState({
     fullName: "",
@@ -61,7 +61,6 @@ export default function ServiceProviderSignup() {
         } catch {}
       }
     };
-
     detectCountry();
   }, []);
 
@@ -87,6 +86,7 @@ export default function ServiceProviderSignup() {
         password: form.password,
         role: "BUSINESS_PARTNER",
         country: form.country,
+        status: "INACTIVE",
         ...serviceFlags,
       };
 
@@ -98,13 +98,13 @@ export default function ServiceProviderSignup() {
       if (rememberMe) {
         localStorage.setItem(
           "rememberCredentials",
-          JSON.stringify({ email: form.email, password: form.password })
+          JSON.stringify({ email: form.email, password: form.password, })
         );
       } else {
         localStorage.removeItem("rememberCredentials");
       }
 
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       console.error("Registration failed", err);
     }

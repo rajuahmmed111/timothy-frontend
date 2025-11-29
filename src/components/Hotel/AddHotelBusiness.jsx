@@ -1,30 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Building2, Upload, X, FileText } from "lucide-react";
 import Swal from "sweetalert2";
 import { useAddHotelBusinessMutation } from "../../redux/api/hotel/hotelApi";
+import { countries } from "../../components/country";
+
 
 export default function AddHotelBusiness() {
   const [formData, setFormData] = useState({
-    hotelBusinessName: "asdf",
-    hotelName: "asdf",
-    hotelBusinessType: "Private Limited",
-    hotelRegNum: "asdf",
-    hotelRegDate: "2025-10-22",
-    hotelPhone: "asdf",
-    hotelEmail: "asdf@asdf.com",
-    businessTagline: "asdf",
-    businessDescription: "asdf",
-    hotelBookingCondition: "asdf",
-    hotelCancelationPolicy: "asdf",
+    hotelBusinessName: "",
+    hotelName: "",
+    hotelBusinessType: "",
+    hotelRegNum: "",
+    hotelRegDate: "",
+    hotelPhone: "",
+    hotelEmail: "",
+    businessTagline: "",
+    businessDescription: "",
+    hotelBookingCondition: "",
+    hotelCancelationPolicy: "",
     hotelAddress: "",
-    hotelCity: "Dubai",
-    hotelPostalCode: "00000",
-    hotelDistrict: "Al Qudra",
-    hotelCountry: "United Arab Emirates",
+    hotelCity: "",
+    hotelPostalCode: "",
+    hotelDistrict: "",
+    hotelCountry: "",
     hotelLate: "",
     hotelLong: "",
-    hotelAccommodationType: "5-Star Luxury",
-    // Boolean fields
+    hotelAccommodationType: "",
     hotelAC: false,
     hotelParking: false,
     hoitelWifi: false,
@@ -47,22 +48,17 @@ export default function AddHotelBusiness() {
     hotelLocationFeatureWaterView: false,
     hotelLocationFeatureIsland: false,
     hotelCoffeeBar: false,
-    // File states
     businessLogo: null,
     hotelDocs: [],
   });
-
   const [preview, setPreview] = useState({
     businessLogo: null,
     hotelDocs: [],
   });
-
   const [addHotelBusiness, { isLoading }] = useAddHotelBusinessMutation();
-
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-
   const handleFileChange = (field, e) => {
     const files = Array.from(e.target.files);
 
@@ -89,7 +85,6 @@ export default function AddHotelBusiness() {
       }));
     }
   };
-
   const removeFile = (field, index = null) => {
     if (field === "businessLogo") {
       setFormData((prev) => ({ ...prev, [field]: null }));
@@ -104,10 +99,8 @@ export default function AddHotelBusiness() {
       setPreview((prev) => ({ ...prev, hotelDocs: updatedPreviews }));
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const swalInstance = Swal.fire({
       title: "Processing...",
       text: "Please wait while we save your hotel details",
@@ -116,11 +109,8 @@ export default function AddHotelBusiness() {
         Swal.showLoading();
       },
     });
-
     try {
       const formDataToSend = new FormData();
-
-      // List of all boolean fields
       const booleanFields = [
         "hotelAC",
         "hotelParking",
@@ -145,8 +135,6 @@ export default function AddHotelBusiness() {
         "hotelLocationFeatureIsland",
         "hotelCoffeeBar",
       ];
-
-      // Append all form data with proper type handling
       Object.entries(formData).forEach(([key, value]) => {
         if (value === null || value === "") return;
 
@@ -157,7 +145,6 @@ export default function AddHotelBusiness() {
         } else if (value instanceof File) {
           formDataToSend.append(key, value);
         } else if (booleanFields.includes(key)) {
-          // Ensure boolean fields are sent as actual booleans
           formDataToSend.append(key, Boolean(value));
         } else {
           formDataToSend.append(key, value);
@@ -173,7 +160,7 @@ export default function AddHotelBusiness() {
           formDataToSend.set(
             field,
             formDataToSend.get(field) === "true" ||
-              formDataToSend.get(field) === true
+            formDataToSend.get(field) === true
           );
         }
       });
@@ -181,8 +168,6 @@ export default function AddHotelBusiness() {
       console.log(formDataToSend, "formDataToSend");
 
       const response = await addHotelBusiness(formDataToSend).unwrap();
-
-      // ... rest of your success handling code ...
       await swalInstance.close();
 
       if (response?.success) {
@@ -194,14 +179,12 @@ export default function AddHotelBusiness() {
           confirmButtonColor: "#4f46e5",
         });
 
-        // Reset form
         const resetForm = {
           hotelBusinessName: "asdf",
           hotelName: "asdf",
           hotelBusinessType: "Private Limited",
           hotelLong: "",
           hotelAccommodationType: "5-Star Luxury",
-          // Reset boolean fields
           hotelAC: false,
           hotelParking: false,
           hoitelWifi: false,
@@ -224,7 +207,6 @@ export default function AddHotelBusiness() {
           hotelLocationFeatureWaterView: false,
           hotelLocationFeatureIsland: false,
           hotelCoffeeBar: false,
-          // Reset file states
           businessLogo: null,
           hotelDocs: [],
         };
@@ -234,8 +216,6 @@ export default function AddHotelBusiness() {
           businessLogo: null,
           hotelDocs: [],
         });
-
-        // Reset file inputs
         document.querySelectorAll('input[type="file"]').forEach((input) => {
           input.value = "";
         });
@@ -252,6 +232,47 @@ export default function AddHotelBusiness() {
       });
     }
   };
+
+  // Auto-detect providers
+  const providers = [
+    {
+      name: "ipapi.co",
+      url: "https://ipapi.co/json/",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+    {
+      name: "extreme-ip-lookup",
+      url: "https://extreme-ip-lookup.com/json/",
+      parse: (data) => ({ iso: data.countryCode, raw: data }),
+    },
+    {
+      name: "ipinfo.io",
+      url: "https://ipinfo.io/json",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+  ];
+
+  // Auto detect country
+  useEffect(() => {
+    const detectCountry = async () => {
+      for (const provider of providers) {
+        try {
+          const res = await fetch(provider.url);
+          if (!res.ok) continue;
+
+          const json = await res.json();
+          const { iso } = provider.parse(json);
+
+          if (iso) {
+            setFormData((prev) => ({ ...prev, hotelCountry: iso }));
+            break;
+          }
+        } catch { }
+      }
+    };
+    detectCountry();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className=" mx-auto">
@@ -443,20 +464,28 @@ export default function AddHotelBusiness() {
                       placeholder="Al Qudra"
                     />
                   </div>
-                  <div>
+            
+                  {/* Country Dropdown - FULL LIST */}
+                  <div className="w-full">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Country <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      required
+                    <select
+                      name="country"
                       value={formData.hotelCountry}
                       onChange={(e) =>
                         handleInputChange("hotelCountry", e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="United Arab Emirates"
-                    />
+                      className="w-full px-5 py-3 border-2 border-gray-400 rounded-md mt-2"
+                      required
+                    >
+                      <option value="">Select your country</option>
+                      {countries.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -520,36 +549,6 @@ export default function AddHotelBusiness() {
                       placeholder="Free cancellation up to 48 hours before check-in. After that, one night charge will apply."
                     />
                   </div>
-                  {/* <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Latitude
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={formData.hotelLate}
-                      onChange={(e) =>
-                        handleInputChange("hotelLate", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., 2.33"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Longitude
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={formData.hotelLong}
-                      onChange={(e) =>
-                        handleInputChange("hotelLong", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., 2.4"
-                    />
-                  </div> */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Accommodation Type

@@ -1,15 +1,17 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 
 function Section({ number, title, content, list }) {
   return (
     <div className="mb-6">
       <div className="flex items-baseline">
-        <span className="text-sm font-semibold text-blue-600 mr-3">{number}.</span>
+        <span className="text-sm font-semibold text-blue-600 mr-3">
+          {number}.
+        </span>
         <h3 className="text-lg font-semibold">{title}</h3>
       </div>
       <div className="mt-2 text-gray-700">
-        {content && typeof content === 'string' ? <p>{content}</p> : content}
+        {content && typeof content === "string" ? <p>{content}</p> : content}
         {Array.isArray(list) && (
           <ul className="list-disc ml-6 mt-2 space-y-1">
             {list.map((item, idx) => (
@@ -27,7 +29,6 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-sm">
         <h1 className="text-3xl font-bold mb-2">FASIFY – PRIVACY POLICY</h1>
-        
 
         <p className="mb-6">
           This Privacy Policy explains how Fasify (“we,” “our,” or “us”)

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   ArrowLeft,
   Calendar,
@@ -11,7 +11,6 @@ import {
   Phone,
 } from "lucide-react";
 import { useCreateHotelBookingMutation } from "../../redux/api/hotel/hotelApi";
-import { setCredentials } from "../../redux/features/auth/authSlice";
 import { handleError, handleSuccess } from "../../../toast";
 import { currencyByCountry } from "../../components/curenci";
 
@@ -22,113 +21,126 @@ export default function Checkout() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const user = useSelector((state) => state?.auth?.user);
+
   const bookingData = location.state?.bookingData || {};
-  console.log("Booking Data:", bookingData);
+  console.log("ffffffffffffffffffffffffffff", bookingData);
   const guestInfo = location.state?.guestInfo || {};
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [createHotelBooking, { isLoading }] = useCreateHotelBookingMutation();
 
-  // Currency detection and conversion
   const basePrice = bookingData?.roomPrice ?? bookingData?.total ?? 0;
   const baseCurrency = bookingData?.displayCurrency ?? "USD";
-  console.log("basePrice", basePrice, "baseCurrency", baseCurrency);
 
+  // ---------- SAFE CURRENCY SYSTEM ----------
   useEffect(() => {
-    const detect = async () => {
+    const detectCurrency = async () => {
       try {
-        console.log("Starting currency detection...");
         const res = await fetch("https://api.country.is/");
         const data = await res.json();
-        console.log("Location API response:", data);
         const country = data.country;
-        console.log("Detected country:", country);
 
-        if (country && currencyByCountry[country]) {
-          console.log("Country found in mapping:", country);
-          setUserCountry(country);
-          const userCurr = currencyByCountry[country].code;
-          console.log("User currency code:", userCurr);
-          setUserCurrency(userCurr);
+        const foundCurrency = currencyByCountry[country]?.code || "USD";
+        setUserCountry(country);
+        setUserCurrency(foundCurrency);
 
-          // Fetch conversion: baseCurrency → user's currency
-          let rate = 1;
+        // Load USD → rates
+        const rateRes = await fetch("https://open.er-api.com/v6/latest/USD");
+        const rateData = await rateRes.json();
 
-          if (baseCurrency !== userCurr) {
-            console.log("Converting from", baseCurrency, "to", userCurr);
-            const rateRes = await fetch(
-              "https://open.er-api.com/v6/latest/USD"
-            );
-            const rateData = await rateRes.json();
-            console.log("Exchange rate data:", rateData);
-
-            if (rateData?.rates) {
-              const baseToUSD =
-                baseCurrency === "USD" ? 1 : 1 / rateData.rates[baseCurrency];
-              const usdToUser = rateData.rates[userCurr] || 1;
-              rate = baseToUSD * usdToUser;
-              console.log("Calculated conversion rate:", rate);
-            }
-          } else {
-            console.log("No conversion needed - same currency");
-          }
-
-          setConversionRate(rate);
-        } else {
-          console.log(
-            "Country not found in mapping or country detection failed"
-          );
-          console.log("Available currencies:", Object.keys(currencyByCountry));
+        if (!rateData?.rates) {
+          setConversionRate(1);
+          return;
         }
-      } catch (e) {
-        console.error("Detection or conversion failed:", e);
-        setUserCurrency("USD");
+
+        const baseRate = rateData.rates[baseCurrency];
+        const userRate = rateData.rates[foundCurrency];
+
+        if (!baseRate || !userRate) {
+          setConversionRate(1);
+          return;
+        }
+
+        let rate =
+          baseCurrency === "USD" ? userRate : (1 / baseRate) * userRate;
+
+        if (!rate || isNaN(rate) || !isFinite(rate)) {
+          rate = 1;
+        }
+
+        setConversionRate(rate);
+      } catch (err) {
+        console.error("Currency detect failed:", err);
         setConversionRate(1);
+        setUserCurrency("USD");
       }
     };
 
-    detect();
+    detectCurrency();
   }, [baseCurrency]);
 
-  const safeGuests = {
-    adults: bookingData?.adults || 1,
-    children: bookingData?.children || 0,
-    rooms: bookingData?.rooms || 1,
-  };
+  // ---------- PRICE CALCULATIONS ----------
+  const nights = Number(bookingData.nights || 1);
+  const rooms = Number(bookingData.rooms || 1);
 
+  // Use the total from BookingForm if available, otherwise calculate
+  const bookingFormTotal = bookingData?.total || 0;
+  let totalAmount;
+  let subtotal;
+  let vatAmount;
   const vatRate = Number(bookingData?.vat) || 5;
 
-  // Use converted prices for calculations
-  const baseSubtotal = Number(
-    bookingData.convertedPrice || bookingData.total || 0
-  );
-  const subtotal =
-    baseSubtotal *
-    conversionRate *
-    (bookingData.nights || 1) *
-    safeGuests.rooms;
+  if (bookingFormTotal > 0) {
+    // Use the total from BookingForm (this is subtotal without VAT)
+    subtotal = bookingFormTotal;
+    // Add VAT to get total
+    totalAmount = subtotal + (subtotal * vatRate) / 100;
+    vatAmount = totalAmount - subtotal;
+    console.log(
+      "Using subtotal from BookingForm:",
+      bookingFormTotal,
+      "Subtotal:",
+      subtotal,
+      "Total with VAT:",
+      totalAmount,
+      "BasePrice:",
+      basePrice,
+      "Nights:",
+      nights,
+      "Rooms:",
+      rooms
+    );
+  } else {
+    // Fallback calculation
+    const baseSubtotal = Number(basePrice || 0);
+    const convertedRoomPrice = baseSubtotal * conversionRate;
+    subtotal = convertedRoomPrice * nights * rooms;
+    vatAmount = subtotal * (vatRate / 100);
+    totalAmount = subtotal + vatAmount;
+    console.log(
+      "Calculated total:",
+      totalAmount,
+      "Subtotal:",
+      subtotal,
+      "BasePrice:",
+      basePrice,
+      "ConversionRate:",
+      conversionRate
+    );
+  }
 
-  const vatAmount = subtotal * (vatRate / 100);
-  const discountAmount =
-    Number(bookingData.discountedPrice || 0) * conversionRate;
-  const serviceFee = Number(bookingData.serviceFee || 0) * conversionRate;
-  const totalAmount = subtotal + vatAmount - discountAmount + serviceFee;
+  // Format currency for display
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: userCurrency || "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
 
-  // Price converted for display
-  const convertedDisplayPrice = Number(baseSubtotal * conversionRate).toFixed(
-    2
-  );
-  console.log("Conversion details:", {
-    baseSubtotal,
-    baseCurrency,
-    userCurrency,
-    conversionRate,
-    convertedDisplayPrice,
-    totalAmount,
-  });
-
+  // Get user info for guest details
   const [updatedUser, setUpdatedUser] = useState({
     name: guestInfo.fullName || user?.name || bookingData?.user?.fullName || "",
     email: guestInfo.email || user?.email || bookingData?.user?.email || "",
@@ -138,83 +150,57 @@ export default function Checkout() {
       guestInfo.country || user?.address || bookingData?.user?.country || "",
   });
 
-  console.log("Guest Info:", guestInfo);
-  console.log("Updated User:", updatedUser);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setUpdatedUser((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setUpdatedUser((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ---------- CONFIRM BOOKING ----------
   const handleReserveConfirm = async () => {
-    if (!bookingData?.roomId) {
-      handleError("Room information is missing");
-      return;
-    }
-    if (!bookingData?.hotelId) {
-      handleError("Hotel information is missing");
-      return;
-    }
+    if (!bookingData?.roomId) return handleError("Room info missing");
+    if (!bookingData?.hotelId) return handleError("Hotel info missing");
     if (!user) return;
 
     setIsProcessing(true);
 
     try {
-      // Required fields filled properly
       const toYMD = (d) => new Date(d).toISOString().slice(0, 10);
 
-      const bookingPayload = {
+      const payload = {
         roomId: bookingData.roomId,
         hotelId: bookingData.hotelId,
         userId: user.id || bookingData.user?._id,
         partnerId: bookingData.partnerId,
-        rooms: Number(bookingData.rooms ?? 1),
-        adults: Number(bookingData.adults ?? 1),
-        children: Number(bookingData.children ?? 0),
+        rooms,
+        adults: Number(bookingData.adults || 1),
+        children: Number(bookingData.children || 0),
         bookedFromDate: toYMD(
           bookingData.bookedFromDate || bookingData.checkIn
         ),
         bookedToDate: toYMD(bookingData.bookedToDate || bookingData.checkOut),
-        totalPrice: Number(totalAmount || 0),
-        convertedPrice: Number(baseSubtotal * conversionRate || 0),
-        displayCurrency: userCurrency || "USD",
-        discountedPrice: Number(discountAmount || 0),
+        totalPrice: totalAmount,
+        convertedPrice: subtotal / nights / rooms,
+        displayCurrency: userCurrency,
         specialRequest: bookingData.specialRequest || null,
         bookingStatus: bookingData.bookingStatus || "PENDING",
         category: bookingData.roomType || "Standard",
-        name: updatedUser.name || user.name,
-        email: updatedUser.email || user.email,
-        phone: updatedUser.phone || user.phone,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
         address: updatedUser.address || "Not provided",
       };
 
-      console.log("Booking payload sent to API:", bookingPayload);
-
       const res = await createHotelBooking({
-        bookingId: bookingData.roomId, // API expects roomId in URL
-        data: bookingPayload,
+        bookingId: bookingData.roomId,
+        data: payload,
       }).unwrap();
-      console.log("res", res);
+      console.log("rrrrrrrrrrrrrrrrrrrr", res);
 
-      // Get the created booking ID from the response
       const createdBookingId =
         res.data?._id || res.data?.id || res._id || res.id;
 
-      if (!createdBookingId) {
-        console.error("No booking ID in response:", res);
-        toast.error(
-          "Booking was created but could not retrieve booking reference. Please check your bookings."
-        );
-        return;
-      }
-
-      // Combine API response with existing booking data
       const paymentData = {
         ...res,
-
         hotelName: bookingData.hotelName,
         location: bookingData.location,
         roomType: bookingData.roomType,
@@ -222,56 +208,47 @@ export default function Checkout() {
         roomPrice: bookingData.roomPrice,
         checkIn: bookingData.checkIn,
         checkOut: bookingData.checkOut,
-        nights: bookingData.nights,
+        nights,
         adults: bookingData.adults,
         children: bookingData.children || 0,
-        rooms: bookingData.rooms || 1,
-        vat: bookingData.vat || vatRate,
+        rooms,
+        vat: vatRate,
         subtotal,
         vatAmount,
         total: totalAmount,
-        discountedPrice: discountAmount,
-        serviceFee,
+        discountedPrice: 0,
+        serviceFee: 0,
         isRefundable: bookingData.isRefundable || false,
         user: {
           ...res.user,
-          name: updatedUser.name || user?.name,
-          email: updatedUser.email || user?.email,
-          phone: updatedUser.phone || user?.phone,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
           country: updatedUser.address || user?.country || "Bangladesh",
         },
       };
 
       handleSuccess("Room reserved successfully!");
+
       navigate(
         `/hotel/payment-confirm?bookingId=${encodeURIComponent(
           createdBookingId
         )}`,
         {
-          state: {
-            data: {
-              ...paymentData,
-              createdBookingId, // Include the booking ID in state as well
-            },
-          },
-          replace: true, // Replace current entry in history
+          state: { data: paymentData },
+          replace: true,
         }
       );
-    } catch (e) {
-      const msg = e?.data?.message || e?.message || "Failed to create booking";
-      if (msg.toLowerCase().includes("already booked")) {
-        handleError("This hotel is already booked for the selected dates");
-      } else {
-        handleError(msg);
-      }
-    } finally {
-      setIsProcessing(false);
+    } catch (err) {
+      const msg =
+        err?.data?.message || err?.message || "Failed to create booking";
+      handleError(msg);
     }
+
+    setIsProcessing(false);
   };
 
-  const handleBackToBooking = () => {
-    navigate("/hotel");
-  };
+  const handleBackToBooking = () => navigate("/hotel");
 
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("en-US", {
@@ -281,6 +258,7 @@ export default function Checkout() {
       day: "numeric",
     });
 
+  // ---------- UI ----------
   return (
     <div className="min-h-screen items-center bg-gray-50 py-4 md:py-8">
       <div className="max-w-7xl mx-auto px-4">
@@ -295,14 +273,15 @@ export default function Checkout() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left section */}
+          {/* LEFT SECTION */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <h2 className="text-xl font-semibold mb-4">Booking Summary</h2>
 
-              {/* Guest Info */}
+              {/* GUEST INFO */}
               <div className="bg-blue-50 rounded-lg p-4 mb-4">
                 <h3 className="text-md font-medium mb-3">Guest Information</h3>
+
                 <form className="space-y-4">
                   <div>
                     <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
@@ -313,7 +292,7 @@ export default function Checkout() {
                       name="name"
                       value={updatedUser.name}
                       onChange={handleInputChange}
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm p-2 border"
                     />
                   </div>
 
@@ -326,7 +305,7 @@ export default function Checkout() {
                       name="email"
                       value={updatedUser.email}
                       onChange={handleInputChange}
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm p-2 border"
                     />
                   </div>
 
@@ -339,7 +318,7 @@ export default function Checkout() {
                       name="phone"
                       value={updatedUser.phone}
                       onChange={handleInputChange}
-                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm p-2 border"
                     />
                   </div>
 
@@ -352,13 +331,13 @@ export default function Checkout() {
                       name="address"
                       value={updatedUser.address}
                       readOnly
-                      className="mt-1 w-full outline-none select-none  rounded-md border-gray-300 shadow-sm p-2 border"
+                      className="mt-1 w-full rounded-md border-gray-300 shadow-sm p-2 border"
                     />
                   </div>
                 </form>
               </div>
 
-              {/* Hotel Info */}
+              {/* HOTEL INFO */}
               <div className="flex items-start space-x-4">
                 <MapPin className="w-5 h-5 text-gray-400 mt-1" />
                 <div>
@@ -369,7 +348,7 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Dates */}
+              {/* DATES */}
               <div className="flex items-center space-x-4 mt-4">
                 <Calendar className="w-5 h-5 text-gray-400" />
                 <div>
@@ -381,28 +360,28 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Guests */}
+              {/* GUESTS */}
               <div className="flex items-center space-x-4 mt-4">
                 <Users className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-gray-900">
-                    {safeGuests.adults}{" "}
-                    {safeGuests.adults !== 1 ? "adults" : "adult"}
-                    {safeGuests.children > 0 &&
-                      `, ${safeGuests.children} ${
-                        safeGuests.children !== 1 ? "children" : "child"
+                    {bookingData.adults}{" "}
+                    {bookingData.adults > 1 ? "adults" : "adult"}
+                    {bookingData.children > 0 &&
+                      `, ${bookingData.children} ${
+                        bookingData.children > 1 ? "children" : "child"
                       }`}
                   </p>
                   <p className="text-gray-600">
-                    {safeGuests.rooms}{" "}
-                    {safeGuests.rooms !== 1 ? "rooms" : "room"}
+                    {bookingData.rooms}{" "}
+                    {bookingData.rooms > 1 ? "rooms" : "room"}
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* RIGHT SIDEBAR */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-8">
               <h3 className="text-lg font-semibold mb-4">Price Summary</h3>
@@ -410,38 +389,20 @@ export default function Checkout() {
               <div className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span>
-                    {userCurrency} {convertedDisplayPrice}× {bookingData.nights}{" "}
-                    nights × {safeGuests.rooms}
+                    {userCurrency} {(subtotal / nights / rooms).toFixed(2)} ×{" "}
+                    {nights} nights × {rooms}
                   </span>
                   <span>
                     {userCurrency} {subtotal.toFixed(2)}
                   </span>
                 </div>
 
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount</span>
-                    <span>
-                      {userCurrency} {discountAmount.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-
                 <div className="flex justify-between">
-                  <span>VAT ({vatRate}%)</span>
+                  <span>VAT (5%)</span>
                   <span>
-                    {userCurrency} {vatAmount.toFixed(2)}
+                    {userCurrency} {(totalAmount - subtotal).toFixed(2)}
                   </span>
                 </div>
-
-                {serviceFee > 0 && (
-                  <div className="flex justify-between">
-                    <span>Service Fee</span>
-                    <span>
-                      {userCurrency} {serviceFee.toFixed(2)}
-                    </span>
-                  </div>
-                )}
 
                 <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
                   <span>Total</span>
@@ -451,7 +412,7 @@ export default function Checkout() {
                 </div>
 
                 <p className="text-xs text-gray-500 mt-1">
-                  Includes VAT and all applicable taxes
+                  Includes VAT & all applicable taxes
                 </p>
               </div>
 

@@ -1,20 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Building2, Upload, X, FileText } from "lucide-react";
 import Swal from "sweetalert2";
 import { useAddSecurityBusinessMutation } from "../../redux/api/security/securityApi";
+import { countries } from "../../components/country";
 
 export default function AddSecurityBusiness() {
   const [formData, setFormData] = useState({
     securityBusinessName: "",
     securityName: "",
-    securityBusinessType: "Private Limited",
+    securityBusinessType: "",
     securityRegNum: "",
-    securityRegDate: "2025-10-22",
+    securityRegDate: "",
     securityPhone: "",
     securityEmail: "",
     securityTagline: "",
     securityProtocolDescription: "",
-    securityProtocolType: "Event Security",
+    securityProtocolType: "",
     securityBookingCondition: "",
     securityCancelationPolicy: "",
     hotelAddress: "",
@@ -24,7 +25,7 @@ export default function AddSecurityBusiness() {
     hotelCountry: "",
     hotelLate: "",
     hotelLong: "",
-    hotelAccommodationType: "5-Star Luxury",
+    hotelAccommodationType: "",
 
     businessLogo: null,
     securityDocs: [],
@@ -82,6 +83,46 @@ export default function AddSecurityBusiness() {
       setPreview((prev) => ({ ...prev, securityDocs: updatedPreviews }));
     }
   };
+
+  // Auto-detect providers
+  const providers = [
+    {
+      name: "ipapi.co",
+      url: "https://ipapi.co/json/",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+    {
+      name: "extreme-ip-lookup",
+      url: "https://extreme-ip-lookup.com/json/",
+      parse: (data) => ({ iso: data.countryCode, raw: data }),
+    },
+    {
+      name: "ipinfo.io",
+      url: "https://ipinfo.io/json",
+      parse: (data) => ({ iso: data.country, raw: data }),
+    },
+  ];
+
+  // Auto detect country
+  useEffect(() => {
+    const detectCountry = async () => {
+      for (const provider of providers) {
+        try {
+          const res = await fetch(provider.url);
+          if (!res.ok) continue;
+
+          const json = await res.json();
+          const { iso } = provider.parse(json);
+
+          if (iso) {
+            setFormData((prev) => ({ ...prev, hotelCountry: iso }));
+            break;
+          }
+        } catch { }
+      }
+    };
+    detectCountry();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -148,26 +189,26 @@ export default function AddSecurityBusiness() {
 
         // Reset form
         const resetForm = {
-          securityBusinessName: "asdf",
-          securityName: "asdf",
-          securityBusinessType: "Private Limited",
-          securityRegNum: "asdf",
-          securityRegDate: "2025-10-22",
-          securityPhone: "asdf",
-          securityEmail: "asdf@asdf.com",
-          securityTagline: "asdf",
-          securityProtocolDescription: "asdf",
-          securityProtocolType: "Event Security",
-          securityBookingCondition: "asdf",
-          securityCancelationPolicy: "asdf",
+          securityBusinessName: "",
+          securityName: "",
+          securityBusinessType: "",
+          securityRegNum: "",
+          securityRegDate: "",
+          securityPhone: "",
+          securityEmail: "",
+          securityTagline: "",
+          securityProtocolDescription: "",
+          securityProtocolType: "",
+          securityBookingCondition: "",
+          securityCancelationPolicy: "",
           hotelAddress: "",
-          hotelCity: "Dubai",
-          hotelPostalCode: "00000",
-          hotelDistrict: "Al Qudra",
-          hotelCountry: "United Arab Emirates",
+          hotelCity: "",
+          hotelPostalCode: "",
+          hotelDistrict: "",
+          hotelCountry: "",
           hotelLate: "",
           hotelLong: "",
-          hotelAccommodationType: "5-Star Luxury",
+          hotelAccommodationType: "",
           businessLogo: null,
           securityDocs: [],
         };
@@ -396,16 +437,21 @@ export default function AddSecurityBusiness() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Country <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
+                    <select
                       required
                       value={formData.hotelCountry}
                       onChange={(e) =>
                         handleInputChange("hotelCountry", e.target.value)
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="United Arab Emirates"
-                    />
+                    >
+                      <option value="">Select your country</option>
+                      {countries.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
