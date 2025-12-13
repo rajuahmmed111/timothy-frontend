@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { DatePicker } from "antd";
+import dayjs from "dayjs";
 
 export default function SecurityReservationHero() {
   const { RangePicker } = DatePicker;
@@ -8,6 +9,43 @@ export default function SecurityReservationHero() {
   const [location, setLocation] = useState("");
   const [securityType, setSecurityType] = useState("");
   const [dateRange, setDateRange] = useState(null);
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedData = localStorage.getItem("securitySearchData");
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        console.log("Loading saved data:", data);
+        setLocation(data.location || "");
+        setSecurityType(data.securityType || "");
+        if (data.dateRange && data.dateRange[0] && data.dateRange[1]) {
+          setDateRange([dayjs(data.dateRange[0]), dayjs(data.dateRange[1])]);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading saved data:", error);
+    }
+  }, []);
+
+  // Save data to localStorage when values change
+  useEffect(() => {
+    if (location || securityType || dateRange) {
+      const dataToSave = {
+        location,
+        securityType,
+        dateRange:
+          dateRange && dateRange[0] && dateRange[1]
+            ? [
+                dateRange[0].format("YYYY-MM-DD"),
+                dateRange[1].format("YYYY-MM-DD"),
+              ]
+            : null,
+      };
+      console.log("Saving data:", dataToSave);
+      localStorage.setItem("securitySearchData", JSON.stringify(dataToSave));
+    }
+  }, [location, securityType, dateRange]);
 
   const handleSearch = () => {
     const hasLocation = Boolean(location?.trim());
@@ -40,6 +78,9 @@ export default function SecurityReservationHero() {
     if (fromDate) params.set("fromDate", fromDate);
     if (toDate) params.set("toDate", toDate);
     if (securityType) params.set("securityType", securityType);
+
+    // Clear localStorage after search
+    localStorage.removeItem("securitySearchData");
 
     navigate(`/security-details?${params.toString()}`);
   };

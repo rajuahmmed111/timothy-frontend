@@ -81,7 +81,7 @@ export default function Footer() {
               <li>
                 <a
                   href="https://www.instagram.com/fasify_ltd?igsh=MXUxMzdncjE4bWptYg%3D%3D&utm_source=qr"
-                  className="flex items-center gap-2 text-[#090909]"
+                  className="flex items-center gap-2 font-semibold text-[#090909]"
                 >
                   <Instagram className="w-6 h-6 text-[#090909]" />
                   Instagram
@@ -90,7 +90,7 @@ export default function Footer() {
               <li>
                 <a
                   href="https://www.facebook.com/share/1AvucPSEMu/?mibextid=wwXIfr"
-                  className="flex items-center gap-2 text-[#090909]"
+                  className="flex items-center font-semibold gap-2 text-[#090909]"
                 >
                   <Facebook className="w-6 h-6" />
                   Facebook
@@ -99,7 +99,7 @@ export default function Footer() {
               <li>
                 <a
                   href="https://youtube.com/@fasify?si=0NLp-0tuDPMHIUzX"
-                  className="flex items-center gap-2 text-[#090909]"
+                  className="flex items-center font-semibold gap-2 text-[#090909]"
                 >
                   <Youtube className="w-6 h-6" />
                   Youtube
@@ -108,10 +108,10 @@ export default function Footer() {
               <li>
                 <a
                   href="https://www.linkedin.com/company/fasify/?viewAsMember=true"
-                  className="flex items-center gap-2 text-[#090909]"
+                  className="flex items-center font-semibold gap-2 text-[#090909]"
                 >
                   <Linkedin className="w-6 h-6" />
-                  LinkDin
+                  linkedin
                 </a>
               </li>
             </ul>

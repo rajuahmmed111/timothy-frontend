@@ -2,16 +2,16 @@ import { baseApi } from "../api/baseUrl";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    registerPartner: builder.mutation({
+    registerUser: builder.mutation({
       query: (body) => ({
-        url: "/users/web-partner",
+        url: "/users",
         method: "POST",
         body,
       }),
     }),
-    registerUser: builder.mutation({
+    partner: builder.mutation({
       query: (body) => ({
-        url: "/users/web",
+        url: "/users/partner",
         method: "POST",
         body,
       }),
@@ -37,13 +37,29 @@ export const authApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Profile"],
     }),
+    verifyUser: builder.mutation({
+      query: (data) => ({
+        url: "/users/verify-user",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    verifyPartner: builder.mutation({
+      query: (data) => ({
+        url: "/users/verify-partner",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
 export const {
   useRegisterUserMutation,
-  useRegisterPartnerMutation,
+  usePartnerMutation,
   useLoginMutation,
   useLoginWebsiteMutation,
   useGetMyProfileQuery,
+  useVerifyUserMutation,
+  useVerifyPartnerMutation,
 } = authApi;

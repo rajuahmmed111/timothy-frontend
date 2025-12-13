@@ -37,16 +37,6 @@ export default function CancelReservation() {
             >
               General Cancellation
             </button>
-            <button
-              onClick={() => setActiveTab("human-rights")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "human-rights"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Human Rights Policy
-            </button>
           </nav>
         </div>
 
@@ -91,14 +81,14 @@ export default function CancelReservation() {
               </h3>
               <p className="text-blue-700">
                 If you're having trouble canceling online, please contact our
-                customer support team at
+                customer support team at{ " "}
                 <a
                   href="mailto:support@fasify.com"
                   className="text-blue-600 hover:underline"
                 >
-                  support@fasify.com
+                  support@fasify.com { " "}
                 </a>
-                or call us at +1 (555) 987-6543.
+                or call us at +234 8039960002.
               </p>
             </div>
 
@@ -124,71 +114,6 @@ export default function CancelReservation() {
                   procedures
                 </li>
               </ul>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "human-rights" && (
-          <div className="prose prose-lg max-w-none">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Human Rights Cancellation Policy
-              </h2>
-
-              {isLoading && (
-                <div className="text-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <p className="mt-2 text-gray-600">
-                    Loading human rights policy...
-                  </p>
-                </div>
-              )}
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                  <h3 className="text-red-800 font-medium">
-                    Error Loading Policy
-                  </h3>
-                  <p className="text-red-600 mt-1">
-                    Unable to load the human rights cancellation policy. Please
-                    try again later or contact support.
-                  </p>
-                </div>
-              )}
-
-              {humanRightsPolicy?.data?.length > 0 && (
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <div className="prose max-w-none">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      Human Rights Cancellation Policy
-                    </h3>
-                    <div className="text-gray-700">
-                      {humanRightsPolicy.data.map((policy) => (
-                        <div key={policy.id} className="mb-4">
-                          <p>{policy.description}</p>
-                          <p className="text-sm text-gray-500 mt-2">
-                            Last updated:{" "}
-                            {new Date(policy.updatedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                <h3 className="text-yellow-800 font-medium mb-2">
-                  Important Notice
-                </h3>
-                <p className="text-yellow-700">
-                  This policy ensures that all users have fair and equitable
-                  access to cancellation procedures, regardless of background,
-                  ability, or circumstance. If you believe your rights have been
-                  violated during the cancellation process, please contact our
-                  compliance team immediately.
-                </p>
-              </div>
             </div>
           </div>
         )}

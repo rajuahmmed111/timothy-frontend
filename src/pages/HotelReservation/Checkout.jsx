@@ -280,7 +280,9 @@ export default function Checkout() {
 
               {/* GUEST INFO */}
               <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                <h3 className="text-md font-medium mb-3">Guest Information</h3>
+                <h3 className="text-md font-medium mb-3">
+                  Personal Information
+                </h3>
 
                 <form className="space-y-4">
                   <div>

@@ -167,7 +167,7 @@ export default function ReservationDetails({ bookingData }) {
 
                         {/* Guest Information */}
                         <div className="bg-white rounded-2xl shadow-sm p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Guest Information</h2>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>

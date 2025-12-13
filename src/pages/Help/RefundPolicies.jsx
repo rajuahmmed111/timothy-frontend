@@ -14,10 +14,10 @@ export default function RefundPolicies() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
-            Refund Timeline, Policies & Process
+            Refund Timeline, Policy & Process
           </h1>
           <p className="mt-3 text-xl text-gray-500">
-            Understanding our refund policies and what to expect
+            Understanding our refund policy and what to expect
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export default function RefundPolicies() {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
-              Refund Policies
+              Refund Policy
             </button>
             <button
               onClick={() => setActiveTab("accept")}

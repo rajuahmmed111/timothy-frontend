@@ -78,6 +78,7 @@ import ServiceProviderSignup from "../pages/Auth/ServiceProviderSignup";
 import CreateCar from "../components/Car/AddNewCar";
 import AddNewCar from "../components/Car/AddNewCar";
 import AddAttraction from "../components/Attraction/AddAttraction";
+import VerificationPartnerOtp from "../pages/Auth/PartnerOtp";
 
 export const routes = createBrowserRouter([
   {
@@ -325,6 +326,10 @@ export const routes = createBrowserRouter([
       {
         path: "/verification-code",
         element: <VerificationCode />,
+      },
+      {
+        path: "/verification-part-otp",
+        element: <VerificationPartnerOtp />,
       },
       {
         path: "/new-password",

@@ -1,27 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useVerifyUserMutation } from "../../redux/services/authApi";
+import { useVerifyPartnerMutation } from "../../redux/services/authApi";
 
-function Verificationotp() {
+function VerificationPartnerOtp() {
   const [otp, setotp] = useState(new Array(4).fill(""));
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
   const location = useLocation();
-  const [verifyUser, { isLoading }] = useVerifyUserMutation();
+  const [verifyPartner, { isLoading }] = useVerifyPartnerMutation();
 
   // =========================
-  // Get email safely
+  // Get email safely and store in localStorage
   // =========================
   const getEmail = () => {
+    console.log("=== Getting Email Debug ===");
+
     const stateEmail = location.state?.email;
-    if (stateEmail) return stateEmail;
+    console.log("State email:", stateEmail);
+    if (stateEmail) {
+      localStorage.setItem("userEmail", stateEmail);
+      return stateEmail;
+    }
 
     try {
       const registrationData = localStorage.getItem("registrationData");
+      console.log("Registration data from localStorage:", registrationData);
       if (registrationData) {
         const data = JSON.parse(registrationData);
-        return data.email;
+        console.log("Parsed registration data:", data);
+        if (data.email) {
+          localStorage.setItem("userEmail", data.email);
+          return data.email;
+        }
       }
     } catch (err) {
       console.error("LocalStorage registrationData error", err);
@@ -29,14 +40,32 @@ function Verificationotp() {
 
     try {
       const rememberCredentials = localStorage.getItem("rememberCredentials");
+      console.log(
+        "Remember credentials from localStorage:",
+        rememberCredentials
+      );
       if (rememberCredentials) {
         const data = JSON.parse(rememberCredentials);
-        return data.email;
+        console.log("Parsed remember credentials:", data);
+        if (data.email) {
+          localStorage.setItem("userEmail", data.email);
+          return data.email;
+        }
       }
     } catch (err) {
       console.error("LocalStorage rememberCredentials error", err);
     }
 
+    // Check if email is already stored in localStorage
+    try {
+      const storedEmail = localStorage.getItem("userEmail");
+      console.log("Stored userEmail:", storedEmail);
+      if (storedEmail) return storedEmail;
+    } catch (err) {
+      console.error("LocalStorage userEmail error", err);
+    }
+
+    console.log("No email found in any source");
     return null;
   };
 
@@ -70,9 +99,9 @@ function Verificationotp() {
   // Verify OTP
   // =========================
   const handleVerifyotp = async () => {
-    const otpotp = otp.join("");
+    const otpValue = otp.join("");
 
-    if (otpotp.length !== 4) {
+    if (otpValue.length !== 4) {
       setError("Please enter all 4 digits");
       return;
     }
@@ -83,13 +112,21 @@ function Verificationotp() {
     }
 
     try {
-      await verifyUser({ email, otp: otpotp }).unwrap();
+      // Use exact format from working example
+      const requestBody = {
+        email: email.trim(),
+        otp: otpValue.trim(),
+      };
+
+      console.log("Sending request:", requestBody);
+      await verifyPartner(requestBody).unwrap();
 
       localStorage.removeItem("registrationData");
       navigate("/login");
     } catch (err) {
+      console.error("OTP verification error:", err);
       setError(
-        err?.data?.message || "Invalid verification otp. Please try again."
+        err?.data?.message || "Invalid verification OTP. Please try again."
       );
     }
   };
@@ -170,4 +207,4 @@ function Verificationotp() {
   );
 }
 
-export default Verificationotp;
+export default VerificationPartnerOtp;

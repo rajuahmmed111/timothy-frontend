@@ -184,8 +184,11 @@ export default function PaymentConfirm() {
   console.log("Current booking ID:", bookingId);
 
   const handlePayment = async () => {
+    console.log("Payment button clicked");
+
     if (!total || total <= 0) {
-      console.log("Payment not processed: Invalid total amount");
+      console.log("Payment not processed: Invalid total amount", total);
+      toast.error("Invalid total amount");
       return;
     }
 
@@ -196,23 +199,28 @@ export default function PaymentConfirm() {
       location.state?.createdBookingId ||
       bookingDetails?.carId ||
       null;
-    if (!bookingDetails?.user?.country) {
-      toast.error("Please select a country");
+
+    console.log("Current booking ID:", currentBookingId);
+
+    if (!currentBookingId) {
+      console.error("No booking ID found in any source");
+      toast.error(
+        "Booking reference not found. Please try refreshing the page or contact support."
+      );
+      return;
+    }
+
+    // Check if user data exists
+    if (!bookingDetails?.user) {
+      console.error("No user data found");
+      toast.error("User information missing. Please go back and try again.");
       return;
     }
 
     setIsLoading(true);
     try {
-      if (!currentBookingId) {
-        console.error("No booking ID found in any source");
-        toast.error(
-          "Booking reference not found. Please try refreshing the page or contact support."
-        );
-        return;
-      }
       const successUrl = `${window.location.origin}/booking-confirmation`;
       const cancelUrl = `${window.location.origin}/booking-cancellation`;
-      // Use the already retrieved bookingId
 
       // Prepare user information
       const userInfo = bookingDetails.user;
@@ -251,8 +259,11 @@ export default function PaymentConfirm() {
           bookingDetails.user.name ||
           "Customer",
         phone:
-          bookingDetails.user.contactNumber || bookingDetails.user.phone || "",
-        currency: bookingDetails.currency,
+          bookingDetails.user.contactNumber ||
+          bookingDetails.user.phone ||
+          bookingDetails.user.contactNo ||
+          "",
+        currency: bookingDetails.currency || "USD",
         userId: bookingDetails.user.id,
         carId: bookingDetails.carId,
         carName: bookingDetails.carName,
@@ -260,7 +271,7 @@ export default function PaymentConfirm() {
         // These are for logging/metadata only; Stripe/Paystack still use bookingId
         total, // VAT-inclusive total for reference
         vat: vatAmount,
-        days: Number(bookingDetails.days),
+        days: Number(bookingDetails.days || 1),
 
         successUrl,
         cancelUrl,
@@ -273,12 +284,18 @@ export default function PaymentConfirm() {
 
       console.log("Payment data of car payment", paymentData);
 
+      // Determine payment method based on user country
       const userCountry = (bookingDetails.user.country || "").toLowerCase();
       const isUserInAfrica = isAfricanCountry(userCountry);
       const selectedMethod = isUserInAfrica ? "paystack" : "stripe";
       setPaymentMethod(selectedMethod);
 
+      console.log(
+        `Using payment method: ${selectedMethod} for country: ${userCountry}`
+      );
+
       if (selectedMethod === "paystack") {
+        console.log("Initiating Paystack payment...");
         const response = await createPaystackSession(currentBookingId).unwrap();
 
         const checkoutUrl =
@@ -287,8 +304,9 @@ export default function PaymentConfirm() {
           response?.data?.authorization_url ||
           response?.authorization_url;
 
-        if (!checkoutUrl)
+        if (!checkoutUrl) {
           throw new Error("No valid checkout URL found in Paystack response");
+        }
 
         // Store booking data in session storage before redirecting
         sessionStorage.setItem(
@@ -297,45 +315,43 @@ export default function PaymentConfirm() {
             bookingId: currentBookingId,
             paymentMethod: "paystack",
             timestamp: new Date().toISOString(),
-            successUrl,
-            cancelUrl,
           })
         );
 
-        // Redirect directly to Paystack checkout
         window.location.href = checkoutUrl;
       } else {
-        const result = await createStripeSession(currentBookingId).unwrap();
+        console.log("Initiating Stripe payment...");
+        const response = await createStripeSession(currentBookingId).unwrap();
 
         const checkoutUrl =
-          result?.data?.checkoutUrl || result?.data?.url || result?.url;
+          response?.data?.checkoutUrl ||
+          response?.checkoutUrl ||
+          response?.data?.url ||
+          response?.url;
 
-        if (!checkoutUrl)
-          throw new Error("Could not retrieve Stripe checkout URL");
+        if (!checkoutUrl) {
+          throw new Error("No valid checkout URL found in Stripe response");
+        }
 
         // Store booking data in session storage before redirecting
         sessionStorage.setItem(
           "pendingBooking",
           JSON.stringify({
-            bookingId: currentBookingId,
+            number: currentBookingId,
             paymentMethod: "stripe",
             timestamp: new Date().toISOString(),
-            successUrl,
-            cancelUrl,
           })
         );
 
-        // Redirect directly to Stripe checkout
         window.location.href = checkoutUrl;
       }
     } catch (error) {
-      console.error("Payment error:", error);
-      const errorMessage =
+      console.error("Payment processing error:", error);
+      toast.error(
         error?.data?.message ||
-        error?.error ||
-        error?.message ||
-        "Payment processing failed. Please try again.";
-      toast.error(`Payment Error: ${errorMessage}`);
+          error?.message ||
+          "Failed to process payment. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -437,7 +453,7 @@ export default function PaymentConfirm() {
                         <Phone className="w-5 h-5 text-gray-500 mr-2" />
                         <div>
                           <p className="text-sm text-gray-500">Country: </p>
-                          <p>{bookingDetails?.user?.country}</p>
+                          <p>{bookingDetails?.user?.address}</p>
                         </div>
                       </div>
                     </div>

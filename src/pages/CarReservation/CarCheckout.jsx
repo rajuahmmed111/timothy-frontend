@@ -189,19 +189,24 @@ export default function CarCheckout() {
       bookingDetails?.user?.email ||
       decodedUserInfo?.email ||
       "",
-    phone:
-      guest.phone ||
+
+    contactNo:
+      guest.contactNo ||
+      user?.contactNo ||
       user?.contactNumber ||
-      user?.phone ||
-      bookingDetails?.user?.phone ||
-      decodedUserInfo?.phone ||
+      bookingDetails?.user?.contactNo ||
+      decodedUserInfo?.contactNo ||
       "",
-    country:
+    address:
       guest?.country ||
       user?.country ||
       bookingDetails?.user?.country ||
       bookingDetails?.carCountry ||
       decodedUserInfo?.country ||
+      guest.address ||
+      user?.address ||
+      bookingDetails?.user?.address ||
+      decodedUserInfo?.address ||
       "",
   });
 
@@ -215,6 +220,8 @@ export default function CarCheckout() {
     name: updatedUser?.name,
     email: updatedUser?.email,
     phone: updatedUser?.phone,
+    contactNo: updatedUser?.contactNo,
+    address: updatedUser?.address,
     country: updatedUser?.country,
   };
 
@@ -247,7 +254,9 @@ export default function CarCheckout() {
         name: updatedUser?.name,
         email: updatedUser?.email,
         phone: updatedUser?.phone,
-        address: updatedUser?.country,
+        contactNo: updatedUser?.contactNo,
+        address: updatedUser?.address,
+        country: updatedUser?.country,
 
         // --- PRICE INFO (PER-DAY) ---
         // Backend will do: amount = totalPrice * days
@@ -405,14 +414,16 @@ export default function CarCheckout() {
                     />
                   </div>
 
+                
+
                   <div>
                     <label className="text-sm font-medium text-gray-700">
-                      Phone
+                      Contact Number 
                     </label>
                     <input
                       type="text"
-                      name="phone"
-                      value={updatedUser.phone}
+                      name="contactNo"
+                      value={updatedUser.contactNo}
                       onChange={handleUpdatedUserChange}
                       className="mt-1 w-full rounded-md border p-2"
                     />
@@ -420,16 +431,18 @@ export default function CarCheckout() {
 
                   <div>
                     <label className="text-sm font-medium text-gray-700">
-                      Country
+                      Address
                     </label>
                     <input
                       type="text"
-                      name="country"
-                      value={updatedUser.country}
-                      readOnly
-                      className="mt-1 w-full rounded-md border p-2 bg-gray-100"
+                      name="address"
+                      value={updatedUser.address}
+                      onChange={handleUpdatedUserChange}
+                      className="mt-1 w-full rounded-md border p-2"
                     />
                   </div>
+
+                 
                 </form>
               </div>
 

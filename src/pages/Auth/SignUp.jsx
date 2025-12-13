@@ -7,8 +7,8 @@ import { Eye, EyeOff } from "lucide-react";
 
 import { countries } from "../../components/country";
 
-export default function ServiceProviderSignup() {
-    const [showPassword, setShowPassword] = useState(false);
+export default function SignUp() {
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -54,7 +54,13 @@ export default function ServiceProviderSignup() {
           const { iso } = provider.parse(json);
 
           if (iso) {
-            setForm((prev) => ({ ...prev, country: iso }));
+            // Find the full country name from the countries array
+            const country = countries.find((c) => c.code === iso);
+            if (country) {
+              setForm((prev) => ({ ...prev, country: country.name }));
+            } else {
+              setForm((prev) => ({ ...prev, country: iso })); // Fallback to code if not found
+            }
             break;
           }
         } catch {}
@@ -73,20 +79,12 @@ export default function ServiceProviderSignup() {
     e.preventDefault();
 
     try {
-      const serviceFlags = {
-        isHotel: form.serviceType === "hotel",
-        isSecurity: form.serviceType === "security",
-        isCar: form.serviceType === "car",
-        isAttraction: form.serviceType === "attraction",
-      };
-
       const body = {
         fullName: form.fullName,
         email: form.email,
         password: form.password,
         role: "USER",
         country: form.country,
-        ...serviceFlags,
       };
 
       const res = await registerUser(body).unwrap();
@@ -103,7 +101,7 @@ export default function ServiceProviderSignup() {
         localStorage.removeItem("rememberCredentials");
       }
 
-      navigate("/login");
+      navigate("/verification-code");
     } catch (err) {
       console.error("Registration failed", err);
     }
@@ -115,7 +113,7 @@ export default function ServiceProviderSignup() {
         <div className="flex justify-center items-center">
           <div className="w-full lg:w-1/2 bg-white p-5 md:px-18 md:py-28 shadow-[0px_10px_30px_rgba(0,0,0,0.1)] rounded-2xl">
             <h2 className="text-[#0D0D0D] text-2xl font-bold text-center mb-5">
-              Create your business account
+              Create your account
             </h2>
             <p className="text-[#6A6D76] text-center mb-10">
               Fill in the details to sign up.
@@ -171,8 +169,6 @@ export default function ServiceProviderSignup() {
                 </div>
               </div>
 
-     
-
               {/* Country Dropdown - FULL LIST */}
               <div className="w-full">
                 <label className="text-xl font-bold">Country</label>
@@ -185,7 +181,7 @@ export default function ServiceProviderSignup() {
                 >
                   <option value="">Select your country</option>
                   {countries.map((c) => (
-                    <option key={c.code} value={c.code}>
+                    <option key={c.code} value={c.name}>
                       {c.name}
                     </option>
                   ))}

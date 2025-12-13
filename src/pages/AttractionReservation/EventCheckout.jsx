@@ -190,11 +190,14 @@ export default function EventCheckout() {
       user?.fullName ||
       "",
     email: guestInfo?.email || bookingDetails?.user?.email || user?.email || "",
-    phone:
+    contactNo:
+      guestInfo?.contactNo ||
       guestInfo?.phone ||
       guestInfo?.contactNumber ||
+      bookingDetails?.user?.contactNo ||
       bookingDetails?.user?.phone ||
       bookingDetails?.user?.contactNumber ||
+      user?.contactNo ||
       user?.phone ||
       user?.contactNumber ||
       "",
@@ -259,7 +262,7 @@ export default function EventCheckout() {
       const body = {
         name: updatedUser.name,
         email: updatedUser.email,
-        phone: updatedUser.phone,
+        phone: updatedUser.contactNo,
         address: updatedUser.address,
         convertedAdultPrice: finalAdultPrice,
         convertedChildPrice: finalChildPrice,
@@ -379,14 +382,14 @@ export default function EventCheckout() {
 
                   <div>
                     <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                      <Phone className="w-4 h-4" /> <span>Phone</span>
+                      <Phone className="w-4 h-4" /> <span>Contact Number</span>
                     </label>
                     <input
                       type="text"
-                      name="phone"
-                      value={updatedUser.phone}
+                      name="contactNo"
+                      value={updatedUser.contactNo}
                       onChange={handleInputChange}
-                      placeholder="Phone number"
+                      placeholder="Contact number"
                       className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                     />
                   </div>

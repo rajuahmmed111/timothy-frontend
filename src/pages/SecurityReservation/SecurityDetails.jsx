@@ -91,10 +91,67 @@ export default function SecurityDetails() {
   // Local UI state for inputs (used directly for filtering)
   const [locText, setLocText] = React.useState(displayLocation);
   const [typeValue, setTypeValue] = React.useState(securityType || "All");
+  const [dateRange, setDateRange] = React.useState(
+    fromDate && toDate ? [fromDate, toDate] : null
+  );
   const [appliedFilters, setAppliedFilters] = React.useState({
     location: displayLocation,
     type: securityType || "All",
   });
+
+  // Load data from localStorage on mount if no URL params exist
+  React.useEffect(() => {
+    if (!displayLocation && !securityType && !fromDate && !toDate) {
+      try {
+        const savedData = localStorage.getItem("securitySearchData");
+        if (savedData) {
+          const data = JSON.parse(savedData);
+          console.log("Loading saved data in SecurityDetails:", data);
+          setLocText(data.location || "");
+          setTypeValue(data.securityType || "All");
+          if (data.dateRange && data.dateRange[0] && data.dateRange[1]) {
+            setDateRange([dayjs(data.dateRange[0]), dayjs(data.dateRange[1])]);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading saved data in SecurityDetails:", error);
+      }
+    }
+  }, [displayLocation, securityType, fromDate, toDate]);
+
+  // Save form data to localStorage when values change
+  React.useEffect(() => {
+    if (locText || typeValue || dateRange) {
+      const dataToSave = {
+        location: locText,
+        securityType: typeValue === "All" ? "" : typeValue,
+        dateRange:
+          dateRange && dateRange[0] && dateRange[1]
+            ? [
+                dateRange[0].format("YYYY-MM-DD"),
+                dateRange[1].format("YYYY-MM-DD"),
+              ]
+            : null,
+      };
+      console.log("Saving data from SecurityDetails:", dataToSave);
+      localStorage.setItem("securitySearchData", JSON.stringify(dataToSave));
+    }
+  }, [locText, typeValue, dateRange]);
+
+  // Clear localStorage on page reload/unmount
+  React.useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem("securitySearchData");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      // Also clear on component unmount
+      localStorage.removeItem("securitySearchData");
+    };
+  }, []);
 
   // Build filters from router state (location and protocol type only)
   const filters = React.useMemo(() => {
@@ -167,6 +224,8 @@ export default function SecurityDetails() {
       location: locText,
       type: typeValue,
     });
+    // Clear localStorage after applying search
+    localStorage.removeItem("securitySearchData");
   }, [locText, typeValue]);
   return (
     <div className="py-16 container mx-auto">
@@ -187,7 +246,8 @@ export default function SecurityDetails() {
           {/* Date Range */}
           <RangePicker
             placeholder={["Start Date", "End Date"]}
-            defaultValue={fromDate || toDate ? [fromDate, toDate] : undefined}
+            value={dateRange}
+            onChange={setDateRange}
             style={{ width: "100%" }}
           />
 
