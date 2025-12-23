@@ -10,7 +10,6 @@ export default function HotelCard({ hotel }) {
 
   const basePrice = hotel?.raw?.averagePrice ?? 0;
   const baseCurrency = hotel?.raw?.roomCurrency ?? "USD"; // Use roomCurrency from API response
-  console.log("basePrice", basePrice, "baseCurrency", baseCurrency);
 
   useEffect(() => {
     const detect = async () => {
@@ -45,7 +44,6 @@ export default function HotelCard({ hotel }) {
           setConversionRate(rate);
         }
       } catch (e) {
-        console.log("Detection or conversion failed", e);
         setUserCurrency("USD");
         setConversionRate(1);
       }
@@ -56,13 +54,6 @@ export default function HotelCard({ hotel }) {
 
   // Price converted
   const convertedPrice = Number(basePrice * conversionRate).toFixed(2);
-  console.log("Conversion details:", {
-    basePrice,
-    baseCurrency,
-    userCurrency,
-    conversionRate,
-    convertedPrice,
-  });
 
   const hotelImage =
     hotel?.hotelImages?.[0] ||

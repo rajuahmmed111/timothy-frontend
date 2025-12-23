@@ -17,33 +17,22 @@ export default function HotelBookings() {
     }
   );
 
-  console.log("hotelBooking:", hotelBooking);
-
   const [cancelStripeBooking, { isLoading: isStripeCancelling }] =
     useCancelStripeBookingMutation();
   const [cancelPaystackBooking, { isLoading: isPaystackCancelling }] =
     useCancelPaystackBookingMutation();
 
   const handleCancel = async (booking) => {
-    // console.log("booking:", booking);
     try {
-      const provider = booking?.payment?.[0]?.provider; 
-
+      const provider = booking?.payment?.[0]?.provider;
       const bookingId = booking?.id;
-      console.log("provider:", provider);
-      console.log("bookingId:", bookingId);
       if (provider === "STRIPE") {
         await cancelStripeBooking({ service: "hotel", bookingId }).unwrap();
       } else if (provider === "PAYSTACK") {
         await cancelPaystackBooking({ service: "hotel", bookingId }).unwrap();
       }
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) {}
   };
-
-
-  console.log("hotelBooking:", hotelBooking);
 
   let bookingArray = hotelBooking?.data || [];
 
@@ -168,8 +157,6 @@ export default function HotelBookings() {
                   <td className="px-6 py-4">
                     <button
                       onClick={() => handleCancel(booking)}
-                      // onClick={() => console.log("cancel")}
-
                       disabled={
                         isStripeCancelling ||
                         isPaystackCancelling ||

@@ -32,7 +32,7 @@ export default function WhyChooseFASIFY() {
                     Years in Hospitality
                   </h3>
                   <p className="text-blue-100 text-sm leading-relaxed">
-                    At Fastify, we transform decades of hospitality expertise
+                    At Fasify, we transform decades of hospitality expertise
                     into a modern, seamless, and unforgettable experience. By
                     combining innovative technology with world-class service, we
                     deliver exceptional convenience, comfort, and

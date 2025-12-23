@@ -5,6 +5,7 @@ import { toast } from "react-hot-toast";
 import {
   useCreateHotelPaystackCheckoutSessionMutation,
   useCreateHotelStripeCheckoutSessionWebsiteMutation,
+  useCreateHotelBookingMutation,
 } from "../../redux/api/hotel/hotelApi";
 
 // Helper function to check if a country is in Africa
@@ -87,10 +88,33 @@ export default function PaymentConfirm() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("stripe");
+  const [createdBookingId, setCreatedBookingId] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [modalTimer, setModalTimer] = useState(null);
+  const [countdown, setCountdown] = useState(3);
 
   const bookingDetails = location.state?.data;
+  const bookingPayload = location.state?.bookingData;
   const hotelData = bookingDetails?.data || bookingDetails || {};
+
+  // Get currency with proper fallbacks
+  const displayCurrency =
+    hotelData.displayCurrency ||
+    bookingDetails?.displayCurrency ||
+    bookingPayload?.displayCurrency ||
+    bookingDetails?.currency ||
+    hotelData.currency ||
+    "USD";
+
+  // Payment mutations
+  const [createPaystackSession] =
+    useCreateHotelPaystackCheckoutSessionMutation();
+  const [createStripeSession] =
+    useCreateHotelStripeCheckoutSessionWebsiteMutation();
+  const [createHotelBooking] = useCreateHotelBookingMutation();
 
   // Set payment method based on country
   useEffect(() => {
@@ -101,11 +125,74 @@ export default function PaymentConfirm() {
     }
   }, [bookingDetails?.user?.country]);
 
-  // Payment mutations
-  const [createPaystackSession] =
-    useCreateHotelPaystackCheckoutSessionMutation();
-  const [createStripeSession] =
-    useCreateHotelStripeCheckoutSessionWebsiteMutation();
+  // Create booking function
+  const createBooking = async () => {
+    if (!bookingPayload) {
+      toast.error("Booking data not found");
+      return null;
+    }
+
+   
+
+    // Validate that roomId exists and is not null
+    if (
+      !bookingPayload.roomId ||
+      bookingPayload.roomId === "null" ||
+      bookingPayload.roomId === "undefined"
+    ) {
+      toast.error("Room ID is missing or invalid. Please try again.");
+      return null;
+    }
+
+    setIsCreatingBooking(true);
+    try {
+      const res = await createHotelBooking({
+        bookingId: bookingPayload.roomId,
+        data: bookingPayload,
+      }).unwrap();
+
+      const bookingId = res.data?._id || res.data?.id || res._id || res.id;
+      setCreatedBookingId(bookingId);
+
+      toast.success("Booking created successfully!");
+      return bookingId;
+    } catch (err) {
+      const msg =
+        err?.data?.message || err?.message || "Failed to create booking";
+
+      // Debug logging to see the actual error structure
+
+      // Enhanced duplicate booking detection
+      const isDuplicateBooking =
+        msg.toLowerCase().includes("already") ||
+        msg.toLowerCase().includes("duplicate") ||
+        msg.toLowerCase().includes("exists") ||
+        msg.toLowerCase().includes("booking") ||
+        msg.toLowerCase().includes("hotel") ||
+        msg.toLowerCase().includes("room") ||
+        msg.toLowerCase().includes("taken") ||
+        msg.toLowerCase().includes("conflict") ||
+        err?.data?.code === "P2002" ||
+        err?.data?.error === "Unique constraint" ||
+        err?.name === "PrismaClientKnownRequestError" ||
+        (err?.data?.meta?.modelName === "Hotel_Booking" &&
+          err?.data?.meta?.message?.includes("Unique constraint"));
+
+      if (isDuplicateBooking) {
+        const duplicateMessage =
+          "You already have a booking for this hotel room in the selected dates";
+        toast.error(duplicateMessage);
+        // Also show alert as fallback to ensure message appears
+        alert(duplicateMessage);
+      } else {
+        toast.error(msg);
+      }
+
+      return null;
+    } finally {
+      setIsCreatingBooking(false);
+    }
+  };
 
   const calculateTotal = () => {
     const parsedSubtotal = Number(
@@ -149,8 +236,19 @@ export default function PaymentConfirm() {
 
   const handlePayment = async () => {
     if (!total || total <= 0) return;
-    const currentBookingId = bookingId;
 
+    // First create the booking
+    const currentBookingId = createdBookingId || (await createBooking());
+    if (!currentBookingId) {
+      toast.error("Failed to create booking");
+      return;
+    }
+
+    // Proceed directly to payment without modal
+    proceedToPayment(currentBookingId);
+  };
+
+  const proceedToPayment = async (currentBookingId) => {
     if (!bookingDetails?.user?.country) {
       toast.error("Please select a country");
       return;
@@ -159,11 +257,6 @@ export default function PaymentConfirm() {
     setIsLoading(true);
 
     try {
-      if (!currentBookingId) {
-        toast.error("Booking reference not found.");
-        return;
-      }
-
       const successUrl = `${window.location.origin}/booking-confirmation`;
       const cancelUrl = `${window.location.origin}/hotel/checkout`;
 
@@ -357,7 +450,9 @@ export default function PaymentConfirm() {
                     <div>
                       <p className="text-sm text-gray-500">Check-in</p>
                       <p className="font-medium">
-                        {formatDate(hotelData.bookedFromDate)}
+                        {formatDate(
+                          bookingDetails?.checkIn || hotelData?.bookedFromDate
+                        )}
                       </p>
                     </div>
                   </div>
@@ -367,7 +462,9 @@ export default function PaymentConfirm() {
                     <div>
                       <p className="text-sm text-gray-500">Check-out</p>
                       <p className="font-medium">
-                        {formatDate(hotelData.bookedToDate)}
+                        {formatDate(
+                          bookingDetails?.checkOut || hotelData?.bookedToDate
+                        )}
                       </p>
                     </div>
                   </div>
@@ -435,7 +532,7 @@ export default function PaymentConfirm() {
               </div>
             </div>
 
-            {/* RIGHT - Price */}
+            {/* RIGHT - Countdown Timer and Price */}
             <div className="md:w-1/3 mt-10 md:mt-0">
               <div className="bg-white p-6  rounded-lg shadow-sm sticky top-6">
                 <h2 className="text-xl font-semibold mb-5">Price Summary</h2>
@@ -444,7 +541,7 @@ export default function PaymentConfirm() {
                   <div className="flex justify-between">
                     <span>Room Price (Incl. VAT)</span>
                     <span>
-                      {hotelData.displayCurrency} {total.toFixed(2)}
+                      {displayCurrency} {total.toFixed(2)}
                     </span>
                   </div>
 
@@ -452,7 +549,7 @@ export default function PaymentConfirm() {
                     <div className="flex justify-between text-lg font-semibold">
                       <span>Total</span>
                       <span>
-                        {hotelData.displayCurrency} {total.toFixed(2)}
+                        {displayCurrency} {total.toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -460,16 +557,55 @@ export default function PaymentConfirm() {
 
                 <button
                   onClick={handlePayment}
-                  disabled={isLoading}
+                  disabled={isLoading || isCreatingBooking}
                   className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-60"
                 >
-                  {isLoading ? "Processing..." : "Confirm & Pay"}
+                  {isCreatingBooking
+                    ? "Creating Booking..."
+                    : isLoading
+                    ? "Processing Payment..."
+                    : "Confirm & Pay"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Booking Confirmation Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 bg-black/25 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-8 h-8 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Booking Confirmed!
+              </h3>
+              <p className="text-gray-600 mb-2">
+                Your hotel booking has been successfully created. Booking ID:{" "}
+                {createdBookingId}
+              </p>
+              <p className="text-sm text-blue-600 font-medium">
+                Redirecting to payment in {countdown}...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

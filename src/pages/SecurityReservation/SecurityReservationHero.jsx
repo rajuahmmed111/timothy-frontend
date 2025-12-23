@@ -16,7 +16,6 @@ export default function SecurityReservationHero() {
       const savedData = localStorage.getItem("securitySearchData");
       if (savedData) {
         const data = JSON.parse(savedData);
-        console.log("Loading saved data:", data);
         setLocation(data.location || "");
         setSecurityType(data.securityType || "");
         if (data.dateRange && data.dateRange[0] && data.dateRange[1]) {
@@ -42,7 +41,6 @@ export default function SecurityReservationHero() {
               ]
             : null,
       };
-      console.log("Saving data:", dataToSave);
       localStorage.setItem("securitySearchData", JSON.stringify(dataToSave));
     }
   }, [location, securityType, dateRange]);

@@ -45,7 +45,6 @@ export default function BookingForm({ hotel }) {
 
   const accessToken = useSelector((state) => state?.auth?.accessToken);
 
-  //console.log("Hotel", hotel);
 
   const userInfo = useMemo(() => {
     if (!accessToken) return null;
@@ -67,7 +66,6 @@ export default function BookingForm({ hotel }) {
     }
   }, [accessToken, user]);
 
-  //console.log("fdasf", userInfo);
 
   const handleGuestsChange = (type, value) => {
     updateGuests({
@@ -164,7 +162,6 @@ export default function BookingForm({ hotel }) {
 
   const baseCurrency = hotel?.roomCurrency ?? "USD";
 
-  //console.log("basePrice", basePrice, "baseCurrency", baseCurrency);
 
   useEffect(() => {
     const detect = async () => {
@@ -206,7 +203,6 @@ export default function BookingForm({ hotel }) {
           setConversionRate(rate);
         }
       } catch (e) {
-        //console.log("Detection or conversion failed", e);
 
         setUserCurrency("USD");
 
@@ -255,18 +251,6 @@ export default function BookingForm({ hotel }) {
     2
   );
 
-  //console.log("Conversion details:", {
-  // baseRoomPrice,
-
-  // baseCurrency,
-
-  // userCurrency,
-
-  // conversionRate,
-
-  // convertedDisplayPrice,
-
-  // Format price with user's currency
 
   const formatPrice = (amount) => {
     return new Intl.NumberFormat("en-US", {
@@ -388,7 +372,6 @@ export default function BookingForm({ hotel }) {
         originalPrice: selectedRoomData.price,
       };
 
-      //console.log("payload", payload);
 
       if (accessToken) {
         // If user is logged in, navigate to checkout
@@ -626,7 +609,7 @@ export default function BookingForm({ hotel }) {
             </Option>
           </Select>
         </div>
-<h1 className="text-bold text-xl">Select A Room</h1>
+        <h1 className="text-bold text-xl">Select A Room</h1>
         <div className="space-y-2">
           {rooms.map((room) => (
             <div

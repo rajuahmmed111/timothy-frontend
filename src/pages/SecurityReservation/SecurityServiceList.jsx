@@ -36,14 +36,13 @@ export default function SecurityServiceList() {
   } = useGetSecurityProtocolsRootQuery(queryParams);
 
   const allBusinesses = response?.data?.data || response?.data || [];
-  console.log("SecurityServiceList debug:", {
-    decodedType,
-    totalFromApi: allBusinesses.length,
-  });
 
   // Robust client-side filter by decoded type with title->server mapping
   const shouldClientFilter = decodedType && decodedType !== "All";
-  const norm = (s) => String(s || "").toLowerCase().trim();
+  const norm = (s) =>
+    String(s || "")
+      .toLowerCase()
+      .trim();
   // Map UI titles to backend labels (expand as needed)
   const TITLE_TO_SERVER = {
     "personal bodyguard": "security guard",
@@ -71,12 +70,6 @@ export default function SecurityServiceList() {
     : allBusinesses;
 
   const finalList = clientFiltered.length > 0 ? clientFiltered : allBusinesses;
-  console.log("SecurityServiceList filter:", {
-    shouldClientFilter,
-    needle,
-    clientFilteredCount: clientFiltered.length,
-    finalListCount: finalList.length,
-  });
 
   const providers = finalList.map((b) => ({
     id: b?.id || b?._id,
@@ -128,7 +121,7 @@ export default function SecurityServiceList() {
           <p className="text-gray-600 mt-2">
             Browse providers matching your selection.
           </p>
-        </div> 
+        </div>
 
         {providers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useGetMyProfileQuery } from "../../redux/services/authApi";
-import { handleError, handleSuccess } from "../../../toast";
 import { Modal, Button } from "antd";
 
 import {
@@ -28,7 +27,6 @@ export default function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const user = useSelector((s) => s?.auth?.user);
-  console.log("user from sidebar", user);
   // Payment dropdown
   const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
   const [stripeStatus, setStripeStatus] = useState(null);
@@ -70,7 +68,6 @@ export default function Sidebar() {
   // Check Stripe status on component mount
   useEffect(() => {
     const checkStripeStatus = async () => {
-      console.log("Checking Stripe status...");
       try {
         const res = await stripeAccountOnboarding({});
         if (res?.data?.data?.status === "verified") {
@@ -87,12 +84,11 @@ export default function Sidebar() {
     };
 
     const checkPaystackStatus = async () => {
-      console.log("Checking Paystack status...");
       try {
         // First try to check status without business data
         // If this fails, we'll know the user needs onboarding
         const res = await paystackAccountSubAccount({});
-        console.log("Paystack API response:", res);
+
         if (
           res?.data?.data?.status === "active" ||
           res?.data?.data?.data?.is_verified
@@ -102,21 +98,15 @@ export default function Sidebar() {
           setPaystackStatus("needs_onboarding");
         }
       } catch (err) {
-        console.log("Paystack API error:", err);
         // If error, assume needs onboarding
         setPaystackStatus("needs_onboarding");
       }
     };
 
     if (role === "BUSINESS_PARTNER" && accessToken) {
-      console.log("User is BUSINESS_PARTNER, checking status...");
       checkStripeStatus();
       checkPaystackStatus();
     } else {
-      console.log("User is not BUSINESS_PARTNER or no token", {
-        role,
-        hasToken: !!accessToken,
-      });
     }
   }, [
     role,
@@ -134,13 +124,6 @@ export default function Sidebar() {
       stripeStatus &&
       paystackStatus
     ) {
-      console.log("Dashboard verification check:", {
-        role,
-        stripeStatus,
-        paystackStatus,
-        isVerified: isUserVerified(),
-      });
-
       if (!isUserVerified()) {
         // Show verification modal after a short delay to allow dashboard to load
         const timer = setTimeout(() => {
@@ -162,11 +145,8 @@ export default function Sidebar() {
       !isUserVerified() &&
       !userCancelledVerification
     ) {
-      console.log("User not verified, setting up periodic modal reminders");
-
       const interval = setInterval(() => {
         setShowVerificationModal(true);
-        console.log("Showing verification reminder modal");
       }, 30000); // Show every 30 seconds
 
       return () => clearInterval(interval);
@@ -191,14 +171,6 @@ export default function Sidebar() {
   }, []);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-  // Handle navigation with verification check
-  const handleNavigationClick = (e, path) => {
-    if (!isUserVerified() && role === "BUSINESS_PARTNER") {
-      e.preventDefault();
-      setShowVerificationModal(true);
-    }
-  };
 
   return (
     <>
@@ -336,73 +308,70 @@ export default function Sidebar() {
             )}
 
             {/* Payment Options - Only show when token exists and role is not USER */}
-            {console.log("Payment Options Debug:", { accessToken, role }) ||
-              (accessToken && role !== "USER" && (
-                <div>
-                  {/* Dropdown toggle */}
-                  <button
-                    onClick={() => setShowPaymentDropdown((prev) => !prev)}
-                    className="ml-6 mt-1 text-sm text-blue-600 hover:underline"
-                    data-payment-dropdown
-                  >
-                    Payment Options ▼
-                  </button>
+            {accessToken && role !== "USER" && (
+              <div>
+                {/* Dropdown toggle */}
+                <button
+                  onClick={() => setShowPaymentDropdown((prev) => !prev)}
+                  className="ml-6 mt-1 text-sm text-blue-600 hover:underline"
+                  data-payment-dropdown
+                >
+                  Payment Options ▼
+                </button>
 
-                  {/* Dropdown menu */}
-                  {showPaymentDropdown && (
-                    <div className="ml-6 mt-2 bg-white border rounded shadow p-2 w-52 absolute z-50">
-                      {/* Stripe */}
-                      <button
-                        onClick={async () => {
-                          try {
-                            const res = await stripeAccountOnboarding({});
-                            if (res?.data?.data?.onboardingLink) {
-                              window.location.href =
-                                res.data.data.onboardingLink;
-                            } else if (res?.data?.data?.status === "verified") {
-                              alert("Your Stripe account is already verified!");
-                            } else {
-                              alert("Stripe onboarding failed");
-                            }
-                          } catch (err) {
-                            console.log(err);
-                            alert("Stripe error");
-                          }
-                        }}
-                        className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded flex items-center gap-2"
-                      >
-                        <span>
-                          {stripeStatus === "verified"
-                            ? "Stripe (Verified)"
-                            : "Stripe (Onboard)"}
-                        </span>
-                      </button>
-
-                      {/* Paystack */}
-                      <button
-                        onClick={() => {
-                          if (
-                            paystackStatus?.data?.status === "active" ||
-                            paystackStatus?.data?.data?.data?.is_verified
-                          ) {
-                            alert("Your Paystack account is already verified!");
+                {/* Dropdown menu */}
+                {showPaymentDropdown && (
+                  <div className="ml-6 mt-2 bg-white border rounded shadow p-2 w-52 absolute z-50">
+                    {/* Stripe */}
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await stripeAccountOnboarding({});
+                          if (res?.data?.data?.onboardingLink) {
+                            window.location.href = res.data.data.onboardingLink;
+                          } else if (res?.data?.data?.status === "verified") {
+                            alert("Your Stripe account is already verified!");
                           } else {
-                            setShowPaystackModal(true);
+                            alert("Stripe onboarding failed");
                           }
-                        }}
-                        className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded flex items-center gap-2"
-                      >
-                        <span>
-                          {paystackStatus?.data?.status === "active" ||
+                        } catch (err) {
+                          alert("Stripe error");
+                        }
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded flex items-center gap-2"
+                    >
+                      <span>
+                        {stripeStatus === "verified"
+                          ? "Stripe (Verified)"
+                          : "Stripe (Onboard)"}
+                      </span>
+                    </button>
+
+                    {/* Paystack */}
+                    <button
+                      onClick={() => {
+                        if (
+                          paystackStatus?.data?.status === "active" ||
                           paystackStatus?.data?.data?.data?.is_verified
-                            ? "PayStack (Verified)"
-                            : "PayStack (Onboard)"}
-                        </span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                        ) {
+                          alert("Your Paystack account is already verified!");
+                        } else {
+                          setShowPaystackModal(true);
+                        }
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded flex items-center gap-2"
+                    >
+                      <span>
+                        {paystackStatus?.data?.status === "active" ||
+                        paystackStatus?.data?.data?.data?.is_verified
+                          ? "PayStack (Verified)"
+                          : "PayStack (Onboard)"}
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </Section>
         )}
       </div>
@@ -446,7 +415,6 @@ export default function Sidebar() {
                     alert("Paystack account created successfully!");
                   }
                 } catch (err) {
-                  console.log(err);
                   alert("Paystack error");
                 }
               }}
@@ -631,7 +599,6 @@ export default function Sidebar() {
                   alert("Stripe onboarding failed");
                 }
               } catch (err) {
-                console.log(err);
                 alert("Stripe error");
               }
             }}

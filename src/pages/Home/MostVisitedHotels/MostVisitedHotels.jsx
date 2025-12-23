@@ -4,7 +4,6 @@ import { useGetPopularHotelsQuery } from "../../../redux/api/hotel/hotelApi";
 
 export default function MostVisitedHotels() {
   const { data, isLoading, isError } = useGetPopularHotelsQuery(4);
-  console.log("data", data);
   const hotelsApi = data?.data || [];
   const getFirstImageFrom = (val) => {
     if (!val) return undefined;
@@ -81,11 +80,17 @@ export default function MostVisitedHotels() {
 
         {/* Hotels Grid */}
         {isLoading ? (
-          <div className="text-center py-10 text-gray-600">Loading popular hotels...</div>
+          <div className="text-center py-10 text-gray-600">
+            Loading popular hotels...
+          </div>
         ) : isError ? (
-          <div className="text-center py-10 text-red-600">Failed to load popular hotels.</div>
+          <div className="text-center py-10 text-red-600">
+            Failed to load popular hotels.
+          </div>
         ) : hotels.length === 0 ? (
-          <div className="text-center py-10 text-gray-600">No popular hotels found.</div>
+          <div className="text-center py-10 text-gray-600">
+            No popular hotels found.
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {hotels.map((hotel, index) => (

@@ -27,7 +27,6 @@ export default function CarServiceDetails() {
   const fromDate = qs.get("fromDate");
   const toDate = qs.get("toDate");
   const { data: carData, isLoading } = useGetSingleCarQuery(id);
-  console.log("carData", carData);
 
   // Currency detection states
   const [userCurrency, setUserCurrency] = React.useState("USD");
@@ -38,53 +37,36 @@ export default function CarServiceDetails() {
   React.useEffect(() => {
     const detect = async () => {
       try {
-        console.log("CarServiceDetails: Starting currency detection...");
         const res = await fetch("https://api.country.is/");
         const data = await res.json();
-        console.log("CarServiceDetails: Location API response:", data);
         const country = data.country;
-        console.log("CarServiceDetails: Detected country:", country);
 
         if (country && currencyByCountry[country]) {
-          console.log("CarServiceDetails: Country found in mapping:", country);
           setUserCountry(country);
           const userCurr = currencyByCountry[country].code;
-          console.log("CarServiceDetails: User currency code:", userCurr);
           setUserCurrency(userCurr);
 
           // Fetch conversion: USD → user's currency
           let rate = 1;
 
           if ("USD" !== userCurr) {
-            console.log("CarServiceDetails: Converting from USD to", userCurr);
             const rateRes = await fetch(
               "https://open.er-api.com/v6/latest/USD"
             );
             const rateData = await rateRes.json();
-            console.log("CarServiceDetails: Exchange rate data:", rateData);
 
             if (rateData?.rates) {
               const usdToUser = rateData.rates[userCurr] || 1;
               rate = usdToUser;
-              console.log(
-                "CarServiceDetails: Calculated conversion rate:",
-                rate
-              );
             }
-          } else {
-            console.log("CarServiceDetails: No conversion needed - USD");
           }
 
           setConversionRate(rate);
         } else {
-          console.log(
-            "CarServiceDetails: Country not found in mapping, using USD"
-          );
           setUserCurrency("USD");
           setConversionRate(1);
         }
       } catch (e) {
-        console.error("CarServiceDetails: Detection or conversion failed:", e);
         setUserCurrency("USD");
         setConversionRate(1);
       }
@@ -96,7 +78,6 @@ export default function CarServiceDetails() {
   const rawCar = Array.isArray(carData?.data)
     ? carData?.data?.[0]
     : carData?.data;
-  console.log("rawCar from car service details", rawCar);
 
   const car = rawCar
     ? (() => {
@@ -112,16 +93,6 @@ export default function CarServiceDetails() {
         if (userCurrency && baseCurrency !== userCurrency && conversionRate) {
           convertedPrice = Number(basePrice * conversionRate).toFixed(2);
         }
-
-        console.log("CarServiceDetails: Car price conversion:", {
-          carId: rawCar?.id,
-          carName: rawCar?.carModel || rawCar?.car_Rental?.carName,
-          basePrice,
-          baseCurrency,
-          userCurrency,
-          conversionRate,
-          convertedPrice,
-        });
 
         return {
           id: rawCar?.id,
@@ -160,7 +131,6 @@ export default function CarServiceDetails() {
         };
       })()
     : null;
-  console.log("car data of raw car from car service details", car);
 
   const facilityIconMap = {
     AC: Wind,
@@ -188,7 +158,6 @@ export default function CarServiceDetails() {
 
   // Build complete address for accurate location
   const fullAddress = car?.location;
-  console.log("fullAddress", fullAddress);
 
   const encodedQuery = encodeURIComponent(fullAddress);
 

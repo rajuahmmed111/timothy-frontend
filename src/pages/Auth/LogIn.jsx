@@ -44,7 +44,6 @@ export default function LogIn() {
       const res = await login({ email, password }).unwrap();
       // Expected response shape per spec
       const { accessToken, refreshToken, user } = res?.data || {};
-      console.log("user", user);
 
       // Check if user is service provider and not verified
       if (user?.role === "BUSINESS_PARTNER" && user?.status === "INACTIVE") {

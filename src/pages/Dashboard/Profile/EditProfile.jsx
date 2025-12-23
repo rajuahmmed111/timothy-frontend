@@ -6,7 +6,6 @@ import Loader from "../../../shared/Loader/Loader";
 
 export default function EditProfile() {
   const { data, isLoading } = useGetMyProfileQuery();
-  console.log("data of hasan from edit profile", data);
   const [updateMyProfile, { isLoading: isUpdating }] =
     useUpdateMyProfileMutation();
 
@@ -31,7 +30,9 @@ export default function EditProfile() {
       Swal.fire({
         icon: "warning",
         title: "Missing required fields",
-        html: `Please fill the following field(s): <br/><strong>${missing.join(", ")}</strong>`,
+        html: `Please fill the following field(s): <br/><strong>${missing.join(
+          ", "
+        )}</strong>`,
       });
       return;
     }

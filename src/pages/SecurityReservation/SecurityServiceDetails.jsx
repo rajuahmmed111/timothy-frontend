@@ -64,55 +64,39 @@ export default function SecurityServiceDetails() {
   const basePrice = business?.averagePrice || 0;
   const baseCurrency =
     business?.securityurrency || business?.displayCurrency || "USD";
-  console.log(
-    "SecurityServiceDetails basePrice",
-    basePrice,
-    "baseCurrency",
-    baseCurrency
-  );
 
   useEffect(() => {
     const detect = async () => {
       try {
-        console.log("Starting currency detection for security details...");
         const res = await fetch("https://api.country.is/");
         const data = await res.json();
-        console.log("Location API response:", data);
         const country = data.country;
-        console.log("Detected country:", country);
 
         if (country && currencyByCountry[country]) {
-          console.log("Country found in mapping:", country);
           setUserCountry(country);
           const userCurr = currencyByCountry[country].code;
-          console.log("User currency code:", userCurr);
           setUserCurrency(userCurr);
 
           // Fetch conversion: baseCurrency → user's currency
           let rate = 1;
 
           if (baseCurrency !== userCurr) {
-            console.log("Converting from", baseCurrency, "to", userCurr);
             const rateRes = await fetch(
               "https://open.er-api.com/v6/latest/USD"
             );
             const rateData = await rateRes.json();
-            console.log("Exchange rate data:", rateData);
 
             if (rateData?.rates) {
               const baseToUSD =
                 baseCurrency === "USD" ? 1 : 1 / rateData.rates[baseCurrency];
               const usdToUser = rateData.rates[userCurr] || 1;
               rate = baseToUSD * usdToUser;
-              console.log("Calculated conversion rate:", rate);
             }
           } else {
-            console.log("No conversion needed - same currency");
           }
 
           setConversionRate(rate);
         } else {
-          console.log("Country not found in mapping, using USD");
           setUserCurrency("USD");
           setConversionRate(1);
         }
@@ -128,16 +112,6 @@ export default function SecurityServiceDetails() {
 
   // Calculate converted price
   const convertedPrice = Number(basePrice * conversionRate).toFixed(2);
-
-  console.log("SecurityServiceDetails conversion details:", {
-    basePrice,
-    baseCurrency,
-    userCurrency,
-    conversionRate,
-    convertedPrice,
-    businessId: business?.id,
-    availableGuardsCount: availableGuards.length,
-  });
 
   const displayRating =
     Number(
@@ -253,7 +227,7 @@ export default function SecurityServiceDetails() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-700">
                       <Shield className="w-3.5 h-3.5 text-gray-600" />
-                      {availableGuards[0].category}
+                      {availableGuards[0]?.category || "Security"}
                     </span>
 
                     <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-medium text-blue-700">
@@ -289,7 +263,8 @@ export default function SecurityServiceDetails() {
 
                 <div className="bg-white/70 border border-gray-100 rounded-xl shadow-sm p-3 mb-3">
                   <h3 className="text-base font-semibold text-gray-900">
-                    {availableGuards[0].securityGuardDescription}
+                    {availableGuards[0]?.securityGuardDescription ||
+                      "Security Service"}
                   </h3>
                 </div>
 
@@ -425,7 +400,7 @@ export default function SecurityServiceDetails() {
                     {availableGuards[0]?.category && (
                       <div>
                         <span className="font-semibold">Category: </span>
-                        <span>{availableGuards[0].category}</span>
+                        <span>{availableGuards[0]?.category}</span>
                       </div>
                     )}
 

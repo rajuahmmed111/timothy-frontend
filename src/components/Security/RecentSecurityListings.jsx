@@ -5,7 +5,6 @@ import { useGetAllSecurityQuery } from "../../redux/api/security/securityApi";
 
 export default function RecentSecurityListings() {
   const { data, isLoading } = useGetAllSecurityQuery({ page: 1, limit: 5 });
-  console.log("data of recent security listing", data);
   const securityListings = data?.data?.data || [];
 
   const columns = [

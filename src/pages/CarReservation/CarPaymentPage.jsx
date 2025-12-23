@@ -5,6 +5,7 @@ import { toast } from "react-hot-toast";
 import {
   useCreateCarPaystackSessionMutation,
   useCreateCarStripeSessionMutation,
+  useCreateCarBookingMutation,
 } from "../../redux/api/car/carApi";
 
 // Helper function to check if a country is in Africa
@@ -87,28 +88,36 @@ export default function PaymentConfirm() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+  const [modalTimer, setModalTimer] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const bookingDetails =
     location.state?.bookingDetails ||
     location.state?.bookingData ||
     location.state?.data ||
     null;
-  console.log("Booking details of aman", bookingDetails);
 
   const carCancelationPolicy = location.state?.carCancelationPolicy;
-  // console.log("carCancelationPolicy", carCancelationPolicy);
-  // console.log("Booking details from car payment page", bookingDetails);
   useEffect(() => {
-    if (bookingDetails?.user?.country) {
-      const country = bookingDetails.user.country.toLowerCase();
+    // Check both country and address fields for country data
+    const userCountry =
+      bookingDetails?.user?.country || bookingDetails?.user?.address;
+
+    if (userCountry) {
+      const country = userCountry.toLowerCase();
       const isUserInAfrica = isAfricanCountry(country);
-      setPaymentMethod(isUserInAfrica ? "paystack" : "stripe");
+      const selectedMethod = isUserInAfrica ? "paystack" : "stripe";
+      setPaymentMethod(selectedMethod);
+    } else {
+      setPaymentMethod("stripe");
     }
-  }, [bookingDetails?.user?.country]);
+  }, [bookingDetails?.user?.country, bookingDetails?.user?.address]);
 
   // Payment mutations
   const [createPaystackSession] = useCreateCarPaystackSessionMutation();
   const [createStripeSession] = useCreateCarStripeSessionMutation();
+  const [createCarBooking] = useCreateCarBookingMutation();
 
   // Derive base amount and VAT so UI clearly shows tax breakdown
   const days = useMemo(
@@ -134,7 +143,6 @@ export default function PaymentConfirm() {
   );
 
   const userInfo = location.state?.userInfo;
-  console.log("userInfo of car payment page", userInfo);
 
   // Format date to be more readable
   const formatDate = (dateString) => {
@@ -144,15 +152,6 @@ export default function PaymentConfirm() {
   };
   // Get booking ID from URL params or state
   const searchParams = new URLSearchParams(location.search);
-
-  // Debug logging for all potential ID sources
-  console.log("Debug - Booking ID sources:", {
-    fromUrl: searchParams.get("bookingId"),
-    fromLocationState: location.state?.createdBookingId,
-    fromBookingDetails: bookingDetails?.id,
-    fullLocationState: location.state,
-    fullBookingDetails: bookingDetails,
-  });
 
   // Get booking ID from multiple sources with fallback
   const bookingId = (() => {
@@ -181,122 +180,111 @@ export default function PaymentConfirm() {
     return null;
   })();
 
-  console.log("Current booking ID:", bookingId);
-
   const handlePayment = async () => {
-    console.log("Payment button clicked");
-
     if (!total || total <= 0) {
-      console.log("Payment not processed: Invalid total amount", total);
       toast.error("Invalid total amount");
       return;
     }
 
-    // Resolve a robust booking identifier for the payment session
-    const currentBookingId =
-      bookingId ||
-      bookingDetails?.bookingId ||
-      location.state?.createdBookingId ||
-      bookingDetails?.carId ||
-      null;
-
-    console.log("Current booking ID:", currentBookingId);
-
-    if (!currentBookingId) {
-      console.error("No booking ID found in any source");
-      toast.error(
-        "Booking reference not found. Please try refreshing the page or contact support."
-      );
-      return;
-    }
-
-    // Check if user data exists
-    if (!bookingDetails?.user) {
-      console.error("No user data found");
-      toast.error("User information missing. Please go back and try again.");
-      return;
-    }
-
     setIsLoading(true);
+
+    try {
+      // Create booking first
+      const bookingPayload = {
+        name:
+          bookingDetails?.user?.name || bookingDetails?.user?.fullName || "",
+        email: bookingDetails?.user?.email || "",
+        phone:
+          bookingDetails?.user?.phone ||
+          bookingDetails?.user?.contactNo ||
+          bookingDetails?.user?.contactNumber ||
+          "",
+        contactNo:
+          bookingDetails?.user?.phone ||
+          bookingDetails?.user?.contactNo ||
+          bookingDetails?.user?.contactNumber ||
+          "",
+        address: bookingDetails?.user?.address || "",
+        country: bookingDetails?.user?.country || "",
+
+        // Price information
+        convertedPrice: unitPrice,
+        totalPrice: unitPrice,
+        displayCurrency: bookingDetails?.currency || "USD",
+        discountedPrice: bookingDetails?.discountedPrice || 0,
+
+        // Booking information
+        carBookedFromDate: bookingDetails?.pickupDate,
+        carBookedToDate: bookingDetails?.returnDate,
+        currency: bookingDetails?.currency || "USD",
+        location: bookingDetails?.location,
+        carName: bookingDetails?.carName,
+        carSeats: bookingDetails?.carSeats,
+        carCancelationPolicy: bookingDetails?.carCancelationPolicy,
+        days: days,
+        guests: bookingDetails?.guests || 1,
+        unitPrice: unitPrice,
+        description: bookingDetails?.carDescription,
+
+        // User reference
+        userId: bookingDetails?.user?.id,
+        user: bookingDetails?.user,
+
+        // Currency conversion
+        userCurrency: bookingDetails?.userCurrency,
+        userCountry: bookingDetails?.userCountry,
+        conversionRate: bookingDetails?.conversionRate,
+        baseCurrency:
+          bookingDetails?.baseCurrency || bookingDetails?.currency || "USD",
+        baseAdultPrice: bookingDetails?.basePrice || bookingDetails?.unitPrice,
+      };
+
+      const response = await createCarBooking({
+        carId: bookingDetails?.carId,
+        data: bookingPayload,
+      }).unwrap();
+
+      const bookingId =
+        response?.data?.bookingId ||
+        response?.data?._id ||
+        response?.data?.id ||
+        response?.bookingId ||
+        null;
+
+      if (!bookingId) throw new Error("Booking reference missing from server.");
+
+      // Show success toast and go directly to payment
+      toast.success("Car booking created successfully!");
+      proceedToPayment(bookingId);
+    } catch (error) {
+      // Check for specific car already booked error
+      const errorMessage =
+        error?.data?.message || error?.message || "Failed to create booking";
+
+      if (
+        errorMessage.includes("already booked") ||
+        errorMessage.includes(
+          "This car is already booked for the selected dates"
+        )
+      ) {
+        alert(
+          "This car is already booked for the selected dates. Please choose different dates or another car."
+        );
+      } else {
+        toast.error(errorMessage);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const proceedToPayment = async (bookingId) => {
     try {
       const successUrl = `${window.location.origin}/booking-confirmation`;
       const cancelUrl = `${window.location.origin}/booking-cancellation`;
 
-      // Prepare user information
-      const userInfo = bookingDetails.user;
-
-      const bookingConfirmationData = {
-        bookingId: currentBookingId,
-        carName: bookingDetails.carName,
-        pickupDate: bookingDetails.pickupDate,
-        returnDate: bookingDetails.returnDate,
-        guests: bookingDetails.guests || 1,
-        total, // VAT-inclusive total used for confirmation display
-        roomType: bookingDetails.roomType,
-        location: bookingDetails.location,
-        adults: bookingDetails.adults,
-        children: bookingDetails.children,
-        isRefundable: bookingDetails.isRefundable,
-        cancelationPolicy: bookingDetails.cancelationPolicy,
-        vat: bookingDetails.vat,
-        days: bookingDetails.days,
-        user: userInfo,
-        carCancelationPolicy: bookingDetails.carCancelationPolicy,
-        carSeats: bookingDetails.carSeats,
-        carCountry: userInfo?.country,
-      };
-      console.log("Booking confirmation data:", bookingConfirmationData);
-
-      // Store in session storage as fallback
-      sessionStorage.setItem(
-        "lastBooking",
-        JSON.stringify(bookingConfirmationData)
-      );
-      const paymentData = {
-        email: bookingDetails.user.email || "",
-        name:
-          bookingDetails.user.fullName ||
-          bookingDetails.user.name ||
-          "Customer",
-        phone:
-          bookingDetails.user.contactNumber ||
-          bookingDetails.user.phone ||
-          bookingDetails.user.contactNo ||
-          "",
-        currency: bookingDetails.currency || "USD",
-        userId: bookingDetails.user.id,
-        carId: bookingDetails.carId,
-        carName: bookingDetails.carName,
-
-        // These are for logging/metadata only; Stripe/Paystack still use bookingId
-        total, // VAT-inclusive total for reference
-        vat: vatAmount,
-        days: Number(bookingDetails.days || 1),
-
-        successUrl,
-        cancelUrl,
-        metadata: {
-          bookingId: currentBookingId,
-          carId: bookingDetails.carId,
-          userId: bookingDetails.user.id,
-        },
-      };
-
-      console.log("Payment data of car payment", paymentData);
-
-      // Determine payment method based on user country
-      const userCountry = (bookingDetails.user.country || "").toLowerCase();
-      const isUserInAfrica = isAfricanCountry(userCountry);
-      const selectedMethod = isUserInAfrica ? "paystack" : "stripe";
-      setPaymentMethod(selectedMethod);
-
-      console.log(
-        `Using payment method: ${selectedMethod} for country: ${userCountry}`
-      );
-
-      if (selectedMethod === "paystack") {
-        console.log("Initiating Paystack payment...");
-        const response = await createPaystackSession(currentBookingId).unwrap();
+      if (paymentMethod === "paystack") {
+        const response = await createPaystackSession(bookingId).unwrap();
 
         const checkoutUrl =
           response?.data?.checkoutUrl ||
@@ -308,20 +296,9 @@ export default function PaymentConfirm() {
           throw new Error("No valid checkout URL found in Paystack response");
         }
 
-        // Store booking data in session storage before redirecting
-        sessionStorage.setItem(
-          "pendingBooking",
-          JSON.stringify({
-            bookingId: currentBookingId,
-            paymentMethod: "paystack",
-            timestamp: new Date().toISOString(),
-          })
-        );
-
         window.location.href = checkoutUrl;
       } else {
-        console.log("Initiating Stripe payment...");
-        const response = await createStripeSession(currentBookingId).unwrap();
+        const response = await createStripeSession(bookingId).unwrap();
 
         const checkoutUrl =
           response?.data?.checkoutUrl ||
@@ -333,27 +310,14 @@ export default function PaymentConfirm() {
           throw new Error("No valid checkout URL found in Stripe response");
         }
 
-        // Store booking data in session storage before redirecting
-        sessionStorage.setItem(
-          "pendingBooking",
-          JSON.stringify({
-            number: currentBookingId,
-            paymentMethod: "stripe",
-            timestamp: new Date().toISOString(),
-          })
-        );
-
         window.location.href = checkoutUrl;
       }
     } catch (error) {
-      console.error("Payment processing error:", error);
       toast.error(
         error?.data?.message ||
           error?.message ||
-          "Failed to process payment. Please try again."
+          "Payment failed. Please try again."
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -464,23 +428,38 @@ export default function PaymentConfirm() {
 
             {/* Right Column - Price Summary */}
             <div className="md:w-1/3 mt-10 md:mt-0">
-              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 sticky top-6">
-                <h2 className="text-lg font-semibold mb-8">Price Details</h2>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Total Price</span>
+              <div className="bg-white rounded-lg shadow-md border border-gray-200 sticky top-6 p-6">
+                <h2 className="text-lg font-semibold mb-6">Price Details</h2>
+
+                <div className="space-y-4">
+                  {/* Daily Rate */}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">
+                      Daily Rate × {days} days
+                    </span>
                     <span>
-                      {bookingDetails?.currency} {total}
+                      {bookingDetails?.currency} {baseTotal + vatAmount}
                     </span>
                   </div>
 
-                  <div className="mt-6 space-y-3">
+                  {/* Total */}
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex justify-between font-semibold text-lg">
+                      <span>Total</span>
+                      <span>
+                        {bookingDetails?.currency} {total}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Payment Button */}
+                  <div className="mt-6">
                     <button
                       onClick={handlePayment}
                       disabled={isLoading}
-                      className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center disabled:opacity-70"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg disabled:opacity-70"
                     >
-                      {isLoading ? "Processing..." : "Continue"}
+                      {isLoading ? "Processing..." : "Continue And Pay"}
                     </button>
                   </div>
                 </div>

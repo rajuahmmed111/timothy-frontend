@@ -21,9 +21,7 @@ export default function AllSecurityListings() {
   const { data, isLoading } = useGetAllSecurityQuery({ page, limit });
   const [deleteSecurityGuard, { isLoading: isDeleting }] =
     useDeleteSecurityGuardMutation();
-  console.log("data of security listing", data);
   const securityListings = data?.data?.data || [];
-  console.log("securityListings", securityListings);
 
   const total = data?.data?.meta?.total || 0;
 

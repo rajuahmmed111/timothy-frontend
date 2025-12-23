@@ -9,13 +9,6 @@ export default function CarCard({
   userCountry,
   conversionRate,
 }) {
-  console.log("CarCard received data:", car);
-  console.log("CarCard currency props:", {
-    userCurrency,
-    userCountry,
-    conversionRate,
-  });
-
   // Use the converted price from PopularCar if available, otherwise fallback
   let finalPrice = car?.convertedPrice || 0;
   let displayCurrency = car?.displayCurrency || userCurrency || "USD";
@@ -42,14 +35,6 @@ export default function CarCard({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
-
-  console.log("CarCard price conversion:", {
-    carName: car?.name,
-    finalPrice,
-    displayCurrency,
-    formattedPrice,
-    convertedPriceFromProps: car?.convertedPrice,
-  });
   return (
     <Link
       to={`/car-service-details/${car?.id}${queryString || ""}`}

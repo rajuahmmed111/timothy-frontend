@@ -57,10 +57,7 @@ export default function ServiceProviderSignup() {
             }));
             break;
           }
-        } catch (error) {
-          // Silent fail - don't show network errors to user
-          console.log("Country detection failed:", error.message);
-        }
+        } catch (error) {}
       }
 
       clearTimeout(timeoutId);

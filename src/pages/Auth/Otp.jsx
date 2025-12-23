@@ -10,9 +10,7 @@ function Verificationotp() {
   const location = useLocation();
   const [verifyUser, { isLoading }] = useVerifyUserMutation();
 
-  // =========================
-  // Get email safely
-  // =========================
+
   const getEmail = () => {
     const stateEmail = location.state?.email;
     if (stateEmail) return stateEmail;

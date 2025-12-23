@@ -11,7 +11,6 @@ function SecurityCard({
   userCountry,
   conversionRate,
 }) {
-  console.log("SecurityCard received data:", data);
   const { search } = useLocation();
 
   // Handle both single business and array of businesses
@@ -49,15 +48,6 @@ function SecurityCard({
         if (userCurrency && baseCurrency !== userCurrency && conversionRate) {
           convertedPrice = Number(basePrice * conversionRate).toFixed(2);
         }
-
-        console.log("SecurityCard price conversion:", {
-          basePrice,
-          baseCurrency,
-          userCurrency,
-          conversionRate,
-          convertedPrice,
-          businessId: business?.id,
-        });
 
         // Get location from first available guard or business
         const firstGuard = Array.isArray(business?.security_Guard)

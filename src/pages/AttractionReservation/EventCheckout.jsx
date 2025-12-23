@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useCreateAttractionBookingMutation } from "../../redux/api/attraction/attractionApi";
 import { useSelector } from "react-redux";
 import {
@@ -19,11 +19,6 @@ export default function EventCheckout() {
   const [createAttractionBooking] = useCreateAttractionBookingMutation();
   const navigate = useNavigate();
   const user = useSelector((state) => state?.auth?.user);
-
-  // Accept booking data from multiple shapes
-  // - From EventReservationPage.handleBooking: { state: { bookingDetails } }
-  // - From EventGuestLogin redirect: { state: { bookingDetails } }
-  // - Fallbacks for other shapes reused from security flow
   const raw = location.state || {};
   const bookingDetails =
     raw.bookingDetails ||
@@ -38,8 +33,6 @@ export default function EventCheckout() {
   const guestInfo = location.state?.guestInfo || {};
   const [isProcessing, setIsProcessing] = useState(false);
   const cancelationPolicy = bookingDetails?.cancelationPolicy;
-  console.log("bookingDetails", bookingDetails);
-
   // Currency detection states
   const [userCurrency, setUserCurrency] = useState(
     bookingDetails?.userCurrency || "USD"
@@ -54,53 +47,37 @@ export default function EventCheckout() {
   // Currency detection effect (only if not provided from booking details)
   React.useEffect(() => {
     if (bookingDetails?.userCurrency && bookingDetails?.conversionRate) {
-      console.log("EventCheckout: Using currency from booking details:", {
-        userCurrency: bookingDetails.userCurrency,
-        userCountry: bookingDetails.userCountry,
-        conversionRate: bookingDetails.conversionRate,
-      });
       return;
     }
 
     const detect = async () => {
       try {
-        console.log("EventCheckout: Starting currency detection...");
         const res = await fetch("https://api.country.is/");
         const data = await res.json();
-        console.log("EventCheckout: Location API response:", data);
         const country = data.country;
-        console.log("EventCheckout: Detected country:", country);
 
         if (country && currencyByCountry[country]) {
-          console.log("EventCheckout: Country found in mapping:", country);
           setUserCountry(country);
           const userCurr = currencyByCountry[country].code;
-          console.log("EventCheckout: User currency code:", userCurr);
           setUserCurrency(userCurr);
 
           // Fetch conversion: USD → user's currency
           let rate = 1;
 
           if ("USD" !== userCurr) {
-            console.log("EventCheckout: Converting from USD to", userCurr);
             const rateRes = await fetch(
               "https://open.er-api.com/v6/latest/USD"
             );
             const rateData = await rateRes.json();
-            console.log("EventCheckout: Exchange rate data:", rateData);
-
             if (rateData?.rates) {
               const usdToUser = rateData.rates[userCurr] || 1;
               rate = usdToUser;
-              console.log("EventCheckout: Calculated conversion rate:", rate);
             }
           } else {
-            console.log("EventCheckout: No conversion needed - USD");
           }
 
           setConversionRate(rate);
         } else {
-          console.log("EventCheckout: Country not found in mapping, using USD");
           setUserCurrency("USD");
           setConversionRate(1);
         }
@@ -122,7 +99,6 @@ export default function EventCheckout() {
   );
   const childCount = Number(bookingDetails?.children ?? 0);
 
-  // Calculate converted prices if not provided
   let finalAdultPrice = Number(
     bookingDetails?.convertedAdultPrice ?? unitPrice
   );
@@ -134,52 +110,40 @@ export default function EventCheckout() {
       finalAdultPrice * adultCount + finalChildPrice * childCount
   );
 
-  // If we have base prices and conversion rate, calculate converted prices
+  // Calculate VAT (5%)
+  const vatRate = 0.05;
+  const subtotal = finalTotal;
+  const vatAmount = subtotal * vatRate;
+  const totalWithVat = subtotal + vatAmount;
+
   if (bookingDetails?.baseAdultPrice && conversionRate && userCurrency) {
     const baseCurrency = bookingDetails?.baseCurrency || "NGN";
 
-    // Convert from base currency to user currency
     if (baseCurrency === "NGN" && userCurrency === "USD") {
-      // Convert NGN to USD (assuming 1 USD = 1515 NGN)
       const ngnToUsdRate = 1 / 1515;
       finalAdultPrice = Number(bookingDetails.baseAdultPrice * ngnToUsdRate);
       finalChildPrice = Number(bookingDetails.baseChildPrice * ngnToUsdRate);
-    }
-    // If base currency is USD and user has different currency
-    else if (baseCurrency === "USD") {
+    } else if (baseCurrency === "USD") {
       finalAdultPrice = Number(bookingDetails.baseAdultPrice * conversionRate);
       finalChildPrice = Number(bookingDetails.baseChildPrice * conversionRate);
-    }
-    // If base currency is not USD but user wants USD
-    else if (userCurrency === "USD") {
+    } else if (userCurrency === "USD") {
       finalAdultPrice = Number(bookingDetails.baseAdultPrice / conversionRate);
       finalChildPrice = Number(bookingDetails.baseChildPrice / conversionRate);
-    }
-    // For other conversions, use the provided conversion rate
-    else {
+    } else {
       finalAdultPrice = Number(bookingDetails.baseAdultPrice * conversionRate);
       finalChildPrice = Number(bookingDetails.baseChildPrice * conversionRate);
     }
 
     finalTotal = finalAdultPrice * adultCount + finalChildPrice * childCount;
-  }
 
-  console.log("EventCheckout: Price calculation:", {
-    eventName: bookingDetails?.eventName,
-    baseAdultPrice: bookingDetails?.baseAdultPrice,
-    baseChildPrice: bookingDetails?.baseChildPrice,
-    unitPrice,
-    finalAdultPrice,
-    finalChildPrice,
-    finalTotal,
-    userCurrency,
-    conversionRate,
-  });
+    // Recalculate VAT with updated total
+    const updatedSubtotal = finalTotal;
+    const updatedVatAmount = updatedSubtotal * vatRate;
+    finalTotal = updatedSubtotal + updatedVatAmount;
+  }
 
   const convertedAdultPrice = finalAdultPrice;
   const convertedChildPrice = finalChildPrice;
-
-  // Derive guest fields from multiple possible shapes
   const deriveGuest = () => ({
     name:
       guestInfo?.name ||
@@ -213,7 +177,6 @@ export default function EventCheckout() {
 
   const [updatedUser, setUpdatedUser] = useState(deriveGuest());
 
-  // Keep form synced if route state or user changes
   React.useEffect(() => {
     setUpdatedUser(deriveGuest());
   }, [
@@ -236,7 +199,6 @@ export default function EventCheckout() {
       return;
     }
 
-    // Guests coming from EventGuestLogin should now be authenticated
     if (!user) {
       handleError("Please sign in to confirm your booking");
       return;
@@ -251,61 +213,27 @@ export default function EventCheckout() {
 
     setIsProcessing(true);
     try {
-      const adults = Number(
-        bookingDetails.adults ?? bookingDetails.guests ?? 1
-      );
-      const children = Number(bookingDetails.children ?? 0);
-      const discountedPrice = Number(
-        bookingDetails.discountPercent ?? bookingDetails.discountedPrice ?? 0
-      );
+      // Create a temporary booking ID for navigation
+      const tempBookingId = `temp_${Date.now()}_${attractionId}`;
 
-      const body = {
-        name: updatedUser.name,
-        email: updatedUser.email,
-        phone: updatedUser.contactNo,
-        address: updatedUser.address,
-        convertedAdultPrice: finalAdultPrice,
-        convertedChildPrice: finalChildPrice,
-        displayCurrency: userCurrency || bookingDetails.displayCurrency,
-        discountedPrice,
-        adults,
-        children,
-        cancelationPolicy,
-        date: bookingDetails.selectedDate,
-        day: bookingDetails.day,
-        from: bookingDetails.selectedFrom,
-        to: bookingDetails.selectedTo,
-
-        // Add currency conversion details
-        userCurrency,
-        userCountry,
-        conversionRate,
-        baseCurrency:
-          bookingDetails.baseCurrency || bookingDetails.currency || "USD",
-        baseAdultPrice:
-          bookingDetails.baseAdultPrice || bookingDetails.unitPrice || 0,
-        baseChildPrice: bookingDetails.baseChildPrice || 0,
+      // Create booking data object with user and event information
+      const bookingData = {
+        id: tempBookingId,
+        ...bookingDetails,
+        user: updatedUser,
+        status: "pending_payment",
+        createdAt: new Date().toISOString(),
+        isTemporary: true,
       };
 
-      const resp = await createAttractionBooking({
-        id: attractionId,
-        body,
-        bookingDetails,
-      }).unwrap();
-
-      const createdBookingId =
-        resp?.data?.id || resp?.id || bookingDetails.bookingId;
-
-      handleSuccess("Event reserved successfully!");
-      navigate(
-        "/event/payment-confirm/" + encodeURIComponent(createdBookingId),
-        {
-          state: {
-            data: resp,
-            bookingDetails,
-          },
-        }
-      );
+      handleSuccess("Proceeding to payment confirmation!");
+      navigate("/event/payment-confirm/" + encodeURIComponent(tempBookingId), {
+        state: {
+          data: bookingData,
+          bookingDetails,
+          userInfo: updatedUser,
+        },
+      });
     } catch (error) {
       const msg =
         error?.data?.message || error?.message || "Failed to create booking";
@@ -500,15 +428,23 @@ export default function EventCheckout() {
                   </div>
                 )}
 
-                <div className="border-t pt-3 mt-3 font-semibold text-lg flex justify-between">
-                  <span>Total</span>
-                  <span>
-                    {currencyLabel} {Number(finalTotal).toLocaleString()}
-                  </span>
+                <div className="border-t pt-3 mt-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>VAT (5%)</span>
+                    <span>
+                      {currencyLabel} {Number(vatAmount).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="border-t pt-2 mt-2 font-semibold text-lg flex justify-between">
+                    <span>Total (incl. VAT)</span>
+                    <span>
+                      {currencyLabel} {Number(finalTotal).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-xs text-gray-500 mt-1">
-                  Taxes and fees included if applicable
+                  All prices include 5% VAT
                 </p>
               </div>
 

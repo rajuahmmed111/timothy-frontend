@@ -8,6 +8,7 @@ import PrivacyPolicy from "../pages/Legal/PrivacyPolicy";
 import TermsAndConditions from "../pages/Legal/TermsAndConditions";
 import CancelReservation from "../pages/Help/CancelReservation";
 import RefundPolicies from "../pages/Help/RefundPolicies";
+import AcceptableUsePolicy from "../pages/Help/AcceptableUsePolicy";
 import DisputeResolution from "../pages/Help/DisputeResolution";
 import ContactUs from "../pages/Contact/ContactUs";
 import Newsroom from "../pages/Newsroom/Newsroom";
@@ -62,6 +63,7 @@ import AttractionManagement from "../pages/Dashboard/AttractionManagement/Attrac
 import ReviewBusiness from "../components/Hotel/ReviewBusiness";
 import MyBookings from "../pages/Dashboard/Mybookings/MyBookings";
 import HumanRightsStatement from "../pages/Legal/HumanRightsStatement";
+import DynamicHumanRightsPolicy from "../pages/Legal/DynamicHumanRightsPolicy";
 import PrivateRoute from "./guards/PrivateRoute";
 import RoleRoute from "./guards/RoleRoute";
 import AddSecurityBusiness from "../components/Security/AddSecurityBusiness";
@@ -118,6 +120,10 @@ export const routes = createBrowserRouter([
         element: <RefundPolicies />,
       },
       {
+        path: "/acceptable-use-policy",
+        element: <AcceptableUsePolicy />,
+      },
+      {
         path: "/dispute-resolution",
         element: <DisputeResolution />,
       },
@@ -150,8 +156,12 @@ export const routes = createBrowserRouter([
         element: <FasifyCouponUsage />,
       },
       {
-        path: "/human-rights-statement",
+        path: "/official-statement",
         element: <HumanRightsStatement />,
+      },
+      {
+        path: "/human-rights-policy",
+        element: <DynamicHumanRightsPolicy />,
       },
       {
         path: "/hotel",

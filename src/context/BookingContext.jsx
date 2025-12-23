@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from "react";
 
-const BookingContext = createContext();
+const BookingContext = createContext(null);
 
 export const useBooking = () => {
   const context = useContext(BookingContext);
   if (!context) {
-    throw new Error('useBooking must be used within a BookingProvider');
+    throw new Error("useBooking must be used within a BookingProvider");
   }
   return context;
 };
@@ -16,26 +16,26 @@ export const BookingProvider = ({ children }) => {
     guests: {
       adults: 1,
       children: 0,
-      rooms: 1
+      rooms: 1,
     },
-    location: '',
-    searchQuery: ''
+    location: "",
+    searchQuery: "",
   });
 
   const updateBookingData = (newData) => {
-    setBookingData(prev => ({
+    setBookingData((prev) => ({
       ...prev,
-      ...newData
+      ...newData,
     }));
   };
 
   const updateGuests = (guestData) => {
-    setBookingData(prev => ({
+    setBookingData((prev) => ({
       ...prev,
       guests: {
         ...prev.guests,
-        ...guestData
-      }
+        ...guestData,
+      },
     }));
   };
 
@@ -45,10 +45,10 @@ export const BookingProvider = ({ children }) => {
       guests: {
         adults: 1,
         children: 0,
-        rooms: 1
+        rooms: 1,
       },
-      location: '',
-      searchQuery: ''
+      location: "",
+      searchQuery: "",
     });
   };
 
@@ -56,12 +56,10 @@ export const BookingProvider = ({ children }) => {
     bookingData,
     updateBookingData,
     updateGuests,
-    resetBookingData
+    resetBookingData,
   };
 
   return (
-    <BookingContext.Provider value={value}>
-      {children}
-    </BookingContext.Provider>
+    <BookingContext.Provider value={value}>{children}</BookingContext.Provider>
   );
 };

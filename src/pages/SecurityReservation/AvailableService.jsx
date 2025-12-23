@@ -9,7 +9,6 @@ export default function AvailableService() {
     limit: 50,
     page: 1,
   });
-  console.log("Security protocols from AvailableService", data);
   const services = [
     {
       title: "Personal Bodyguard",

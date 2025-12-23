@@ -64,10 +64,6 @@ const Offers = () => {
 
     return allRooms;
   }, [hotelData]);
-
-  console.log("hotelOffer", hotelOffers);
-
-  // Extract all security guards from all security businesses and filter those with discounts
   const securityOffers = React.useMemo(() => {
     if (!securityData?.data?.data) return [];
 
@@ -139,8 +135,6 @@ const Offers = () => {
             rentals
           </p>
         </div>
-
-      
 
         {/* Security Service Offers Section */}
         <section className="mb-16">

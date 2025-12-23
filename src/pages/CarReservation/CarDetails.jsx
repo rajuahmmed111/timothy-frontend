@@ -68,48 +68,36 @@ export default function CarDetails() {
   useEffect(() => {
     const detect = async () => {
       try {
-        console.log("CarDetails: Starting currency detection...");
         const res = await fetch("https://api.country.is/");
         const data = await res.json();
-        console.log("CarDetails: Location API response:", data);
         const country = data.country;
-        console.log("CarDetails: Detected country:", country);
 
         if (country && currencyByCountry[country]) {
-          console.log("CarDetails: Country found in mapping:", country);
           setUserCountry(country);
           const userCurr = currencyByCountry[country].code;
-          console.log("CarDetails: User currency code:", userCurr);
           setUserCurrency(userCurr);
 
           // Fetch conversion: USD → user's currency
           let rate = 1;
 
           if ("USD" !== userCurr) {
-            console.log("CarDetails: Converting from USD to", userCurr);
             const rateRes = await fetch(
               "https://open.er-api.com/v6/latest/USD"
             );
             const rateData = await rateRes.json();
-            console.log("CarDetails: Exchange rate data:", rateData);
 
             if (rateData?.rates) {
               const usdToUser = rateData.rates[userCurr] || 1;
               rate = usdToUser;
-              console.log("CarDetails: Calculated conversion rate:", rate);
             }
-          } else {
-            console.log("CarDetails: No conversion needed - USD");
           }
 
           setConversionRate(rate);
         } else {
-          console.log("CarDetails: Country not found in mapping, using USD");
           setUserCurrency("USD");
           setConversionRate(1);
         }
       } catch (e) {
-        console.error("CarDetails: Detection or conversion failed:", e);
         setUserCurrency("USD");
         setConversionRate(1);
       }
@@ -131,8 +119,6 @@ export default function CarDetails() {
     { skip: false }
   );
 
-  console.log("carsData from car details", carsData);
-
   const transformCarData = (car) => {
     // Currency conversion logic
     const basePrice = Number(car.carPriceDay) || 0;
@@ -145,16 +131,6 @@ export default function CarDetails() {
     if (userCurrency && baseCurrency !== userCurrency && conversionRate) {
       convertedPrice = Number(basePrice * conversionRate).toFixed(2);
     }
-
-    console.log("CarDetails: Car price conversion:", {
-      carId: car.id,
-      carName: car.car_Rental?.carName || car.carModel,
-      basePrice,
-      baseCurrency,
-      userCurrency,
-      conversionRate,
-      convertedPrice,
-    });
 
     return {
       id: car.id,

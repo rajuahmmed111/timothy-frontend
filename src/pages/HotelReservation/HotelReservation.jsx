@@ -253,7 +253,6 @@ export default function HotelReservation() {
     const resultsSection = document.getElementById("hotels-results");
     if (resultsSection) resultsSection.scrollIntoView({ behavior: "smooth" });
   };
- 
 
   // URL-driven filtering: mirror API results to displayed list
   React.useEffect(() => {

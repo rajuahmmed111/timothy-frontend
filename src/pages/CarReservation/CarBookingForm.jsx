@@ -21,13 +21,6 @@ export default function CarBookingForm({
 
   const accessToken = useSelector((state) => state?.auth?.accessToken);
 
-  console.log("CarBookingForm received props:", {
-    car,
-    userCurrency,
-    userCountry,
-    conversionRate,
-  });
-
   useEffect(() => {
     if (fromDate && toDate) {
       const start = dayjs(fromDate);
@@ -63,20 +56,8 @@ export default function CarBookingForm({
       price = Number(car.pricePerDay * conversionRate).toFixed(2);
     }
 
-    console.log("CarBookingForm: Price calculation:", {
-      carName: car?.name,
-      basePrice: car?.pricePerDay,
-      convertedPrice: car?.convertedPrice,
-      calculatedPrice: price,
-      days,
-      total: price * days,
-      userCurrency,
-    });
-
     return price * days;
   };
-
-  console.log("calculation price in ", calculateTotal());
 
   const getDays = () => {
     if (!dateRange || !dateRange[0] || !dateRange[1]) return 0;
@@ -125,7 +106,6 @@ export default function CarBookingForm({
       baseCurrency: car?.currency || "USD",
       basePrice: car?.pricePerDay || 0,
     };
-    console.log("booking details in booking form", bookingDetails);
 
     if (accessToken) {
       navigate("/car/checkout", {
@@ -136,7 +116,7 @@ export default function CarBookingForm({
     } else {
       navigate("/car/guest-login", {
         state: {
-          bookingDetails: bookingDetails,
+          bookingData: bookingDetails, // Changed from bookingDetails to bookingData
           returnUrl: "/car/checkout",
         },
       });

@@ -27,7 +27,6 @@ const MONTHS = [
 
 export default function CarDashboard() {
   const { data: totalSalesRes } = useGetCarTotalSalesQuery();
-  console.log("totalSalesRes", totalSalesRes);
 
   const normalizeMonthly = (res) => {
     const out = {};

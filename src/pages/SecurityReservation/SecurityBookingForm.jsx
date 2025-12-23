@@ -20,15 +20,6 @@ export default function SecurityBookingForm({
   conversionRate,
   convertedPrice,
 }) {
-  console.log("SecurityBookingForm received props:", {
-    userCurrency,
-    userCountry,
-    conversionRate,
-    convertedPrice,
-    business,
-    guard,
-  });
-
   const [localUserCurrency, setLocalUserCurrency] = useState(
     userCurrency || "USD"
   );
@@ -47,19 +38,12 @@ export default function SecurityBookingForm({
     ) {
       const detectCurrency = async () => {
         try {
-          console.log(
-            "Running fallback currency detection in SecurityBookingForm..."
-          );
           const res = await fetch("https://api.country.is/");
           const data = await res.json();
-          console.log("Fallback location API response:", data);
           const country = data.country;
-          console.log("Fallback detected country:", country);
 
           if (country && currencyByCountry[country]) {
-            console.log("Fallback country found in mapping:", country);
             const userCurr = currencyByCountry[country].code;
-            console.log("Fallback user currency code:", userCurr);
             setLocalUserCurrency(userCurr);
             setLocalUserCountry(country);
 
@@ -68,45 +52,28 @@ export default function SecurityBookingForm({
             let rate = 1;
 
             if (baseCurrency !== userCurr) {
-              console.log(
-                "Fallback converting from",
-                baseCurrency,
-                "to",
-                userCurr
-              );
               const rateRes = await fetch(
                 "https://open.er-api.com/v6/latest/USD"
               );
               const rateData = await rateRes.json();
-              console.log("Fallback exchange rate data:", rateData);
 
               if (rateData?.rates) {
                 const baseToUSD =
                   baseCurrency === "USD" ? 1 : 1 / rateData.rates[baseCurrency];
                 const usdToUser = rateData.rates[userCurr] || 1;
                 rate = baseToUSD * usdToUser;
-                console.log("Fallback calculated conversion rate:", rate);
               }
             }
 
             setLocalConversionRate(rate);
           } else {
-            console.log("Fallback country not found in mapping, using USD");
           }
-        } catch (e) {
-          console.error("Fallback currency detection failed:", e);
-        }
+        } catch (e) {}
       };
 
       detectCurrency();
     }
   }, [userCurrency, conversionRate, business?.displayCurrency]);
-
-  console.log("Updated local state:", {
-    localUserCurrency,
-    localUserCountry,
-    localConversionRate,
-  });
 
   const navigate = useNavigate();
   const { search } = useLocation();
@@ -135,23 +102,11 @@ export default function SecurityBookingForm({
         token: accessToken,
       };
     } catch (error) {
-      console.error("Error decoding token:", error);
       return null;
     }
   }, [accessToken, user]);
 
   // Derive guards list from available guards
-  console.log("Available props for guard extraction:", {
-    business,
-    guard,
-    data,
-    businessType: typeof business,
-    guardType: typeof guard,
-    dataType: typeof data,
-    businessIsArray: Array.isArray(business),
-    guardIsArray: Array.isArray(guard),
-    dataIsArray: Array.isArray(data),
-  });
 
   const guards = Array.isArray(guard)
     ? guard.filter((g) => String(g?.isBooked).toUpperCase() === "AVAILABLE")
@@ -161,9 +116,6 @@ export default function SecurityBookingForm({
       )
     : [];
 
-  console.log("Derived guards list (AVAILABLE only):", guards);
-  console.log("Guards list length:", guards.length);
-
   const [selectedGuardIndex, setSelectedGuardIndex] = useState(0);
   useEffect(() => {
     if (guards.length === 0) return;
@@ -171,7 +123,6 @@ export default function SecurityBookingForm({
   }, [JSON.stringify(guards)]);
 
   const selectedGuard = guards[selectedGuardIndex] || null;
-  console.log("Selected guard:", selectedGuard);
 
   // Enhanced guard info extraction with more fallbacks
   const guardId =
@@ -203,18 +154,6 @@ export default function SecurityBookingForm({
   const currencyCode =
     selectedGuard?.currency || business?.securityurrency || "USD";
 
-  console.log("Enhanced guard info extraction:", {
-    guardId,
-    guardName,
-    photo,
-    hasPhoto: !!photo,
-    selectedGuardExists: !!selectedGuard,
-    businessExists: !!business,
-    derivedPrice,
-    unitPrice,
-    currencyCode,
-  });
-
   const serviceTypes = [
     {
       id: "personal",
@@ -242,15 +181,6 @@ export default function SecurityBookingForm({
   // Calculate converted price for display
   const displayPrice = Number(unitPrice * localConversionRate).toFixed(2);
   const totalAmount = Number(calculateTotal()).toFixed(2);
-
-  console.log("Security booking conversion:", {
-    unitPrice,
-    currencyCode,
-    localUserCurrency,
-    localConversionRate,
-    displayPrice,
-    totalAmount,
-  });
 
   const handlePersonnelChange = (value) => {
     setPersonnelCount(value);

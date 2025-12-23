@@ -1,60 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 export default function DisputeResolution() {
-  const [activeTab, setActiveTab] = useState('user');
+  const [activeTab, setActiveTab] = useState("user");
   const [formData, setFormData] = useState({
-    type: 'user',
-    confirmationNo: '',
-    fullName: '',
-    email: '',
-    phone: '',
-    topic: '',
-    message: '',
-    partnerName: '',
-    propertyId: ''
+    type: "user",
+    confirmationNo: "",
+    fullName: "",
+    email: "",
+    phone: "",
+    topic: "",
+    message: "",
+    partnerName: "",
+    propertyId: "",
   });
 
-  const userTopics = [
-    'Reservation',
-    'Refunds',
-    'Customer Service',
-    'Others'
-  ];
+  const userTopics = ["Reservation", "Refunds", "Customer Service", "Others"];
 
   const partnerTopics = [
-    'Reservation',
-    'Financial',
-    'Joining and Leaving FASIFY',
-    'Staff Behavior',
-    'Compliance',
-    'Fraud & Security',
-    'Property Related'
+    "Reservation",
+    "Financial",
+    "Joining and Leaving FASIFY",
+    "Staff Behavior",
+    "Compliance",
+    "Fraud & Security",
+    "Property Related",
   ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would typically send the form data to your backend
-    console.log('Form submitted:', formData);
-    alert('Your dispute has been submitted. We will contact you shortly.');
+    alert("Your dispute has been submitted. We will contact you shortly.");
     // Reset form
     setFormData({
       type: activeTab,
-      confirmationNo: '',
-      fullName: '',
-      email: '',
-      phone: '',
-      topic: '',
-      message: '',
-      partnerName: '',
-      propertyId: ''
+      confirmationNo: "",
+      fullName: "",
+      email: "",
+      phone: "",
+      topic: "",
+      message: "",
+      partnerName: "",
+      propertyId: "",
     });
   };
 
@@ -74,18 +67,22 @@ export default function DisputeResolution() {
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px">
               <button
-                onClick={() => setActiveTab('user')}
-                className={`w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm ${activeTab === 'user'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab("user")}
+                className={`w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+                  activeTab === "user"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
               >
                 Guest
               </button>
               <button
-                onClick={() => setActiveTab('partner')}
-                className={`w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm ${activeTab === 'partner'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab("partner")}
+                className={`w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+                  activeTab === "partner"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
               >
                 Partner
               </button>
@@ -94,11 +91,15 @@ export default function DisputeResolution() {
 
           <div className="px-4 py-5 sm:p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {activeTab === 'user' && (
+              {activeTab === "user" && (
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="confirmationNo" className="block text-sm font-medium text-gray-700">
-                      Confirmation Number <span className="text-red-500">*</span>
+                    <label
+                      htmlFor="confirmationNo"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Confirmation Number{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -113,10 +114,13 @@ export default function DisputeResolution() {
                 </div>
               )}
 
-              {activeTab === 'partner' && (
+              {activeTab === "partner" && (
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="partnerName" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="partnerName"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -130,7 +134,10 @@ export default function DisputeResolution() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="propertyId" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="propertyId"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Property ID (if applicable)
                     </label>
                     <input
@@ -147,8 +154,12 @@ export default function DisputeResolution() {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                    {activeTab === 'user' ? 'Your Full Name' : 'Contact Person'} <span className="text-red-500">*</span>
+                  <label
+                    htmlFor="fullName"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    {activeTab === "user" ? "Your Full Name" : "Contact Person"}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -161,7 +172,10 @@ export default function DisputeResolution() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Email Address <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -177,7 +191,10 @@ export default function DisputeResolution() {
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Phone Number <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -192,7 +209,10 @@ export default function DisputeResolution() {
               </div>
 
               <div>
-                <label htmlFor="topic" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="topic"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Topic <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -204,16 +224,21 @@ export default function DisputeResolution() {
                   className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                 >
                   <option value="">Select a topic</option>
-                  {(activeTab === 'user' ? userTopics : partnerTopics).map((topic) => (
-                    <option key={topic} value={topic}>
-                      {topic}
-                    </option>
-                  ))}
+                  {(activeTab === "user" ? userTopics : partnerTopics).map(
+                    (topic) => (
+                      <option key={topic} value={topic}>
+                        {topic}
+                      </option>
+                    )
+                  )}
                 </select>
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Detailed Message <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1">
@@ -241,8 +266,6 @@ export default function DisputeResolution() {
             </form>
           </div>
         </div>
-
-
       </div>
     </div>
   );

@@ -1,12 +1,8 @@
 import React from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-// no API calls needed here
 
 export default function ServiceCard({ service }) {
-  console.log("Service:", service);
-  const IconComponent = service.icon;
-
   return (
     <Link to={`/security-details`} className="block">
       <div className="bg-white rounded-xl overflow-hidden shadow-md  transition-all duration-300 cursor-pointer group transform hover:-translate-y-1">

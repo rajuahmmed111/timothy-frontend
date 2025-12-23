@@ -7,15 +7,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { useGuestLoginMutation } from "../../redux/api/hotel/hotelApi";
 
-// Using country-state-city package for countries and phone codes
-
 export default function GuestLogin() {
   const navigate = useNavigate();
   const location = useLocation();
   const bookingDetails = location.state?.bookingDetails;
   const returnUrl = location.state?.returnUrl || "/event/checkout";
   const { token } = useSelector((state) => state.auth);
-  console.log("guest login", bookingDetails);
   useEffect(() => {
     // If user is already logged in (has token), redirect to checkout
     if (token) {

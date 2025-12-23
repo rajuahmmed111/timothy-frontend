@@ -25,7 +25,6 @@ export default function AvailableHotelRooms() {
     useDeleteHotelRoomMutation();
 
   const rooms = data?.data || [];
-  console.log("available rooms", rooms);
 
   const filtered =
     rooms?.data?.filter((room) => {

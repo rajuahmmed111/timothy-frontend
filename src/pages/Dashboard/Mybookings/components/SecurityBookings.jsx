@@ -11,8 +11,6 @@ export default function SecurityBookings() {
   );
 
 
-  console.log("data: data of security", data);
-
   const bookingData = useMemo(() => {
     if (!data?.data) return [];
     return data.data.map((booking, index) => ({
@@ -57,7 +55,7 @@ export default function SecurityBookings() {
       title: "Booking Status",
       dataIndex: "bookingStatus",
       key: "bookingStatus",
-       render: (_, record) => (
+      render: (_, record) => (
         <span
           className={`text-xs px-3 py-1 rounded-full font-semibold inline-block ${
             record?.bookingStatus === "CONFIRMED"
@@ -97,7 +95,6 @@ export default function SecurityBookings() {
       key: "action",
       render: (_, record) => (
         <button
-        
           className={`text-xs px-3 py-1 rounded border transition ${
             record?.bookingStatus === "CANCELLED"
               ? "cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200"

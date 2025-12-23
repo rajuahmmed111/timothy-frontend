@@ -118,7 +118,7 @@ export default function AddSecurityBusiness() {
             setFormData((prev) => ({ ...prev, hotelCountry: iso }));
             break;
           }
-        } catch { }
+        } catch {}
       }
     };
     detectCountry();
@@ -170,8 +170,6 @@ export default function AddSecurityBusiness() {
           formDataToSend.append(destKey, value);
         }
       });
-
-      console.log(formDataToSend, "formDataToSend");
 
       const response = await addSecurityBusiness(formDataToSend).unwrap();
 

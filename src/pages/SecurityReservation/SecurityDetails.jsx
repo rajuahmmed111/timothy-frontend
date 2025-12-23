@@ -59,22 +59,16 @@ export default function SecurityDetails() {
   useEffect(() => {
     const detect = async () => {
       try {
-        console.log("Starting currency detection for security...");
         const res = await fetch("https://api.country.is/");
         const data = await res.json();
-        console.log("Location API response:", data);
         const country = data.country;
-        console.log("Detected country:", country);
 
         if (country && currencyByCountry[country]) {
-          console.log("Country found in mapping:", country);
           setUserCountry(country);
           const userCurr = currencyByCountry[country].code;
-          console.log("User currency code:", userCurr);
           setUserCurrency(userCurr);
-          setConversionRate(1); // Default rate, will be calculated per item
+          setConversionRate(1);
         } else {
-          console.log("Country not found in mapping, using USD");
           setUserCurrency("USD");
           setConversionRate(1);
         }
@@ -106,7 +100,6 @@ export default function SecurityDetails() {
         const savedData = localStorage.getItem("securitySearchData");
         if (savedData) {
           const data = JSON.parse(savedData);
-          console.log("Loading saved data in SecurityDetails:", data);
           setLocText(data.location || "");
           setTypeValue(data.securityType || "All");
           if (data.dateRange && data.dateRange[0] && data.dateRange[1]) {
@@ -133,7 +126,6 @@ export default function SecurityDetails() {
               ]
             : null,
       };
-      console.log("Saving data from SecurityDetails:", dataToSave);
       localStorage.setItem("securitySearchData", JSON.stringify(dataToSave));
     }
   }, [locText, typeValue, dateRange]);

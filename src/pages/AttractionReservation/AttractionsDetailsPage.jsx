@@ -26,57 +26,33 @@ export default function AttractionsDetailsPage() {
   React.useEffect(() => {
     const detect = async () => {
       try {
-        console.log("AttractionsDetailsPage: Starting currency detection...");
         const res = await fetch("https://api.country.is/");
         const data = await res.json();
-        console.log("AttractionsDetailsPage: Location API response:", data);
         const country = data.country;
-        console.log("AttractionsDetailsPage: Detected country:", country);
 
         if (country && currencyByCountry[country]) {
-          console.log(
-            "AttractionsDetailsPage: Country found in mapping:",
-            country
-          );
           setUserCountry(country);
           const userCurr = currencyByCountry[country].code;
-          console.log("AttractionsDetailsPage: User currency code:", userCurr);
           setUserCurrency(userCurr);
 
           // Fetch conversion: USD → user's currency
           let rate = 1;
 
           if ("USD" !== userCurr) {
-            console.log(
-              "AttractionsDetailsPage: Converting from USD to",
-              userCurr
-            );
             const rateRes = await fetch(
               "https://open.er-api.com/v6/latest/USD"
             );
             const rateData = await rateRes.json();
-            console.log(
-              "AttractionsDetailsPage: Exchange rate data:",
-              rateData
-            );
 
             if (rateData?.rates) {
               const usdToUser = rateData.rates[userCurr] || 1;
               rate = usdToUser;
-              console.log(
-                "AttractionsDetailsPage: Calculated conversion rate:",
-                rate
-              );
             }
           } else {
-            console.log("AttractionsDetailsPage: No conversion needed - USD");
           }
 
           setConversionRate(rate);
         } else {
-          console.log(
-            "AttractionsDetailsPage: Country not found in mapping, using USD"
-          );
           setUserCurrency("USD");
           setConversionRate(1);
         }
@@ -97,7 +73,6 @@ export default function AttractionsDetailsPage() {
     { searchTerm, page, limit },
     { skip: !!appealId }
   );
-  console.log("data", data);
   const {
     data: singleData,
     isLoading: isLoadingSingle,
@@ -160,17 +135,6 @@ export default function AttractionsDetailsPage() {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         });
-
-    console.log("AttractionsDetailsPage: Attraction price conversion:", {
-      attractionName: appeal.attractionDestinationType,
-      basePrice,
-      baseCurrency,
-      userCurrency,
-      conversionRate,
-      convertedPrice,
-      displayCurrency,
-      formattedPrice,
-    });
 
     const price = displayCurrency
       ? `${displayCurrency} ${formattedPrice}`
@@ -272,17 +236,6 @@ export default function AttractionsDetailsPage() {
       convertedAdultPrice = Number(adultBasePrice * conversionRate).toFixed(2);
       convertedChildPrice = Number(childBasePrice * conversionRate).toFixed(2);
     }
-
-    console.log("AttractionsDetailsPage: Single attraction price conversion:", {
-      attractionName: a.attractionDestinationType,
-      adultBasePrice,
-      childBasePrice,
-      baseCurrency,
-      userCurrency,
-      conversionRate,
-      convertedAdultPrice,
-      convertedChildPrice,
-    });
 
     return (
       <div className="min-h-screen py-10 container mx-auto">

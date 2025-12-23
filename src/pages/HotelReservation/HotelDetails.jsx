@@ -25,14 +25,11 @@ export default function HotelDetails() {
     useGetHotelDetailsQuery(routeId, { skip: !!hotel });
 
   const hotelFromApi = hotelDetails?.data ?? hotelDetails;
-  console.log("hotelFromApi", hotelFromApi);
   const hotelData = hotel || hotelFromApi;
-  console.log("hotelDatadsafsadf", hotelData);
 
   // Currency detection and conversion
   const basePrice = hotelData?.averagePrice ?? hotelData?.roomPrice ?? 0;
   const baseCurrency = hotelData?.roomCurrency ?? "USD";
-  console.log("basePrice", basePrice, "baseCurrency", baseCurrency);
 
   useEffect(() => {
     const detect = async () => {
@@ -66,7 +63,6 @@ export default function HotelDetails() {
           setConversionRate(rate);
         }
       } catch (e) {
-        console.log("Detection or conversion failed", e);
         setUserCurrency("USD");
         setConversionRate(1);
       }
@@ -77,13 +73,6 @@ export default function HotelDetails() {
 
   // Price converted
   const convertedPrice = Number(basePrice * conversionRate).toFixed(2);
-  console.log("Conversion details:", {
-    basePrice,
-    baseCurrency,
-    userCurrency,
-    conversionRate,
-    convertedPrice,
-  });
 
   // Build complete address for accurate location
   const fullAddress = [
@@ -107,7 +96,6 @@ export default function HotelDetails() {
     }
   };
 
-  console.log("hoteldata", hotelData);
   const reviewArray = Array.isArray(hotelData.averageReviewCount)
     ? hotelData.averageReviewCount
     : reviews?.data || [];

@@ -20,9 +20,7 @@ export default function HotelRooms() {
 
   // Fetch many rooms to enable full client-side search & pagination
   const { data, isLoading } = useGetHotelRoomsQuery({ page, limit });
-  console.log("data", data);
   const rooms = data?.data || [];
-  console.log("rooms of active room", rooms);
 
   const total = rooms?.meta?.total;
 

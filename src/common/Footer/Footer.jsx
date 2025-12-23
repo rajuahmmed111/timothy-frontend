@@ -147,7 +147,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/human-rights-statement"
+                  to="/official-statement"
                   className="text-[#090909] font-semibold"
                 >
                   Human Rights Statement

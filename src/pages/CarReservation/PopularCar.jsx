@@ -22,47 +22,35 @@ export default function PopularCar() {
   useEffect(() => {
     const detect = async () => {
       try {
-        console.log("PopularCar: Starting currency detection...");
         const res = await fetch("https://api.country.is/");
         const data = await res.json();
-        console.log("PopularCar: Location API response:", data);
         const country = data.country;
-        console.log("PopularCar: Detected country:", country);
 
         if (country && currencyByCountry[country]) {
-          console.log("PopularCar: Country found in mapping:", country);
           const userCurr = currencyByCountry[country].code;
-          console.log("PopularCar: User currency code:", userCurr);
           setUserCurrency(userCurr);
 
           // Fetch conversion: USD → user's currency
           let rate = 1;
 
           if ("USD" !== userCurr) {
-            console.log("PopularCar: Converting from USD to", userCurr);
             const rateRes = await fetch(
               "https://open.er-api.com/v6/latest/USD"
             );
             const rateData = await rateRes.json();
-            console.log("PopularCar: Exchange rate data:", rateData);
 
             if (rateData?.rates) {
               const usdToUser = rateData.rates[userCurr] || 1;
               rate = usdToUser;
-              console.log("PopularCar: Calculated conversion rate:", rate);
             }
-          } else {
-            console.log("PopularCar: No conversion needed - USD");
           }
 
           setConversionRate(rate);
         } else {
-          console.log("PopularCar: Country not found in mapping, using USD");
           setUserCurrency("USD");
           setConversionRate(1);
         }
       } catch (e) {
-        console.error("PopularCar: Detection or conversion failed:", e);
         setUserCurrency("USD");
         setConversionRate(1);
       } finally {
@@ -75,10 +63,6 @@ export default function PopularCar() {
 
   // Transform car data to match the expected car card props
   const transformCarData = (car) => {
-    console.log("PopularCar: Raw car data:", car);
-    console.log("PopularCar: carPriceDay:", car.carPriceDay);
-    console.log("PopularCar: currency:", car.currency);
-
     // Try multiple possible price fields
     const priceFields = [
       car.carPriceDay,
@@ -91,14 +75,6 @@ export default function PopularCar() {
 
     const basePrice = Number(priceFields.find((p) => p && p > 0) || 0);
     const baseCurrency = car.currency || car.car_Rental?.currency || "USD";
-
-    console.log("PopularCar: priceFields:", priceFields);
-    console.log(
-      "PopularCar: basePrice:",
-      basePrice,
-      "baseCurrency:",
-      baseCurrency
-    );
 
     // Calculate converted price
     let convertedPrice = basePrice;
@@ -141,17 +117,6 @@ export default function PopularCar() {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         });
-
-    console.log("PopularCar: Car price conversion:", {
-      carName: car.car_Rental?.carName || car.carModel,
-      basePrice,
-      baseCurrency,
-      userCurrency,
-      conversionRate,
-      convertedPrice,
-      displayCurrency,
-      formattedPrice,
-    });
 
     return {
       id: car.id,

@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 
 export default function PropertyDetails({ hotel }) {
-  console.log("hotel", hotel);
   const amenityDefs = [
     {
       key: "hotelWifi",

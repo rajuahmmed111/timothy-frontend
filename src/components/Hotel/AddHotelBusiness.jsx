@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import { useAddHotelBusinessMutation } from "../../redux/api/hotel/hotelApi";
 import { countries } from "../../components/country";
 
-
 export default function AddHotelBusiness() {
   const [formData, setFormData] = useState({
     hotelBusinessName: "",
@@ -160,12 +159,10 @@ export default function AddHotelBusiness() {
           formDataToSend.set(
             field,
             formDataToSend.get(field) === "true" ||
-            formDataToSend.get(field) === true
+              formDataToSend.get(field) === true
           );
         }
       });
-
-      console.log(formDataToSend, "formDataToSend");
 
       const response = await addHotelBusiness(formDataToSend).unwrap();
       await swalInstance.close();
@@ -267,7 +264,7 @@ export default function AddHotelBusiness() {
             setFormData((prev) => ({ ...prev, hotelCountry: iso }));
             break;
           }
-        } catch { }
+        } catch {}
       }
     };
     detectCountry();
@@ -464,7 +461,7 @@ export default function AddHotelBusiness() {
                       placeholder="Al Qudra"
                     />
                   </div>
-            
+
                   {/* Country Dropdown - FULL LIST */}
                   <div className="w-full">
                     <label className="block text-sm font-medium text-gray-700 mb-2">

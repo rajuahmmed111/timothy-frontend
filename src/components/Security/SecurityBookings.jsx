@@ -14,7 +14,6 @@ export default function SecurityBookings() {
 
   const { data, isLoading } = useGetSecurityBookingsQuery({});
   const bookings = data?.data || [];
-  console.log("bookings of security", bookings);
 
   const dataSourceFull = bookings.map((booking) => ({
     id: booking?.id,

@@ -63,7 +63,6 @@ export default function SignUp() {
             }
             break;
           }
-        // eslint-disable-next-line no-empty
         } catch {}
       }
     };
@@ -92,12 +91,6 @@ export default function SignUp() {
       const { accessToken, refreshToken, user } = res?.data || {};
 
       dispatch(setCredentials({ accessToken, refreshToken, user }));
-
-      // Save registration data for OTP verification
-      localStorage.setItem(
-        "registrationData",
-        JSON.stringify({ email: form.email })
-      );
 
       if (rememberMe) {
         localStorage.setItem(

@@ -14,10 +14,8 @@ function VerificationPartnerOtp() {
   // Get email safely and store in localStorage
   // =========================
   const getEmail = () => {
-    console.log("=== Getting Email Debug ===");
 
     const stateEmail = location.state?.email;
-    console.log("State email:", stateEmail);
     if (stateEmail) {
       localStorage.setItem("userEmail", stateEmail);
       return stateEmail;
@@ -25,10 +23,8 @@ function VerificationPartnerOtp() {
 
     try {
       const registrationData = localStorage.getItem("registrationData");
-      console.log("Registration data from localStorage:", registrationData);
       if (registrationData) {
         const data = JSON.parse(registrationData);
-        console.log("Parsed registration data:", data);
         if (data.email) {
           localStorage.setItem("userEmail", data.email);
           return data.email;
@@ -40,13 +36,9 @@ function VerificationPartnerOtp() {
 
     try {
       const rememberCredentials = localStorage.getItem("rememberCredentials");
-      console.log(
-        "Remember credentials from localStorage:",
-        rememberCredentials
-      );
+  
       if (rememberCredentials) {
         const data = JSON.parse(rememberCredentials);
-        console.log("Parsed remember credentials:", data);
         if (data.email) {
           localStorage.setItem("userEmail", data.email);
           return data.email;
@@ -59,13 +51,11 @@ function VerificationPartnerOtp() {
     // Check if email is already stored in localStorage
     try {
       const storedEmail = localStorage.getItem("userEmail");
-      console.log("Stored userEmail:", storedEmail);
       if (storedEmail) return storedEmail;
     } catch (err) {
       console.error("LocalStorage userEmail error", err);
     }
 
-    console.log("No email found in any source");
     return null;
   };
 
@@ -118,7 +108,6 @@ function VerificationPartnerOtp() {
         otp: otpValue.trim(),
       };
 
-      console.log("Sending request:", requestBody);
       await verifyPartner(requestBody).unwrap();
 
       localStorage.removeItem("registrationData");

@@ -31,7 +31,7 @@ export default function Impact() {
               Years in Hospitality
             </div>
             <p className="text-gray-600 text-sm leading-relaxed">
-              At Fastify, we transform decades of hospitality expertise into a
+              At Fasify, we transform decades of hospitality expertise into a
               modern, seamless, and unforgettable experience. By combining
               innovative technology with world-class service, we deliver
               exceptional convenience, comfort, and personalization—right at

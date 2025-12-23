@@ -150,6 +150,13 @@ export default function ContactUs() {
                       >
                         +447521010080
                       </a>
+                      <br />
+                      <a
+                        href="tel:+15551234567"
+                        className="text-blue-600 hover:underline"
+                      >
+                        +2348039960002
+                      </a>
                     </p>
                   </div>
                 </div>

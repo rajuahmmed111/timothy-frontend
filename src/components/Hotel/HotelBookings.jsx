@@ -14,7 +14,6 @@ export default function HotelBookings() {
 
   const { data, isLoading } = useGetHotelBookingsQuery({});
   const bookings = data?.data || [];
-  // console.log("bookings", bookings);
 
   const dataSourceFull = bookings.map((booking) => ({
     id: booking?.id,

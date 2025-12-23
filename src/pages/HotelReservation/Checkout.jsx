@@ -24,7 +24,6 @@ export default function Checkout() {
   const user = useSelector((state) => state?.auth?.user);
 
   const bookingData = location.state?.bookingData || {};
-  console.log("ffffffffffffffffffffffffffff", bookingData);
   const guestInfo = location.state?.guestInfo || {};
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -97,20 +96,6 @@ export default function Checkout() {
     // Add VAT to get total
     totalAmount = subtotal + (subtotal * vatRate) / 100;
     vatAmount = totalAmount - subtotal;
-    console.log(
-      "Using subtotal from BookingForm:",
-      bookingFormTotal,
-      "Subtotal:",
-      subtotal,
-      "Total with VAT:",
-      totalAmount,
-      "BasePrice:",
-      basePrice,
-      "Nights:",
-      nights,
-      "Rooms:",
-      rooms
-    );
   } else {
     // Fallback calculation
     const baseSubtotal = Number(basePrice || 0);
@@ -118,16 +103,6 @@ export default function Checkout() {
     subtotal = convertedRoomPrice * nights * rooms;
     vatAmount = subtotal * (vatRate / 100);
     totalAmount = subtotal + vatAmount;
-    console.log(
-      "Calculated total:",
-      totalAmount,
-      "Subtotal:",
-      subtotal,
-      "BasePrice:",
-      basePrice,
-      "ConversionRate:",
-      conversionRate
-    );
   }
 
   // Format currency for display
@@ -166,7 +141,7 @@ export default function Checkout() {
     try {
       const toYMD = (d) => new Date(d).toISOString().slice(0, 10);
 
-      const payload = {
+      const bookingPayload = {
         roomId: bookingData.roomId,
         hotelId: bookingData.hotelId,
         userId: user.id || bookingData.user?._id,
@@ -190,17 +165,8 @@ export default function Checkout() {
         address: updatedUser.address || "Not provided",
       };
 
-      const res = await createHotelBooking({
-        bookingId: bookingData.roomId,
-        data: payload,
-      }).unwrap();
-      console.log("rrrrrrrrrrrrrrrrrrrr", res);
-
-      const createdBookingId =
-        res.data?._id || res.data?.id || res._id || res.id;
-
       const paymentData = {
-        ...res,
+        bookingPayload,
         hotelName: bookingData.hotelName,
         location: bookingData.location,
         roomType: bookingData.roomType,
@@ -220,7 +186,7 @@ export default function Checkout() {
         serviceFee: 0,
         isRefundable: bookingData.isRefundable || false,
         user: {
-          ...res.user,
+          ...user,
           name: updatedUser.name,
           email: updatedUser.email,
           phone: updatedUser.phone,
@@ -228,20 +194,18 @@ export default function Checkout() {
         },
       };
 
-      handleSuccess("Room reserved successfully!");
+      handleSuccess("Proceeding to payment...");
 
-      navigate(
-        `/hotel/payment-confirm?bookingId=${encodeURIComponent(
-          createdBookingId
-        )}`,
-        {
-          state: { data: paymentData },
-          replace: true,
-        }
-      );
+      navigate(`/hotel/payment-confirm`, {
+        state: {
+          bookingData: bookingPayload,
+          data: paymentData,
+        },
+        replace: true,
+      });
     } catch (err) {
       const msg =
-        err?.data?.message || err?.message || "Failed to create booking";
+        err?.data?.message || err?.message || "Failed to proceed to payment";
       handleError(msg);
     }
 

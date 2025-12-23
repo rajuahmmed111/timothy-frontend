@@ -31,22 +31,18 @@ export default function EventCard({
 
     const detectCurrency = async () => {
       try {
-        console.log("EventCard: Starting IP-based currency detection...");
         const res = await fetch("https://api.country.is/");
         const data = await res.json();
         const country = data.country;
-        console.log("EventCard: Detected country:", country);
 
         if (country && currencyByCountry[country]) {
           const userCurr = currencyByCountry[country].code;
-          console.log("EventCard: User currency code:", userCurr);
           setDetectedCountry(country);
           setDetectedCurrency(userCurr);
 
           // Fetch conversion: USD → user's currency
           let rate = 1;
           if ("USD" !== userCurr) {
-            console.log("EventCard: Converting from USD to", userCurr);
             const rateRes = await fetch(
               "https://open.er-api.com/v6/latest/USD"
             );
@@ -54,12 +50,10 @@ export default function EventCard({
             if (rateData?.rates) {
               const usdToUser = rateData.rates[userCurr] || 1;
               rate = usdToUser;
-              console.log("EventCard: Calculated conversion rate:", rate);
             }
           }
           setDetectedRate(rate);
         } else {
-          console.log("EventCard: Country not found, using USD");
           setDetectedCurrency("USD");
           setDetectedRate(1);
         }
@@ -75,50 +69,15 @@ export default function EventCard({
     detectCurrency();
   }, [propUserCurrency, propConversionRate]);
 
-  console.log("EventCard received data:", event);
-  console.log("EventCard currency props:", {
-    propUserCurrency,
-    propUserCountry,
-    propConversionRate,
-    detectedCurrency,
-    detectedCountry,
-    detectedRate,
-    finalUserCurrency: userCurrency,
-    finalUserCountry: userCountry,
-    finalConversionRate: conversionRate,
-  });
-
-  // Currency conversion logic (fallback if not provided)
-  console.log("Full event object:", event);
-  console.log("Event attractionAdultPrice:", event?.attractionAdultPrice);
-  console.log("Event basePrice:", event?.basePrice);
-  console.log("Event price:", event?.price);
-
   const displayCurrency = event?.currency || event?.displayCurrency;
   const baseAdultPrice = Number(event?.attractionAdultPrice) || 0;
   const baseChildPrice = Number(event?.attractionChildPrice) || 0;
   const baseCurrency = displayCurrency || "USD";
 
-  console.log("bs", baseAdultPrice, "baseCurrency", baseCurrency);
-
   // Calculate converted prices
   let convertedAdultPrice = baseAdultPrice;
-  console.log("dfdfadsfdasfadsfadsfasdfasdfds", convertedAdultPrice);
   let convertedChildPrice = baseChildPrice;
   let finalDisplayCurrency = userCurrency || baseCurrency;
-
-  // Convert from base currency to user currency
-  console.log("Conversion check:", {
-    userCurrency,
-    baseCurrency,
-    conversionRate,
-    isLoading,
-    shouldConvert:
-      userCurrency &&
-      baseCurrency !== userCurrency &&
-      conversionRate &&
-      !isLoading,
-  });
 
   if (
     userCurrency &&
@@ -126,87 +85,32 @@ export default function EventCard({
     conversionRate &&
     !isLoading
   ) {
-    console.log("Converting from", baseCurrency, "to", userCurrency);
-
     // If base currency is NGN and user wants USD
     if (baseCurrency === "NGN" && userCurrency === "USD") {
       // Convert NGN to USD (assuming 1 USD = 1515 NGN)
       const ngnToUsdRate = 1 / 1515;
       convertedAdultPrice = Number(baseAdultPrice * ngnToUsdRate);
       convertedChildPrice = Number(baseChildPrice * ngnToUsdRate);
-      console.log(
-        "NGN to USD conversion:",
-        baseAdultPrice,
-        "x",
-        ngnToUsdRate,
-        "=",
-        convertedAdultPrice
-      );
     }
     // If base currency is USD and user has different currency
     else if (baseCurrency === "USD") {
       convertedAdultPrice = Number(baseAdultPrice * conversionRate);
       convertedChildPrice = Number(baseChildPrice * conversionRate);
-      console.log(
-        "USD to",
-        userCurrency,
-        "conversion:",
-        baseAdultPrice,
-        "x",
-        conversionRate,
-        "=",
-        convertedAdultPrice
-      );
     }
     // If base currency is not USD but user wants USD
     else if (userCurrency === "USD") {
       convertedAdultPrice = Number(baseAdultPrice / conversionRate);
       convertedChildPrice = Number(baseChildPrice / conversionRate);
-      console.log(
-        baseCurrency,
-        "to USD conversion:",
-        baseAdultPrice,
-        "/",
-        conversionRate,
-        "=",
-        convertedAdultPrice
-      );
     }
     // For other conversions, use the provided conversion rate
     else {
       convertedAdultPrice = Number(baseAdultPrice * conversionRate);
       convertedChildPrice = Number(baseChildPrice * conversionRate);
-      console.log(
-        "Other conversion:",
-        baseCurrency,
-        "to",
-        userCurrency,
-        ":",
-        baseAdultPrice,
-        "x",
-        conversionRate,
-        "=",
-        convertedAdultPrice
-      );
     }
   } else {
-    console.log("No conversion - using base prices");
   }
 
-  console.log("EventCard: Price conversion:", {
-    eventName: event?.attractionDestinationType || event?.name,
-    baseAdultPrice,
-    baseChildPrice,
-    baseCurrency,
-    userCurrency,
-    conversionRate,
-    convertedAdultPrice,
-    convertedChildPrice,
-    finalDisplayCurrency,
-  });
-
   const adultPrice = Number(convertedAdultPrice);
-  console.log("ddfddddddddddddddddddd", adultPrice);
   const childPrice = Number(convertedChildPrice);
 
   // Use adult price for display (EventCard shows single price)
@@ -224,23 +128,6 @@ export default function EventCard({
         maximumFractionDigits: 2,
       });
 
-  console.log("EventCard price conversion:", {
-    eventName: event?.attractionDestinationType || event?.name,
-    baseAdultPrice,
-    baseChildPrice,
-    baseCurrency,
-    userCurrency,
-    conversionRate,
-    convertedAdultPrice,
-    convertedChildPrice,
-    finalDisplayCurrency,
-    adultPrice,
-    childPrice,
-    convertedPrice,
-    displayCurrencyFinal,
-    isZeroDecimalCurrency,
-    formattedPrice,
-  });
   return (
     <Link
       to={`/event-reservation/${encodeURIComponent(event?.id || "")}`}

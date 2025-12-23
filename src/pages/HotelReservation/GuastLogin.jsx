@@ -103,7 +103,6 @@ export default function GuestLogin() {
   const detectCountryByIP = async () => {
     // Only try once countries are ready
     if (!countriesReady.current) {
-      console.log("Countries not loaded yet; delaying geo-detect.");
       return;
     }
 
@@ -130,7 +129,6 @@ export default function GuestLogin() {
 
     for (const p of providers) {
       try {
-        console.log(`Trying geo provider: ${p.name}`);
         const res = await fetchWithTimeout(p.url, {}, 5000);
         if (!res.ok) {
           const txt = await res.text().catch(() => "");
@@ -138,7 +136,6 @@ export default function GuestLogin() {
         }
         const data = await res.json();
         const parsed = p.parse(data);
-        console.log("Geo data from", p.name, parsed);
         if (parsed && parsed.iso) {
           const iso = parsed.iso.toUpperCase();
           const country = countries.find((c) => c.isoCode === iso);
@@ -444,8 +441,6 @@ export default function GuestLogin() {
                 </button>
               </div>
             </form>
-
-           
           </div>
         </div>
       </div>

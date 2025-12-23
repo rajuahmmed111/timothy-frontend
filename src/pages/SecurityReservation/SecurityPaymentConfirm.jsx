@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import {
   useCreateSecurityPaystackCheckoutSessionMutation,
   useCreateSecurityStripeCheckoutSessionMutation,
+  useCreateSecurityBookingMutation,
 } from "../../redux/api/security/securityBookingApi";
 
 // Helper function to check if a country is in Africa
@@ -83,47 +84,111 @@ import {
   ArrowLeft,
   Phone,
 } from "lucide-react";
+import { ToastContainer } from "react-toastify";
 
 export default function PaymentConfirm() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("stripe");
+  const [createdBookingId, setCreatedBookingId] = useState(null);
+
   const data = location.state?.data2;
-  const cancelationPolicy = data.cancellationPolicy;
-
-  // Accept data from multiple shapes: {resp}, {data}, {payload}, or direct object
+  const cancelationPolicy = data?.cancellationPolicy;
   const raw = location.state;
-  const bookingDetails =
-    raw?.resp?.data ||
-    raw?.resp ||
-    raw?.data?.data ||
-    raw?.data ||
-    raw?.payload?.data ||
-    raw?.payload ||
-    {};
+  const totalPrice = raw?.data?.bookingPayload;
 
-  const hotelData = bookingDetails; // alias to satisfy existing JSX bindings without UI changes
-  console.log("bookingDetails", bookingDetails);
-  // Set payment method based on country/address when component mounts or changes
+  // The data structure is: { bookingData: bookingPayload, data: paymentData }
+  // paymentData contains: { bookingPayload, data: bookingDetails, user: updatedUser, ... }
+  const paymentData = raw?.data || {};
+  const bookingPayloadForCreation = raw?.bookingData || {};
+
+  // Get the actual booking details from paymentData.data
+  const bookingDetails = paymentData?.data || {};
+  const userInfo = paymentData?.user || bookingDetails?.user || {};
+
+  // Add fallback data to ensure something displays
+  const displayData = {
+    securityName:
+      paymentData?.bookingPayload?.guardName ||
+      bookingDetails?.securityName ||
+      bookingDetails?.guardName ||
+      "Security Service",
+    address:
+      paymentData?.bookingPayload?.address ||
+      bookingDetails?.address ||
+      bookingDetails?.location ||
+      paymentData?.location ||
+      "Location not specified",
+    securityBookedFromDate:
+      paymentData?.bookingPayload?.securityBookedFromDate ||
+      bookingDetails?.securityBookedFromDate ||
+      bookingDetails?.startDate,
+    securityBookedToDate:
+      paymentData?.bookingPayload?.securityBookedToDate ||
+      bookingDetails?.securityBookedToDate ||
+      bookingDetails?.endDate,
+    number_of_security:
+      paymentData?.bookingPayload?.number_of_security ||
+      bookingDetails?.number_of_security ||
+      bookingDetails?.personnelCount ||
+      1,
+    displayCurrency:
+      paymentData?.bookingPayload?.displayCurrency ||
+      paymentData?.bookingPayload?.currency ||
+      bookingDetails?.displayCurrency ||
+      bookingDetails?.currency ||
+      "USD",
+    convertedPrice:
+      paymentData?.bookingPayload?.convertedPrice ||
+      paymentData?.bookingPayload?.pricePerDay ||
+      bookingDetails?.convertedPrice ||
+      bookingDetails?.pricePerDay ||
+      0,
+    discountedPrice:
+      paymentData?.bookingPayload?.discountedPrice ||
+      bookingDetails?.discountedPrice ||
+      0,
+    user: userInfo || {},
+    cancellationPolicy:
+      paymentData?.bookingPayload?.cancelationPolicy ||
+      data?.cancellationPolicy ||
+      bookingDetails?.cancellationPolicy ||
+      "Non-refundable",
+  };
+
+  const hotelData = bookingDetails;
   useEffect(() => {
-    const countrySrc = bookingDetails?.user?.country || bookingDetails?.address;
+    // Use country from bookingPayload or userInfo
+    const countrySrc =
+      paymentData?.bookingPayload?.address ||
+      userInfo?.country ||
+      bookingDetails?.user?.country ||
+      bookingDetails?.address;
+
     if (countrySrc) {
       const country = String(countrySrc).toLowerCase();
       const isUserInAfrica = isAfricanCountry(country);
       setPaymentMethod(isUserInAfrica ? "paystack" : "stripe");
     }
-  }, [bookingDetails?.user?.country, bookingDetails?.address]);
+  }, [
+    paymentData?.bookingPayload?.address,
+    userInfo?.country,
+    bookingDetails?.user?.country,
+    bookingDetails?.address,
+  ]);
 
   // Payment mutations
   const [createPaystackSession] =
     useCreateSecurityPaystackCheckoutSessionMutation();
   const [createStripeSession] =
     useCreateSecurityStripeCheckoutSessionMutation();
+  const [createSecurityBooking] = useCreateSecurityBookingMutation();
 
   const calculateTotal = () => {
-    const price = Number(bookingDetails?.convertedPrice || 0);
-    const discount = Number(bookingDetails?.discountedPrice || 0);
+    const price = Number(displayData?.convertedPrice || 0);
+    const discount = Number(displayData?.discountedPrice || 0);
     const subtotal = price - discount;
     const vatRate = 5; // Fixed 5% VAT
     const vatAmount = Number(((subtotal * vatRate) / 100).toFixed(2));
@@ -136,6 +201,80 @@ export default function PaymentConfirm() {
   };
 
   const { vatAmount, total } = calculateTotal();
+
+  // Create booking function
+  const createBooking = async () => {
+    // Use the booking payload from paymentData instead of bookingData
+    const actualBookingPayload =
+      paymentData?.bookingPayload || bookingPayloadForCreation;
+
+    if (!actualBookingPayload) {
+      toast.error("Booking data not found");
+      return null;
+    }
+
+    // Try different ID fields in order of preference
+    const idToUse =
+      actualBookingPayload.securityId ||
+      actualBookingPayload.securityProtocolId ||
+      actualBookingPayload.securityGuardId ||
+      actualBookingPayload.id ||
+      actualBookingPayload.guardId;
+
+    // Validate ID exists
+    if (!idToUse || idToUse === "null" || idToUse === "undefined") {
+      toast.error("Security ID is missing or invalid");
+      return null;
+    }
+
+    setIsCreatingBooking(true);
+    try {
+      const res = await createSecurityBooking({
+        id: idToUse,
+        body: actualBookingPayload,
+      }).unwrap();
+
+      const bookingId = res.data?._id || res.data?.id || res._id || res.id;
+      setCreatedBookingId(bookingId);
+
+      toast.success("Security booking created successfully!");
+      return bookingId;
+    } catch (err) {
+      const msg =
+        err?.data?.message || err?.message || "Failed to create booking";
+
+      // Debug logging to see the actual error structure
+
+      // Enhanced duplicate booking detection
+      const isDuplicateBooking =
+        msg.toLowerCase().includes("already") ||
+        msg.toLowerCase().includes("duplicate") ||
+        msg.toLowerCase().includes("exists") ||
+        msg.toLowerCase().includes("booking") ||
+        msg.toLowerCase().includes("security") ||
+        msg.toLowerCase().includes("taken") ||
+        msg.toLowerCase().includes("conflict") ||
+        err?.data?.code === "P2002" ||
+        err?.data?.error === "Unique constraint" ||
+        err?.name === "PrismaClientKnownRequestError" ||
+        (err?.data?.meta?.modelName === "Security_Booking" &&
+          err?.data?.meta?.message?.includes("Unique constraint"));
+
+      if (isDuplicateBooking) {
+        const duplicateMessage =
+          "You already have a booking for this security service in the selected days";
+        toast.error(duplicateMessage);
+        // Also show alert as fallback to ensure message appears
+        alert(duplicateMessage);
+      } else {
+        toast.error(msg);
+      }
+
+      return null;
+    } finally {
+      setIsCreatingBooking(false);
+    }
+  };
 
   // Format date to be more readable
   const formatDate = (dateString) => {
@@ -155,20 +294,11 @@ export default function PaymentConfirm() {
     return Math.ceil(ms / (1000 * 60 * 60 * 24));
   };
   const durationDays = daysBetween(
-    bookingDetails?.securityBookedFromDate,
-    bookingDetails?.securityBookedToDate
+    displayData?.securityBookedFromDate,
+    displayData?.securityBookedToDate
   );
   // Get booking ID from URL params or state
   const searchParams = new URLSearchParams(location.search);
-
-  // Debug logging for all potential ID sources
-  console.log("Debug - Booking ID sources:", {
-    fromUrl: searchParams.get("bookingId"),
-    fromLocationState: location.state?.createdBookingId,
-    fromBookingDetails: bookingDetails?.id,
-    fullLocationState: location.state,
-    fullBookingDetails: bookingDetails,
-  });
 
   // Get booking ID from multiple sources with fallback
   const bookingId = (() => {
@@ -186,7 +316,6 @@ export default function PaymentConfirm() {
       return bookingDetails.id.toString();
     }
 
-    // If we have a booking reference in the URL path
     const pathParts = window.location.pathname.split("/");
     const possibleId = pathParts[pathParts.length - 1];
     if (possibleId && possibleId.length > 10) {
@@ -200,51 +329,79 @@ export default function PaymentConfirm() {
   const handlePayment = async () => {
     // Prevent execution if total is not valid
     if (!total || total <= 0) {
-      console.log("Payment not processed: Invalid total amount");
+      toast.error("Invalid total amount");
       return;
     }
-    // Use the already retrieved bookingId
-    const currentBookingId = bookingId;
-    const countrySrc = bookingDetails?.user?.country || bookingDetails?.address;
+
+    // First create the booking
+    const currentBookingId = createdBookingId || (await createBooking());
+    if (!currentBookingId) {
+      toast.error("Failed to create booking");
+      return;
+    }
+
+    // Validate booking ID is a valid MongoDB ObjectId (24-character hex string)
+    if (
+      !currentBookingId ||
+      currentBookingId === "null" ||
+      currentBookingId.length !== 24
+    ) {
+      toast.error("Invalid booking ID");
+      return;
+    }
+
+    // Go directly to payment without modal
+    proceedToPayment(currentBookingId);
+  };
+
+  const proceedToPayment = async (bookingId) => {
+    // Use country from bookingPayload for payment method detection
+    const countrySrc =
+      paymentData?.bookingPayload?.address ||
+      userInfo?.country ||
+      bookingDetails?.user?.country ||
+      bookingDetails?.address;
+
     if (!countrySrc) {
       toast.error("Please provide country/address for payment method");
       return;
     }
 
+    // Use the passed booking ID instead of createdBookingId state
+    const currentBookingId = bookingId || createdBookingId;
+    if (
+      !currentBookingId ||
+      currentBookingId === "null" ||
+      currentBookingId.length !== 24
+    ) {
+      toast.error("Invalid booking ID for payment");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      if (!currentBookingId) {
-        console.error("No booking ID found in any source");
-        toast.error(
-          "Booking reference not found. Please try refreshing the page or contact support."
-        );
-        return;
-      }
       const successUrl = `${window.location.origin}/booking-confirmation`;
       const cancelUrl = `${window.location.origin}/booking-cancellation`;
-      // Use the already retrieved bookingId
 
       // Prepare user information
-      const userInfo = bookingDetails.user;
-
-      const { vatAmount, total } = calculateTotal();
+      const userInfoData = userInfo || bookingDetails?.user || {};
 
       const bookingConfirmationData = {
         bookingId: currentBookingId,
-        securityName: bookingDetails.securityName,
-        checkIn: bookingDetails.checkIn,
-        checkOut: bookingDetails.checkOut,
-        guests: bookingDetails.guests || 1,
+        securityName: displayData?.securityName || displayData?.guardName,
+        checkIn: displayData?.securityBookedFromDate || displayData?.startDate,
+        checkOut: displayData?.securityBookedToDate || displayData?.endDate,
+        guests: 1,
         total,
-        roomType: bookingDetails.roomType,
-        location: bookingDetails.location,
-        rooms: bookingDetails.rooms,
-        adults: bookingDetails.adults,
-        children: bookingDetails.children,
-        isRefundable: bookingDetails.isRefundable,
-        vat: bookingDetails.vat,
-        nights: bookingDetails.nights,
-        user: userInfo,
+        roomType: "Security",
+        location: displayData?.address,
+        rooms: 1,
+        adults: 1,
+        children: 0,
+        isRefundable: !!displayData?.cancellationPolicy,
+        vat: vatAmount,
+        nights: durationDays || 1,
+        user: userInfoData,
       };
 
       // Store in session storage as fallback
@@ -257,7 +414,6 @@ export default function PaymentConfirm() {
       const isUserInAfrica = isAfricanCountry(userCountry);
 
       if (paymentMethod === "paystack" && isUserInAfrica) {
-        console.log("Processing Paystack payment for:", userCountry);
         const response = await createPaystackSession(currentBookingId).unwrap();
 
         const checkoutUrl =
@@ -284,7 +440,6 @@ export default function PaymentConfirm() {
         // Redirect directly to Paystack checkout
         window.location.href = checkoutUrl;
       } else {
-        console.log("Processing Stripe payment for:", userCountry);
         const result = await createStripeSession(currentBookingId).unwrap();
 
         const checkoutUrl =
@@ -343,19 +498,19 @@ export default function PaymentConfirm() {
             {/* LEFT COLUMN */}
             <div className="md:w-2/3 space-y-8">
               {/* Security Info Card */}
-              <div className="bg-gray-50 p-5 rounded-lg ">
+              <div className="bg-gray-50 p-5 rounded-lg">
                 <h3 className="text-xl font-semibold mb-2">
                   Security Service:{" "}
-                  {bookingDetails?.securityName ||
-                    bookingDetails?.guardName ||
+                  {displayData?.securityName ||
+                    displayData?.guardName ||
                     "Security"}
                 </h3>
 
                 <div className="flex items-center text-gray-600">
                   <MapPin className="w-5 h-5 mr-2" />
                   <span>
-                    {bookingDetails?.address ||
-                      bookingDetails?.location ||
+                    {displayData?.address ||
+                      displayData?.location ||
                       "Not provided"}
                   </span>
                 </div>
@@ -370,8 +525,10 @@ export default function PaymentConfirm() {
                     <div>
                       <p className="text-sm text-gray-500">Start Date</p>
                       <p className="font-medium">
-                        {formatDate(bookingDetails.securityBookedFromDate) ||
-                          "Not specified"}
+                        {formatDate(
+                          displayData?.securityBookedFromDate ||
+                            displayData?.startDate
+                        ) || "Not specified"}
                       </p>
                     </div>
                   </div>
@@ -381,8 +538,10 @@ export default function PaymentConfirm() {
                     <div>
                       <p className="text-sm text-gray-500">End Date</p>
                       <p className="font-medium">
-                        {formatDate(bookingDetails.securityBookedToDate) ||
-                          "Not specified"}
+                        {formatDate(
+                          displayData?.securityBookedToDate ||
+                            displayData?.endDate
+                        ) || "Not specified"}
                       </p>
                     </div>
                   </div>
@@ -409,7 +568,9 @@ export default function PaymentConfirm() {
                     <div>
                       <p className="text-sm text-gray-500">Total Guards</p>
                       <p className="font-medium">
-                        {bookingDetails?.number_of_security || 1}
+                        {displayData?.number_of_security ||
+                          displayData?.personnelCount ||
+                          1}
                       </p>
                     </div>
                   </div>
@@ -420,13 +581,18 @@ export default function PaymentConfirm() {
                       <p className="text-sm text-gray-500">Booking Condition</p>
                       <p
                         className={`font-semibold ${
-                          cancelationPolicy ? "text-green-600" : "text-red-600"
+                          displayData?.cancellationPolicy
+                            ? "text-green-600"
+                            : "text-red-600"
                         }`}
                       >
-                        {cancelationPolicy ? "Refundable" : "Non-Refundable"}
+                        {displayData?.cancellationPolicy
+                          ? "Refundable"
+                          : "Non-Refundable"}
                       </p>
                       <p className="text-sm text-gray-700">
-                        {cancelationPolicy}
+                        {displayData?.cancellationPolicy ||
+                          "No cancellation policy"}
                       </p>
                     </div>
                   </div>
@@ -436,7 +602,10 @@ export default function PaymentConfirm() {
                     <div>
                       <p className="text-sm text-gray-500">Country</p>
                       <p className="font-medium">
-                        {bookingDetails.address || "Not provided"}
+                        {userInfo?.country ||
+                          bookingDetails?.user?.country ||
+                          displayData?.address ||
+                          "Not provided"}
                       </p>
                     </div>
                   </div>
@@ -451,18 +620,27 @@ export default function PaymentConfirm() {
 
                 <div className="space-y-3 text-gray-700">
                   <div className="flex justify-between">
-                    <span>Service Price (Inc.Vat)</span>
+                    <span>Service Price</span>
                     <span>
-                      {hotelData.displayCurrency}{" "}
-                      {(hotelData.totalPrice * 1.05).toFixed(2)}
+                      {displayData?.displayCurrency ||
+                        displayData?.currency ||
+                        "USD"}{" "}
+                      {totalPrice?.totalPrice
+                        ? Number(totalPrice.totalPrice).toFixed(2)
+                        : Number(
+                            displayData?.convertedPrice ||
+                              displayData?.pricePerDay ||
+                              0
+                          ).toFixed(2)}
                     </span>
                   </div>
 
-                  {hotelData.discountedPrice > 0 && (
+                  {displayData?.discountedPrice > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
                       <span>
-                        -{hotelData.displayCurrency} {hotelData.discountedPrice}
+                        -{displayData?.displayCurrency || displayData?.currency}{" "}
+                        {Number(displayData?.discountedPrice).toFixed(2)}
                       </span>
                     </div>
                   )}
@@ -472,8 +650,12 @@ export default function PaymentConfirm() {
                     <div className="flex justify-between text-lg font-semibold">
                       <span>Total</span>
                       <span>
-                        {hotelData.displayCurrency}{" "}
-                        {(hotelData.totalPrice * 1.05).toFixed(2)}
+                        {displayData?.displayCurrency ||
+                          displayData?.currency ||
+                          "USD"}{" "}
+                        {totalPrice?.totalPrice
+                          ? Number(totalPrice.totalPrice).toFixed(2)
+                          : total.toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -481,16 +663,22 @@ export default function PaymentConfirm() {
 
                 <button
                   onClick={handlePayment}
-                  disabled={isLoading}
+                  disabled={isLoading || isCreatingBooking}
                   className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-60"
                 >
-                  {isLoading ? "Processing..." : "Confirm & Pay"}
+                  {isCreatingBooking
+                    ? "Creating Booking..."
+                    : isLoading
+                    ? "Processing Payment..."
+                    : "Confirm & Pay"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <ToastContainer />
     </div>
   );
 }
