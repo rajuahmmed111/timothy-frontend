@@ -101,7 +101,7 @@ export default function SignUp() {
         localStorage.removeItem("rememberCredentials");
       }
 
-      navigate("/verification-code");
+      navigate("/verification-code", { state: { email: form.email } });
     } catch (err) {
       console.error("Registration failed", err);
     }

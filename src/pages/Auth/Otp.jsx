@@ -5,40 +5,42 @@ import { useVerifyUserMutation } from "../../redux/services/authApi";
 function Verificationotp() {
   const [otp, setotp] = useState(new Array(4).fill(""));
   const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
 
   const navigate = useNavigate();
   const location = useLocation();
   const [verifyUser, { isLoading }] = useVerifyUserMutation();
 
+  useEffect(() => {
+    const getEmail = () => {
+      const stateEmail = location.state?.email;
+      if (stateEmail) return stateEmail;
 
-  const getEmail = () => {
-    const stateEmail = location.state?.email;
-    if (stateEmail) return stateEmail;
-
-    try {
-      const registrationData = localStorage.getItem("registrationData");
-      if (registrationData) {
-        const data = JSON.parse(registrationData);
-        return data.email;
+      try {
+        const rememberCredentials = localStorage.getItem("rememberCredentials");
+        if (rememberCredentials) {
+          const data = JSON.parse(rememberCredentials);
+          return data.email;
+        }
+      } catch (err) {
+        console.error("LocalStorage rememberCredentials error", err);
       }
-    } catch (err) {
-      console.error("LocalStorage registrationData error", err);
-    }
 
-    try {
-      const rememberCredentials = localStorage.getItem("rememberCredentials");
-      if (rememberCredentials) {
-        const data = JSON.parse(rememberCredentials);
-        return data.email;
+      try {
+        const registrationData = localStorage.getItem("registrationData");
+        if (registrationData) {
+          const data = JSON.parse(registrationData);
+          return data.email;
+        }
+      } catch (err) {
+        console.error("LocalStorage registrationData error", err);
       }
-    } catch (err) {
-      console.error("LocalStorage rememberCredentials error", err);
-    }
 
-    return null;
-  };
+      return null;
+    };
 
-  const email = getEmail();
+    setEmail(getEmail());
+  }, [location.state]);
 
   // =========================
   // Handle OTP input change
