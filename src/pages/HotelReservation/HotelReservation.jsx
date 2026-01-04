@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import dayjs from "dayjs";
 
 import { Select, Space, Checkbox, Radio, Rate } from "antd";
 import {
@@ -18,14 +19,32 @@ import HotelCard from "../../components/HotelCard/HotelCard";
 import { useGetAllHotelRoomsQuery } from "../../redux/api/hotel/hotelApi";
 
 export default function HotelReservation() {
-  const { bookingData, updateBookingData, updateGuests } = useBooking();
+  const { bookingData, updateBookingData, updateGuests, resetBookingData } = useBooking();
   const location = useLocation();
   const navigate = useNavigate();
 
   // Read query params from URL and forward to API
-  const searchParams = new URLSearchParams(location.search);
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const currentPage = Number(searchParams.get("page") || 1);
   const currentLimit = Number(searchParams.get("limit") || 12);
+  
+  // Initialize date range from URL params if they exist
+  const initializeDateRange = useCallback(() => {
+    const fromDate = searchParams.get("fromDate");
+    const toDate = searchParams.get("toDate");
+    if (fromDate && toDate) {
+      try {
+        const from = dayjs(fromDate);
+        const to = dayjs(toDate);
+        if (from.isValid() && to.isValid()) {
+          return [from, to];
+        }
+      } catch (error) {
+        console.error("Error parsing dates:", error);
+      }
+    }
+    return null;
+  }, [searchParams]);
   const apiParams = {
     searchTerm: searchParams.get("searchTerm") || undefined,
     limit: searchParams.get("limit") || undefined,
@@ -118,6 +137,69 @@ export default function HotelReservation() {
       setMainSearch(bookingData.searchQuery);
     }
   }, [bookingData.searchQuery]);
+
+  // Initialize booking data from URL params on mount
+  useEffect(() => {
+    // Check if there are any search parameters that indicate this is a search result page
+    const hasSearchParams = searchParams.get("searchTerm") || 
+                           searchParams.get("fromDate") || 
+                           searchParams.get("toDate") ||
+                           searchParams.get("hotelNumAdults") ||
+                           searchParams.get("hotelNumChildren") ||
+                           searchParams.get("hotelNumberOfRooms");
+    
+    if (!hasSearchParams) {
+      // Reset everything if no search parameters exist
+      resetBookingData();
+      setMainSearch("");
+      setFilters({
+        priceRange: "",
+        accommodationType: "",
+        amenities: {
+          breakfast: false,
+          kitchen: false,
+          wifi: false,
+          parking: false,
+          restaurant: false,
+          gym: false,
+          pool: false,
+          spa: false,
+          frontDesk24: false,
+          airportShuttle: false,
+        },
+        preferences: {
+          smoking: "",
+          pets: "",
+        },
+        location: {
+          waterView: false,
+          island: false,
+        },
+        reviews: {
+          minRating: 0,
+        },
+      });
+      return;
+    }
+    
+    // Otherwise, initialize from URL parameters
+    const dateRange = initializeDateRange();
+    if (dateRange) {
+      updateBookingData({ dateRange });
+    }
+    
+    const searchTerm = searchParams.get("searchTerm");
+    if (searchTerm) {
+      setMainSearch(searchTerm);
+      updateBookingData({ searchQuery: searchTerm });
+    }
+    
+    const adults = Number(searchParams.get("hotelNumAdults")) || 1;
+    const children = Number(searchParams.get("hotelNumChildren")) || 0;
+    const rooms = Number(searchParams.get("hotelNumberOfRooms")) || 1;
+    
+    updateGuests({ adults, children, rooms });
+  }, [initializeDateRange, searchParams, updateBookingData, updateGuests, resetBookingData]);
 
   // Keep Accommodation Type filter in sync with URL param
   useEffect(() => {
