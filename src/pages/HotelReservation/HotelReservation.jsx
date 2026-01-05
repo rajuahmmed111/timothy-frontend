@@ -199,7 +199,7 @@ export default function HotelReservation() {
     const rooms = Number(searchParams.get("hotelNumberOfRooms")) || 1;
     
     updateGuests({ adults, children, rooms });
-  }, [initializeDateRange, searchParams, updateBookingData, updateGuests, resetBookingData]);
+  }, []); // Only run once on mount
 
   // Keep Accommodation Type filter in sync with URL param
   useEffect(() => {
